@@ -2,7 +2,7 @@ import type { Umi } from "@metaplex-foundation/umi";
 import { generateSigner } from "@metaplex-foundation/umi";
 import { createCollection, createV1 } from "@metaplex-foundation/mpl-core";
 import type { CollectionConfig, MintedNFT } from "@/types";
-import { getExplorerUrl } from "@/lib/utils";
+import { getCoreAssetUrl } from "@/lib/utils";
 
 interface MintImage {
   url: string;
@@ -16,13 +16,20 @@ interface MintProgress {
   message: string;
 }
 
+export interface MintResult {
+  collection: string;
+  minted: MintedNFT[];
+  /** If set, minting stopped early due to this error. `minted` still contains any NFTs that succeeded. */
+  error?: string;
+}
+
 /**
  * Mints a collection of NFTs using Metaplex Core.
  * Uses the Umi identity (user's Privy wallet) as the payer and authority.
  *
- * Flow:
- * 1. createCollection — creates an on-chain collection account
- * 2. createV1 — mints each NFT into the collection
+ * Always returns a result — even on partial failure. The `minted` array
+ * contains all NFTs that were successfully created on-chain before any
+ * error occurred. The caller should persist these regardless of `error`.
  *
  * We use `createV1` instead of the high-level `create` wrapper because
  * `create` always delegates to the on-chain `CreateV2` instruction.
@@ -37,7 +44,7 @@ export async function mintNFTCollection(
   config: CollectionConfig,
   images: MintImage[],
   onProgress?: (progress: MintProgress) => void
-): Promise<{ collection: string; minted: MintedNFT[] }> {
+): Promise<MintResult> {
   // --- Upfront validation ---
   if (!config.name?.trim()) {
     throw new Error("Collection name is required");
@@ -91,6 +98,8 @@ export async function mintNFTCollection(
     );
   }
 
+  const collectionAddress = collectionSigner.publicKey.toString();
+
   // --- Mint individual NFTs ---
   const minted: MintedNFT[] = [];
 
@@ -128,8 +137,6 @@ export async function mintNFTCollection(
     const assetSigner = generateSigner(umi);
 
     try {
-      // Use createV1 directly — takes collection as PublicKey, sends
-      // CreateV1 instruction (discriminator 0), no external plugin fields.
       await createV1(umi, {
         asset: assetSigner,
         collection: collectionSigner.publicKey,
@@ -137,24 +144,25 @@ export async function mintNFTCollection(
         uri: nftMetadataUri,
       }).sendAndConfirm(umi, { confirm: { commitment: "confirmed" } });
     } catch (err) {
-      throw new Error(
-        `Failed to mint ${nftName}: ${err instanceof Error ? err.message : String(err)}. ` +
-          `${minted.length} of ${images.length} NFTs were minted before this error.`
-      );
+      // Return partial results instead of throwing.
+      // The caller can persist whatever was minted and show the error.
+      const message = err instanceof Error ? err.message : String(err);
+      return {
+        collection: collectionAddress,
+        minted,
+        error: `Failed to mint ${nftName}: ${message}. ${minted.length} of ${images.length} NFTs minted successfully.`,
+      };
     }
 
     minted.push({
       mint: assetSigner.publicKey.toString(),
       name: nftName,
       imageUrl: image.url,
-      explorerUrl: getExplorerUrl(assetSigner.publicKey.toString()),
+      explorerUrl: getCoreAssetUrl(assetSigner.publicKey.toString()),
     });
   }
 
-  return {
-    collection: collectionSigner.publicKey.toString(),
-    minted,
-  };
+  return { collection: collectionAddress, minted };
 }
 
 function toDataUri(metadata: object): string {

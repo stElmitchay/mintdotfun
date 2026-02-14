@@ -42,17 +42,26 @@ export default function MintPanel({ images, onClose }: MintPanelProps) {
         (p) => setProgress(p.message)
       );
 
+      // Always persist whatever was minted (even on partial failure)
+      if (result.minted.length > 0) {
+        persistCollection(result.collection, result.minted);
+      }
+
       setMintedNFTs(result.minted);
-      setStatus("complete");
       setProgress("");
 
-      // Persist to localStorage for Gallery
-      persistCollection(result.collection, result.minted);
+      if (result.error) {
+        // Partial failure: some NFTs minted, but not all
+        setError(result.error);
+        setStatus(result.minted.length > 0 ? "complete" : "error");
+      } else {
+        setStatus("complete");
+      }
     } catch (err) {
+      // Only catches upfront validation errors (collection creation failure, etc.)
       console.error("Minting error:", err);
       const message =
         err instanceof Error ? err.message : "Minting failed";
-      // Provide user-friendly messages for common errors
       if (message.includes("insufficient")) {
         setError(
           "Insufficient SOL balance. You need devnet SOL to mint. Use a Solana faucet to get some."
@@ -115,9 +124,16 @@ export default function MintPanel({ images, onClose }: MintPanelProps) {
             <div className="flex items-center gap-2 text-green-400">
               <Check className="h-5 w-5" />
               <span className="font-medium">
-                Collection minted successfully!
+                {error
+                  ? `${mintedNFTs.length} of ${images.length} NFTs minted`
+                  : "Collection minted successfully!"}
               </span>
             </div>
+            {error && (
+              <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-400">
+                {error}
+              </div>
+            )}
             <div className="space-y-3">
               {mintedNFTs.map((nft) => (
                 <div

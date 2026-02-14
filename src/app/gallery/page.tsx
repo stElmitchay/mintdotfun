@@ -3,7 +3,7 @@
 import { ExternalLink, Trash2, Sparkles } from "lucide-react";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import type { MintedCollection } from "@/types";
-import { shortenAddress, getExplorerUrl } from "@/lib/utils";
+import { shortenAddress, getCoreAssetUrl } from "@/lib/utils";
 import { STORAGE_KEYS } from "@/lib/constants";
 
 export default function GalleryPage() {
@@ -75,7 +75,7 @@ export default function GalleryPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <a
-                    href={getExplorerUrl(collection.collectionAddress)}
+                    href={getCoreAssetUrl(collection.collectionAddress)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="rounded-lg bg-zinc-800 p-2 text-zinc-400 hover:text-violet-400"
