@@ -140,6 +140,7 @@ export async function mintNFTCollection(
       await createV1(umi, {
         asset: assetSigner,
         collection: collectionSigner.publicKey,
+        owner: umi.identity.publicKey,
         name: nftName,
         uri: nftMetadataUri,
       }).sendAndConfirm(umi, { confirm: { commitment: "confirmed" } });
