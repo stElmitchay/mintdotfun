@@ -5,6 +5,7 @@ import { useWallets } from "@privy-io/react-auth/solana";
 import { createUmi } from "@metaplex-foundation/umi-bundle-defaults";
 import { mplCore } from "@metaplex-foundation/mpl-core";
 import { signerIdentity } from "@metaplex-foundation/umi";
+import { irysUploader } from "@metaplex-foundation/umi-uploader-irys";
 import {
   createSignerFromPrivyWallet,
   isPrivySolanaWallet,
@@ -32,7 +33,7 @@ export function useUmi() {
   }, [wallet]);
 
   const umi = useMemo(() => {
-    const instance = createUmi(rpcUrl).use(mplCore());
+    const instance = createUmi(rpcUrl).use(mplCore()).use(irysUploader());
 
     if (wallet && isPrivySolanaWallet(wallet)) {
       const signer = createSignerFromPrivyWallet(

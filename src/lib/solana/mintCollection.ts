@@ -1,5 +1,5 @@
 import type { Umi } from "@metaplex-foundation/umi";
-import { generateSigner } from "@metaplex-foundation/umi";
+import { generateSigner, createGenericFile } from "@metaplex-foundation/umi";
 import { createCollection, createV1 } from "@metaplex-foundation/mpl-core";
 import type { CollectionConfig, MintedNFT } from "@/types";
 import { getCoreAssetUrl } from "@/lib/utils";
@@ -10,7 +10,7 @@ interface MintImage {
 }
 
 interface MintProgress {
-  phase: "collection" | "minting";
+  phase: "uploading" | "collection" | "minting";
   current: number;
   total: number;
   message: string;
@@ -24,20 +24,15 @@ export interface MintResult {
 }
 
 /**
- * Mints a collection of NFTs using Metaplex Core.
- * Uses the Umi identity (user's Privy wallet) as the payer and authority.
+ * Mints a collection of NFTs using Metaplex Core with Arweave storage.
  *
- * Always returns a result — even on partial failure. The `minted` array
- * contains all NFTs that were successfully created on-chain before any
- * error occurred. The caller should persist these regardless of `error`.
+ * Flow:
+ * 1. Upload each image to Arweave via Irys → permanent image URLs
+ * 2. Upload metadata JSON for each NFT to Arweave → permanent metadata URIs
+ * 3. Create collection on-chain with Arweave metadata
+ * 4. Mint each NFT with permanent Arweave metadata URIs
  *
- * We use `createV1` instead of the high-level `create` wrapper because
- * `create` always delegates to the on-chain `CreateV2` instruction.
- * In mpl-core v1.7.0, `create` serializes empty plugin arrays as
- * `Some([])` instead of `None`, which causes the on-chain program to
- * panic when processing non-existent external plugin adapter accounts.
- * `createV1` sends the `CreateV1` instruction (discriminator 0) which
- * has no external plugin adapter field and handles this correctly.
+ * Always returns a result — even on partial failure.
  */
 export async function mintNFTCollection(
   umi: Umi,
@@ -61,20 +56,82 @@ export async function mintNFTCollection(
 
   const creatorAddress = umi.identity.publicKey.toString();
 
-  // Build collection metadata (data URI for devnet MVP)
-  const collectionMetadata = {
-    name: config.name,
-    symbol: config.symbol,
-    description: config.description || "",
-    image: images[0].url,
-    external_url: "",
-    properties: {
-      category: "image",
-      creators: [{ address: creatorAddress, share: 100 }],
-    },
-  };
+  // --- Upload phase: images + metadata to Arweave ---
+  const arweaveImageUrls: string[] = [];
+  const arweaveMetadataUris: string[] = [];
 
-  const collectionMetadataUri = toDataUri(collectionMetadata);
+  for (let i = 0; i < images.length; i++) {
+    const image = images[i];
+    const nftName = `${config.name} #${i + 1}`;
+
+    onProgress?.({
+      phase: "uploading",
+      current: i + 1,
+      total: images.length,
+      message: `Uploading ${nftName} to Arweave (${i + 1}/${images.length})...`,
+    });
+
+    // Fetch image bytes
+    let imageBytes: Uint8Array;
+    let contentType = "image/webp";
+    try {
+      const resp = await fetch(image.url);
+      if (!resp.ok) {
+        throw new Error(`HTTP ${resp.status}`);
+      }
+      contentType = resp.headers.get("content-type") || "image/webp";
+      imageBytes = new Uint8Array(await resp.arrayBuffer());
+    } catch (err) {
+      throw new Error(
+        `Failed to download image for ${nftName}: ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+
+    // Upload image to Arweave
+    let imageUri: string;
+    try {
+      const file = createGenericFile(imageBytes, `${config.symbol}-${i + 1}.webp`, {
+        contentType,
+      });
+      const [uri] = await umi.uploader.upload([file]);
+      imageUri = uri;
+    } catch (err) {
+      throw new Error(
+        `Failed to upload image for ${nftName} to Arweave: ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+
+    arweaveImageUrls.push(imageUri);
+
+    // Build and upload metadata JSON to Arweave
+    const nftMetadata = {
+      name: nftName,
+      symbol: config.symbol,
+      description: config.description
+        ? `${config.description}\n\nGenerated with AI`
+        : "Generated with AI",
+      image: imageUri,
+      attributes: [
+        { trait_type: "Generation", value: "AI" },
+        { trait_type: "Collection", value: config.name },
+        { trait_type: "Piece", value: `${i + 1}` },
+      ],
+      properties: {
+        category: "image",
+        files: [{ uri: imageUri, type: contentType }],
+        creators: [{ address: creatorAddress, share: 100 }],
+      },
+    };
+
+    try {
+      const metadataUri = await umi.uploader.uploadJson(nftMetadata);
+      arweaveMetadataUris.push(metadataUri);
+    } catch (err) {
+      throw new Error(
+        `Failed to upload metadata for ${nftName} to Arweave: ${err instanceof Error ? err.message : String(err)}`
+      );
+    }
+  }
 
   // --- Create collection on-chain ---
   onProgress?.({
@@ -83,6 +140,28 @@ export async function mintNFTCollection(
     total: images.length,
     message: "Creating collection on-chain...",
   });
+
+  // Upload collection metadata to Arweave
+  const collectionMetadata = {
+    name: config.name,
+    symbol: config.symbol,
+    description: config.description || "",
+    image: arweaveImageUrls[0],
+    external_url: "",
+    properties: {
+      category: "image",
+      creators: [{ address: creatorAddress, share: 100 }],
+    },
+  };
+
+  let collectionMetadataUri: string;
+  try {
+    collectionMetadataUri = await umi.uploader.uploadJson(collectionMetadata);
+  } catch (err) {
+    throw new Error(
+      `Failed to upload collection metadata to Arweave: ${err instanceof Error ? err.message : String(err)}`
+    );
+  }
 
   const collectionSigner = generateSigner(umi);
 
@@ -104,7 +183,6 @@ export async function mintNFTCollection(
   const minted: MintedNFT[] = [];
 
   for (let i = 0; i < images.length; i++) {
-    const image = images[i];
     const nftName = `${config.name} #${i + 1}`;
 
     onProgress?.({
@@ -114,26 +192,6 @@ export async function mintNFTCollection(
       message: `Minting ${nftName} (${i + 1}/${images.length})...`,
     });
 
-    const nftMetadata = {
-      name: nftName,
-      symbol: config.symbol,
-      description: config.description
-        ? `${config.description}\n\nGenerated with AI`
-        : "Generated with AI",
-      image: image.url,
-      attributes: [
-        { trait_type: "Generation", value: "AI" },
-        { trait_type: "Collection", value: config.name },
-        { trait_type: "Piece", value: `${i + 1}` },
-      ],
-      properties: {
-        category: "image",
-        files: [{ uri: image.url, type: "image/webp" }],
-        creators: [{ address: creatorAddress, share: 100 }],
-      },
-    };
-
-    const nftMetadataUri = toDataUri(nftMetadata);
     const assetSigner = generateSigner(umi);
 
     try {
@@ -142,11 +200,9 @@ export async function mintNFTCollection(
         collection: collectionSigner.publicKey,
         owner: umi.identity.publicKey,
         name: nftName,
-        uri: nftMetadataUri,
+        uri: arweaveMetadataUris[i],
       }).sendAndConfirm(umi, { confirm: { commitment: "confirmed" } });
     } catch (err) {
-      // Return partial results instead of throwing.
-      // The caller can persist whatever was minted and show the error.
       const message = err instanceof Error ? err.message : String(err);
       return {
         collection: collectionAddress,
@@ -158,16 +214,10 @@ export async function mintNFTCollection(
     minted.push({
       mint: assetSigner.publicKey.toString(),
       name: nftName,
-      imageUrl: image.url,
+      imageUrl: arweaveImageUrls[i],
       explorerUrl: getCoreAssetUrl(assetSigner.publicKey.toString()),
     });
   }
 
   return { collection: collectionAddress, minted };
-}
-
-function toDataUri(metadata: object): string {
-  return `data:application/json;base64,${btoa(
-    unescape(encodeURIComponent(JSON.stringify(metadata)))
-  )}`;
 }

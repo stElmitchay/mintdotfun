@@ -14,24 +14,40 @@ export interface OwnedAsset {
 }
 
 /**
- * Parses a data URI (base64-encoded JSON) to extract the image URL.
- * Returns null if the URI isn't a data URI or can't be parsed.
+ * Resolves an NFT metadata URI to extract the image URL.
+ * Handles both data URIs (legacy) and Arweave/HTTP URIs.
  */
-function parseImageFromDataUri(uri: string): string | null {
-  if (!uri.startsWith("data:application/json;base64,")) return null;
-  try {
-    const base64 = uri.slice("data:application/json;base64,".length);
-    const json = JSON.parse(atob(base64));
-    return typeof json.image === "string" ? json.image : null;
-  } catch {
-    return null;
+async function resolveImageUrl(uri: string): Promise<string> {
+  // Data URI — decode inline
+  if (uri.startsWith("data:application/json;base64,")) {
+    try {
+      const base64 = uri.slice("data:application/json;base64,".length);
+      const json = JSON.parse(atob(base64));
+      return typeof json.image === "string" ? json.image : "";
+    } catch {
+      return "";
+    }
   }
+
+  // HTTP/Arweave URI — fetch the JSON metadata
+  if (uri.startsWith("http://") || uri.startsWith("https://")) {
+    try {
+      const resp = await fetch(uri);
+      if (!resp.ok) return "";
+      const json = await resp.json();
+      return typeof json.image === "string" ? json.image : "";
+    } catch {
+      return "";
+    }
+  }
+
+  return "";
 }
 
 /**
  * Fetches all mpl-core assets owned by the connected wallet directly
- * from the Solana blockchain. This proves on-chain ownership regardless
- * of localStorage state.
+ * from the Solana blockchain. Resolves metadata URIs (Arweave or data URIs)
+ * to display images. This proves on-chain ownership regardless of localStorage.
  */
 export function useOwnedAssets(umi: Umi, walletAddress: string | null) {
   const [assets, setAssets] = useState<OwnedAsset[]>([]);
@@ -53,12 +69,15 @@ export function useOwnedAssets(umi: Umi, walletAddress: string | null) {
         skipDerivePlugins: true,
       });
 
-      const parsed: OwnedAsset[] = onChainAssets.map((asset) => ({
-        address: asset.publicKey.toString(),
-        name: asset.name,
-        imageUrl: parseImageFromDataUri(asset.uri) || "",
-        explorerUrl: getCoreAssetUrl(asset.publicKey.toString()),
-      }));
+      // Resolve metadata URIs in parallel to extract image URLs
+      const parsed = await Promise.all(
+        onChainAssets.map(async (asset) => ({
+          address: asset.publicKey.toString(),
+          name: asset.name,
+          imageUrl: await resolveImageUrl(asset.uri),
+          explorerUrl: getCoreAssetUrl(asset.publicKey.toString()),
+        }))
+      );
 
       setAssets(parsed);
     } catch (err) {

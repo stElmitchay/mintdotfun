@@ -30,16 +30,21 @@ export default function MintPanel({ images, onClose }: MintPanelProps) {
   const handleMint = async () => {
     if (!config.name || !config.symbol || !connected) return;
 
-    setStatus("minting");
+    setStatus("uploading");
     setError(null);
-    setProgress("Preparing transaction...");
+    setProgress("Preparing uploads...");
 
     try {
       const result = await mintNFTCollection(
         umi,
         config,
         images.map((img) => ({ url: img.url, prompt: img.prompt })),
-        (p) => setProgress(p.message)
+        (p) => {
+          setProgress(p.message);
+          if (p.phase === "collection" || p.phase === "minting") {
+            setStatus("minting");
+          }
+        }
       );
 
       // Always persist whatever was minted (even on partial failure)
@@ -296,10 +301,15 @@ export default function MintPanel({ images, onClose }: MintPanelProps) {
               disabled={!config.name || !config.symbol || !connected || formDisabled}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3 font-medium text-white transition-all hover:from-violet-500 hover:to-fuchsia-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {status === "uploading" || status === "minting" ? (
+              {status === "uploading" ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Minting...
+                  Uploading to Arweave...
+                </>
+              ) : status === "minting" ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Minting on Solana...
                 </>
               ) : (
                 <>
@@ -311,8 +321,9 @@ export default function MintPanel({ images, onClose }: MintPanelProps) {
             </button>
 
             <p className="text-center text-xs text-zinc-600">
-              Minting on {process.env.NEXT_PUBLIC_SOLANA_NETWORK || "devnet"}.
-              Your wallet will sign each transaction.
+              Images stored on Arweave. Minting on{" "}
+              {process.env.NEXT_PUBLIC_SOLANA_NETWORK || "devnet"}.
+              Your wallet will sign uploads and transactions.
             </p>
           </div>
         )}
