@@ -125,8 +125,12 @@ export async function POST(req: NextRequest) {
       referenceImageUrl = `data:${referenceImage.type};base64,${base64}`;
     }
 
-    // Generate images (parallel requests to Replicate)
-    const imagePromises = Array.from({ length: count }, async (_, i) => {
+    // Generate images sequentially to respect Replicate rate limits.
+    // Accounts with <$5 credit are limited to burst=1, so parallel
+    // requests would all 429. Sequential + retry handles this cleanly.
+    const images: string[] = [];
+
+    for (let i = 0; i < count; i++) {
       const variation =
         count > 1 ? `, variation ${i + 1}, unique composition` : "";
 
@@ -143,21 +147,32 @@ export async function POST(req: NextRequest) {
         input.prompt_strength = 0.75;
       }
 
-      const output = await replicate.run("black-forest-labs/flux-schnell", {
-        input,
-      });
-
-      // Replicate can return different shapes — handle all known variants
-      const url = extractImageUrl(output);
-      if (!url) {
-        throw new Error(
-          `Unexpected Replicate output format: ${JSON.stringify(output).slice(0, 200)}`
-        );
+      // Retry up to 3 times on 429 (rate limit), waiting the retry_after hint
+      let url: string | null = null;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const output = await replicate.run("black-forest-labs/flux-schnell", {
+            input,
+          });
+          url = extractImageUrl(output);
+          break;
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          if (msg.includes("429") || msg.includes("throttled")) {
+            // Wait before retrying (Replicate suggests ~10s)
+            await new Promise((r) => setTimeout(r, 12_000));
+            continue;
+          }
+          throw err;
+        }
       }
-      return url;
-    });
 
-    const images = await Promise.all(imagePromises);
+      if (!url) {
+        throw new Error(`Failed to generate image ${i + 1} after retries`);
+      }
+
+      images.push(url);
+    }
 
     return NextResponse.json({ images, prompt: fullPrompt });
   } catch (error) {
@@ -166,11 +181,17 @@ export async function POST(req: NextRequest) {
     const message =
       error instanceof Error ? error.message : "Failed to generate images";
 
-    // Surface billing errors clearly
+    // Surface billing / rate limit errors clearly
     if (message.includes("402") || message.includes("Payment Required")) {
       return NextResponse.json(
         { error: "Replicate billing issue. Please check your Replicate account balance." },
         { status: 402 }
+      );
+    }
+    if (message.includes("429") || message.includes("throttled")) {
+      return NextResponse.json(
+        { error: "Image generation is rate-limited. Please wait a moment and try again with fewer images." },
+        { status: 429 }
       );
     }
 
