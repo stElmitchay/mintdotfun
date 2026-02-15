@@ -85,7 +85,22 @@ export default function MintPanel({ images, onClose }: MintPanelProps) {
     }
   };
 
-  const persistCollection = (collectionAddress: string, minted: MintedNFT[]) => {
+  const persistCollection = async (collectionAddr: string, minted: MintedNFT[]) => {
+    // Save to Supabase (primary) — fire and forget, don't block UI
+    fetch("/api/collections", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        walletAddress: walletAddress || "",
+        collectionAddress: collectionAddr,
+        config,
+        nfts: minted,
+      }),
+    }).catch((err) => {
+      console.warn("Failed to save collection to database:", err);
+    });
+
+    // Also save to localStorage as offline cache
     try {
       const raw = localStorage.getItem(STORAGE_KEYS.COLLECTIONS);
       let existing: MintedCollection[] = [];
@@ -98,7 +113,7 @@ export default function MintPanel({ images, onClose }: MintPanelProps) {
       const newCollection: MintedCollection = {
         id: `col-${Date.now()}`,
         config,
-        collectionAddress,
+        collectionAddress: collectionAddr,
         nfts: minted,
         mintedAt: Date.now(),
         walletAddress: walletAddress || "",
@@ -108,7 +123,7 @@ export default function MintPanel({ images, onClose }: MintPanelProps) {
         JSON.stringify([newCollection, ...existing])
       );
     } catch (err) {
-      console.warn("Failed to save collection to gallery:", err);
+      console.warn("Failed to save collection to localStorage:", err);
     }
   };
 

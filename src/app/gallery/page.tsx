@@ -1,29 +1,19 @@
 "use client";
 
 import { ExternalLink, Trash2, Sparkles, Loader2, RefreshCw, Wallet } from "lucide-react";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { useUmi } from "@/hooks/useUmi";
 import { useOwnedAssets } from "@/hooks/useOwnedAssets";
-import type { MintedCollection } from "@/types";
+import { useCollections } from "@/hooks/useCollections";
 import { shortenAddress, getCoreAssetUrl } from "@/lib/utils";
-import { STORAGE_KEYS } from "@/lib/constants";
 
 export default function GalleryPage() {
   const { umi, connected, walletAddress } = useUmi();
-  const { assets, loading, error: chainError, refetch } = useOwnedAssets(umi, walletAddress);
-  const [collections, setCollections, { loaded }] = useLocalStorage<
-    MintedCollection[]
-  >(STORAGE_KEYS.COLLECTIONS, []);
-
-  const removeCollection = (id: string) => {
-    setCollections((prev) => prev.filter((c) => c.id !== id));
-  };
-
-  if (!loaded) return null;
+  const { assets, loading: chainLoading, error: chainError, refetch: refetchChain } = useOwnedAssets(umi, walletAddress);
+  const { collections, loading: dbLoading, removeCollection } = useCollections(walletAddress);
 
   const hasCollections = collections.length > 0;
   const hasOnChainAssets = assets.length > 0;
-  const isEmpty = !hasCollections && !hasOnChainAssets && !loading;
+  const loading = chainLoading || dbLoading;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
@@ -46,17 +36,17 @@ export default function GalleryPage() {
               </span>
             </div>
             <button
-              onClick={refetch}
-              disabled={loading}
+              onClick={refetchChain}
+              disabled={chainLoading}
               className="flex items-center gap-1.5 rounded-lg bg-zinc-800 px-3 py-1.5 text-xs text-zinc-400 hover:text-white disabled:opacity-50"
               title="Refresh from blockchain"
             >
-              <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
+              <RefreshCw className={`h-3.5 w-3.5 ${chainLoading ? "animate-spin" : ""}`} />
               Refresh
             </button>
           </div>
 
-          {loading && !hasOnChainAssets && (
+          {chainLoading && !hasOnChainAssets && (
             <div className="flex items-center justify-center gap-2 rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/30 py-12 text-sm text-zinc-500">
               <Loader2 className="h-4 w-4 animate-spin" />
               Loading assets from blockchain...
@@ -69,7 +59,7 @@ export default function GalleryPage() {
             </div>
           )}
 
-          {!loading && !chainError && !hasOnChainAssets && (
+          {!chainLoading && !chainError && !hasOnChainAssets && (
             <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/30 py-8 text-center text-sm text-zinc-500">
               No mpl-core NFTs found for this wallet on-chain.
             </div>
@@ -114,7 +104,14 @@ export default function GalleryPage() {
         </div>
       )}
 
-      {/* localStorage collections */}
+      {/* Mint history from database */}
+      {dbLoading && !hasCollections && (
+        <div className="flex items-center justify-center gap-2 py-12 text-sm text-zinc-500">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Loading collections...
+        </div>
+      )}
+
       {hasCollections && (
         <div>
           {connected && (
@@ -126,13 +123,12 @@ export default function GalleryPage() {
                 key={collection.id}
                 className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6"
               >
-                {/* Collection header */}
                 <div className="mb-4 flex items-start justify-between">
                   <div>
                     <h2 className="text-lg font-bold text-white">
                       {collection.config.name}
                     </h2>
-                    <div className="mt-1 flex items-center gap-3 text-xs text-zinc-500">
+                    <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-zinc-500">
                       <span className="rounded bg-zinc-800 px-2 py-0.5 font-mono">
                         {collection.config.symbol}
                       </span>
@@ -175,7 +171,6 @@ export default function GalleryPage() {
                   </div>
                 </div>
 
-                {/* NFT grid */}
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                   {collection.nfts.map((nft) => (
                     <a
@@ -210,8 +205,8 @@ export default function GalleryPage() {
         </div>
       )}
 
-      {/* Empty state — only when no wallet connected and no localStorage data */}
-      {isEmpty && !connected && (
+      {/* Empty state */}
+      {!loading && !hasCollections && !hasOnChainAssets && !connected && (
         <div className="flex min-h-[40vh] flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/30">
           <Sparkles className="mb-3 h-8 w-8 text-zinc-700" />
           <p className="text-zinc-500">No collections minted yet.</p>
