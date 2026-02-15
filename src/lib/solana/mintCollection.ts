@@ -4,6 +4,26 @@ import { createCollection, createV1 } from "@metaplex-foundation/mpl-core";
 import type { CollectionConfig, MintedNFT } from "@/types";
 import { getCoreAssetUrl } from "@/lib/utils";
 
+const MAX_RETRIES = 2;
+const RETRY_DELAY_MS = 2000;
+
+async function withRetry<T>(fn: () => Promise<T>, label: string): Promise<T> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      if (attempt < MAX_RETRIES) {
+        await new Promise((r) => setTimeout(r, RETRY_DELAY_MS * (attempt + 1)));
+      }
+    }
+  }
+  throw new Error(
+    `${label} failed after ${MAX_RETRIES + 1} attempts: ${lastError instanceof Error ? lastError.message : String(lastError)}`
+  );
+}
+
 interface MintImage {
   url: string;
   prompt: string;
@@ -87,13 +107,16 @@ export async function mintNFTCollection(
       );
     }
 
-    // Upload image to Arweave
+    // Upload image to Arweave (with retry for transient failures)
     let imageUri: string;
     try {
       const file = createGenericFile(imageBytes, `${config.symbol}-${i + 1}.webp`, {
         contentType,
       });
-      const [uri] = await umi.uploader.upload([file]);
+      const [uri] = await withRetry(
+        () => umi.uploader.upload([file]),
+        `Image upload for ${nftName}`
+      );
       imageUri = uri;
     } catch (err) {
       throw new Error(
@@ -124,7 +147,10 @@ export async function mintNFTCollection(
     };
 
     try {
-      const metadataUri = await umi.uploader.uploadJson(nftMetadata);
+      const metadataUri = await withRetry(
+        () => umi.uploader.uploadJson(nftMetadata),
+        `Metadata upload for ${nftName}`
+      );
       arweaveMetadataUris.push(metadataUri);
     } catch (err) {
       throw new Error(
@@ -156,7 +182,10 @@ export async function mintNFTCollection(
 
   let collectionMetadataUri: string;
   try {
-    collectionMetadataUri = await umi.uploader.uploadJson(collectionMetadata);
+    collectionMetadataUri = await withRetry(
+      () => umi.uploader.uploadJson(collectionMetadata),
+      "Collection metadata upload"
+    );
   } catch (err) {
     throw new Error(
       `Failed to upload collection metadata to Arweave: ${err instanceof Error ? err.message : String(err)}`

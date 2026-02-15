@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { X, Loader2, ExternalLink, Check, Coins, AlertTriangle } from "lucide-react";
+import { X, Loader2, ExternalLink, Check, Coins, AlertTriangle, Copy } from "lucide-react";
 import type { GeneratedImage, CollectionConfig, MintedNFT, MintedCollection, MintStatus } from "@/types";
 import { useUmi } from "@/hooks/useUmi";
 import { mintNFTCollection } from "@/lib/solana/mintCollection";
 import { STORAGE_KEYS } from "@/lib/constants";
+import { shortenAddress, getCoreAssetUrl } from "@/lib/utils";
 
 interface MintPanelProps {
   images: GeneratedImage[];
@@ -24,8 +25,10 @@ export default function MintPanel({ images, onClose }: MintPanelProps) {
 
   const [status, setStatus] = useState<MintStatus>("idle");
   const [mintedNFTs, setMintedNFTs] = useState<MintedNFT[]>([]);
+  const [collectionAddress, setCollectionAddress] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState("");
+  const [copiedCollection, setCopiedCollection] = useState(false);
 
   const handleMint = async () => {
     if (!config.name || !config.symbol || !connected) return;
@@ -53,6 +56,7 @@ export default function MintPanel({ images, onClose }: MintPanelProps) {
       }
 
       setMintedNFTs(result.minted);
+      setCollectionAddress(result.collection);
       setProgress("");
 
       if (result.error) {
@@ -134,6 +138,38 @@ export default function MintPanel({ images, onClose }: MintPanelProps) {
                   : "Collection minted successfully!"}
               </span>
             </div>
+            {collectionAddress && (
+              <div className="flex items-center gap-2 rounded-lg bg-zinc-900 p-3">
+                <span className="text-xs text-zinc-500">Collection:</span>
+                <span className="flex-1 truncate font-mono text-xs text-zinc-300">
+                  {shortenAddress(collectionAddress, 8)}
+                </span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(collectionAddress);
+                    setCopiedCollection(true);
+                    setTimeout(() => setCopiedCollection(false), 2000);
+                  }}
+                  className="text-zinc-500 hover:text-white"
+                  title="Copy collection address"
+                >
+                  {copiedCollection ? (
+                    <Check className="h-3.5 w-3.5 text-green-400" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                </button>
+                <a
+                  href={getCoreAssetUrl(collectionAddress)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-violet-400 hover:text-violet-300"
+                  title="View on explorer"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </div>
+            )}
             {error && (
               <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-400">
                 {error}

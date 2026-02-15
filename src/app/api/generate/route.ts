@@ -29,6 +29,17 @@ function isRateLimited(ip: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
+  // Require Privy auth — the SDK sets this cookie on login.
+  // This prevents unauthenticated users from burning Replicate credits.
+  // For full JWT verification, add @privy-io/server-auth + PRIVY_APP_SECRET.
+  const privyToken = req.cookies.get("privy-token")?.value;
+  if (!privyToken) {
+    return NextResponse.json(
+      { error: "Authentication required. Please sign in." },
+      { status: 401 }
+    );
+  }
+
   // Rate limit by IP
   const ip = req.headers.get("x-forwarded-for") ?? "unknown";
   if (isRateLimited(ip)) {
@@ -163,7 +174,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({ error: message }, { status: 500 });
+    // Don't leak internal error details to the client
+    const safeMessage = message.includes("Replicate") || message.includes("Unexpected")
+      ? "Image generation failed. Please try again."
+      : message;
+    return NextResponse.json({ error: safeMessage }, { status: 500 });
   }
 }
 
