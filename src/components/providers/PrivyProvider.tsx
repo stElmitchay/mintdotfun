@@ -38,7 +38,7 @@ export default function PrivyProvider({
       config={{
         appearance: {
           theme: "dark",
-          accentColor: "#8B5CF6",
+          accentColor: "#0D9488",
           logo: undefined,
         },
         loginMethods: ["email", "wallet", "google", "twitter"],

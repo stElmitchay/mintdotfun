@@ -285,7 +285,7 @@ export default function GalleryPage() {
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-purple-500/40 to-pink-500/40 flex items-center justify-center">
+                        <div className="w-full h-full bg-gradient-to-br from-teal-500/40 to-cyan-500/40 flex items-center justify-center">
                           <Sparkles className="w-12 h-12 text-white/30" />
                         </div>
                       )}

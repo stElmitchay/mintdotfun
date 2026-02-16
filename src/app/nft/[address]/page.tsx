@@ -197,7 +197,7 @@ export default function NFTDetailPage({
                 className="w-full aspect-square object-cover"
               />
             ) : (
-              <div className="w-full aspect-square bg-gradient-to-br from-purple-500/40 to-pink-500/40 flex items-center justify-center">
+              <div className="w-full aspect-square bg-gradient-to-br from-teal-500/40 to-cyan-500/40 flex items-center justify-center">
                 <Tag className="w-16 h-16 text-white/30" />
               </div>
             )}

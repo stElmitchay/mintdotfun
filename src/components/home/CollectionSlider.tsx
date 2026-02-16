@@ -3,13 +3,13 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const collections = [
-  { name: "Cosmic Dreams", count: "AI Art", bg: "from-blue-500/20 to-purple-500/20" },
-  { name: "Neon Worlds", count: "Digital", bg: "from-cyan-500/20 to-blue-500/20" },
-  { name: "Abstract Souls", count: "Generative", bg: "from-purple-500/20 to-pink-500/20" },
-  { name: "Cyber Creatures", count: "AI Art", bg: "from-pink-500/20 to-purple-500/20" },
-  { name: "Pixel Realms", count: "Pixel Art", bg: "from-indigo-500/20 to-purple-500/20" },
+  { name: "Cosmic Dreams", count: "AI Art", bg: "from-teal-500/20 to-cyan-500/20" },
+  { name: "Neon Worlds", count: "Digital", bg: "from-cyan-500/20 to-sky-500/20" },
+  { name: "Abstract Souls", count: "Generative", bg: "from-teal-600/20 to-emerald-500/20" },
+  { name: "Cyber Creatures", count: "AI Art", bg: "from-cyan-600/20 to-teal-500/20" },
+  { name: "Pixel Realms", count: "Pixel Art", bg: "from-sky-500/20 to-cyan-500/20" },
   { name: "Mystic Beings", count: "Fantasy", bg: "from-teal-500/20 to-cyan-500/20" },
-  { name: "Astral Flow", count: "Abstract", bg: "from-violet-500/20 to-purple-500/20" },
+  { name: "Astral Flow", count: "Abstract", bg: "from-cyan-500/20 to-teal-600/20" },
 ];
 
 export default function CollectionSlider() {

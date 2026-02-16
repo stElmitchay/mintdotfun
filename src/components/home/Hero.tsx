@@ -117,7 +117,7 @@ export default function Hero() {
               }}
             >
               {/* Purple aura */}
-              <div className="absolute inset-0 bg-gradient-radial from-purple-500/30 via-purple-600/20 to-transparent rounded-full blur-3xl opacity-60 animate-pulse scale-150" />
+              <div className="absolute inset-0 bg-gradient-radial from-teal-500/30 via-cyan-600/20 to-transparent rounded-full blur-3xl opacity-60 animate-pulse scale-150" />
 
               <div
                 className="relative"
@@ -129,7 +129,7 @@ export default function Hero() {
                     alt="NFT Statue"
                     className="w-full h-auto max-w-6xl mx-auto filter drop-shadow-lg"
                     style={{
-                      filter: "drop-shadow(0 0 20px rgba(139, 92, 246, 0.5))",
+                      filter: "drop-shadow(0 0 20px rgba(13, 148, 136, 0.5))",
                     }}
                   />
                 </div>
