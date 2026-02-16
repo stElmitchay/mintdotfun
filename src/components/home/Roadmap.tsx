@@ -1,77 +1,90 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { FadeUp, StaggerContainer, staggerItem } from "@/components/ui/motion";
+
+const milestones = [
+  {
+    phase: "01",
+    title: "Platform Launch",
+    description: "AI generation and Solana minting",
+    status: "live" as const,
+  },
+  {
+    phase: "02",
+    title: "Multi-Model Support",
+    description: "Multiple AI models and advanced style controls",
+    status: "building" as const,
+  },
+  {
+    phase: "03",
+    title: "Community & Marketplace",
+    description: "Creator profiles, social features, and NFT marketplace",
+    status: "building" as const,
+  },
+  {
+    phase: "04",
+    title: "Mobile & Multi-chain",
+    description: "Mobile app and multi-chain expansion",
+    status: "planned" as const,
+  },
+];
+
 export default function Roadmap() {
-  const milestones = [
-    {
-      date: "Q1 2025",
-      title: "Platform Launch",
-      description: "Launch MintAI beta with AI generation and Solana minting",
-    },
-    {
-      date: "Q2 2025",
-      title: "Multi-Model Support",
-      description: "Add multiple AI models and advanced style controls",
-    },
-    {
-      date: "Q3 2025",
-      title: "Community & Marketplace",
-      description: "Launch creator profiles, social features, and NFT marketplace",
-    },
-    {
-      date: "Q4 2025",
-      title: "Mobile & Multi-chain",
-      description: "Launch mobile app and expand to multiple blockchains",
-    },
-  ];
-
   return (
-    <section className="py-20 px-6 relative">
-      <div className="max-w-6xl mx-auto relative z-10">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl lg:text-5xl font-bold mb-4">
-            Our <span className="text-gradient">Roadmap</span>
-          </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto">
-            Building the future of AI-powered NFT creation on Solana.
-          </p>
-        </div>
+    <section className="py-24 px-6">
+      <div className="max-w-4xl mx-auto">
+        <FadeUp>
+          <div className="mb-16">
+            <h2 className="text-3xl font-bold tracking-tight mb-3">Roadmap</h2>
+            <p className="text-gray-500 text-sm">
+              Building the future of AI-powered NFT creation.
+            </p>
+          </div>
+        </FadeUp>
 
-        <div className="relative">
-          {/* Vertical line */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-0.5 h-full bg-gradient-to-b from-primary via-accent-purple to-primary" />
+        <StaggerContainer className="space-y-0">
+          {milestones.map((milestone, index) => (
+            <motion.div
+              key={milestone.phase}
+              variants={staggerItem}
+              className="group relative flex gap-8 pb-12 last:pb-0"
+            >
+              {/* Vertical line */}
+              {index < milestones.length - 1 && (
+                <div className="absolute left-[19px] top-10 w-px h-[calc(100%-10px)] bg-white/[0.04]" />
+              )}
 
-          <div className="space-y-16">
-            {milestones.map((milestone, index) => (
-              <div
-                key={index}
-                className={`flex items-center gap-8 ${
-                  index % 2 === 0 ? "flex-row" : "flex-row-reverse"
-                }`}
-              >
+              {/* Dot */}
+              <div className="relative z-10 flex-shrink-0 mt-1.5">
                 <div
-                  className={`flex-1 ${
-                    index % 2 === 0 ? "text-right" : "text-left"
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-mono font-bold ${
+                    milestone.status === "live"
+                      ? "bg-primary text-white"
+                      : "bg-surface-3 text-gray-500 border border-white/[0.06]"
                   }`}
                 >
-                  <div className="inline-block bg-dark-700/50 backdrop-blur-xl rounded-2xl p-6 border border-white/10 hover:border-primary/50 transition-all card-hover">
-                    <div className="text-primary font-semibold mb-2">
-                      {milestone.date}
-                    </div>
-                    <h3 className="text-xl font-bold mb-2">{milestone.title}</h3>
-                    <p className="text-gray-400 text-sm">
-                      {milestone.description}
-                    </p>
-                  </div>
+                  {milestone.phase}
                 </div>
-
-                <div className="relative flex-shrink-0">
-                  <div className="w-4 h-4 rounded-full bg-primary shadow-neon relative z-10" />
-                  <div className="absolute inset-0 w-8 h-8 -translate-x-2 -translate-y-2 rounded-full bg-primary/20 animate-ping" />
-                </div>
-
-                <div className="flex-1" />
               </div>
-            ))}
-          </div>
-        </div>
+
+              {/* Content */}
+              <div className="flex-1 pt-1">
+                <div className="flex items-center gap-3 mb-1">
+                  <h3 className="text-lg font-semibold text-white">
+                    {milestone.title}
+                  </h3>
+                  {milestone.status === "live" && (
+                    <span className="text-[10px] font-medium uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                      Live
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm text-gray-500">{milestone.description}</p>
+              </div>
+            </motion.div>
+          ))}
+        </StaggerContainer>
       </div>
     </section>
   );

@@ -24,7 +24,7 @@ export default function PrivyProvider({
 
   if (!appId) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-dark-900 text-gray-400">
+      <div className="flex min-h-screen items-center justify-center bg-surface-0 text-gray-400">
         <p>
           Missing NEXT_PUBLIC_PRIVY_APP_ID. Add it to your .env.local file.
         </p>

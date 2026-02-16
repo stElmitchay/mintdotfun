@@ -26,12 +26,17 @@ export default function RootLayout({
     <html lang="en" className="dark">
       <body className={`${spaceGrotesk.variable} antialiased`}>
         <PrivyProvider>
-          <div className="min-h-screen bg-dark-900 text-white overflow-x-hidden">
-            {/* Fixed Background Orbs */}
+          <div className="min-h-screen bg-surface-0 text-white overflow-x-hidden">
+            {/* Ambient background — very subtle */}
             <div className="fixed inset-0 pointer-events-none">
-              <div className="absolute top-20 left-10 w-72 h-72 bg-accent-purple/15 rounded-full blur-3xl animate-float" />
-              <div className="absolute top-40 right-20 w-96 h-96 bg-accent-cyan/10 rounded-full blur-3xl" />
-              <div className="absolute bottom-20 left-1/4 w-80 h-80 bg-primary/10 rounded-full blur-3xl animate-float" />
+              <div
+                className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full blur-[160px] opacity-[0.04]"
+                style={{ background: "#0D9488" }}
+              />
+              <div
+                className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full blur-[140px] opacity-[0.03]"
+                style={{ background: "#22D3EE" }}
+              />
             </div>
 
             {/* Content */}

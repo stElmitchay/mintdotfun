@@ -7,6 +7,7 @@ import { useUmi } from "@/hooks/useUmi";
 import { mintSingleNFT } from "@/lib/solana/mintNFT";
 import { STORAGE_KEYS } from "@/lib/constants";
 import { shortenAddress } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface MintPanelProps {
   image: GeneratedImage;
@@ -77,7 +78,6 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
   };
 
   const persistNFT = async (nft: MintedNFT) => {
-    // Save to Supabase (primary) — fire and forget, don't block UI
     fetch("/api/collections", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -93,7 +93,6 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
       console.warn("Failed to save NFT to database:", err);
     });
 
-    // Also save to localStorage as offline cache
     try {
       const raw = localStorage.getItem(STORAGE_KEYS.MINTED_NFTS);
       let existing: MintedNFT[] = [];
@@ -115,178 +114,188 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
   const formDisabled = status !== "idle" && status !== "error";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-3xl border border-white/10 bg-dark-800/95 backdrop-blur-xl p-8 shadow-neon">
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 p-2 rounded-full hover:bg-dark-700 text-gray-500 hover:text-white transition-all"
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.97, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.97, y: 10 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-white/[0.06] bg-surface-1 p-8"
         >
-          <X className="h-5 w-5" />
-        </button>
+          <button
+            onClick={onClose}
+            className="absolute right-4 top-4 p-2 rounded-lg text-gray-600 hover:text-white transition-colors"
+          >
+            <X className="h-4 w-4" />
+          </button>
 
-        <h2 className="mb-6 text-2xl font-bold">
-          Mint Your <span className="text-gradient">NFT</span>
-        </h2>
+          <h2 className="mb-6 text-xl font-bold">
+            Mint Your <span className="text-primary">NFT</span>
+          </h2>
 
-        {status === "complete" && mintedNFT ? (
-          <div className="space-y-5">
-            <div className="flex items-center gap-3 rounded-2xl bg-green-500/10 border border-green-500/20 p-4 text-green-400">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-green-500/20">
-                <Check className="h-5 w-5" />
+          {status === "complete" && mintedNFT ? (
+            <div className="space-y-5">
+              <div className="flex items-center gap-3 rounded-xl bg-green-500/5 border border-green-500/15 p-4 text-green-400">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500/10">
+                  <Check className="h-4 w-4" />
+                </div>
+                <span className="font-medium text-sm">NFT minted successfully!</span>
               </div>
-              <span className="font-semibold text-lg">NFT minted successfully!</span>
-            </div>
 
-            <div className="overflow-hidden rounded-2xl border border-white/10">
-              <img
-                src={mintedNFT.imageUrl}
-                alt={mintedNFT.name}
-                className="aspect-square w-full object-cover"
-              />
-            </div>
+              <div className="overflow-hidden rounded-xl">
+                <img
+                  src={mintedNFT.imageUrl}
+                  alt={mintedNFT.name}
+                  className="aspect-square w-full object-cover"
+                />
+              </div>
 
-            <div className="flex items-center gap-2 rounded-2xl bg-dark-700/50 border border-white/5 p-4">
-              <span className="text-xs text-gray-500">Mint:</span>
-              <span className="flex-1 truncate font-mono text-sm text-gray-300">
-                {shortenAddress(mintedNFT.mint, 8)}
-              </span>
+              <div className="flex items-center gap-2 rounded-xl bg-surface-2 border border-white/[0.04] p-3">
+                <span className="text-[10px] text-gray-600 uppercase tracking-wider">Mint</span>
+                <span className="flex-1 truncate font-mono text-xs text-gray-400">
+                  {shortenAddress(mintedNFT.mint, 8)}
+                </span>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(mintedNFT.mint);
+                    setCopiedMint(true);
+                    setTimeout(() => setCopiedMint(false), 2000);
+                  }}
+                  className="p-1.5 rounded-lg hover:bg-surface-3 text-gray-500 hover:text-white transition-all"
+                >
+                  {copiedMint ? (
+                    <Check className="h-3.5 w-3.5 text-primary" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5" />
+                  )}
+                </button>
+                <a
+                  href={mintedNFT.explorerUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-1.5 rounded-lg hover:bg-surface-3 text-gray-500 hover:text-white transition-all"
+                >
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </a>
+              </div>
+
               <button
-                onClick={() => {
-                  navigator.clipboard.writeText(mintedNFT.mint);
-                  setCopiedMint(true);
-                  setTimeout(() => setCopiedMint(false), 2000);
-                }}
-                className="p-1.5 rounded-full hover:bg-dark-600 text-gray-500 hover:text-white transition-all"
-                title="Copy mint address"
+                onClick={onClose}
+                className="w-full bg-surface-2 border border-white/[0.06] py-3 rounded-xl text-sm font-medium text-white hover:bg-surface-3 transition-colors"
               >
-                {copiedMint ? (
-                  <Check className="h-4 w-4 text-green-400" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
+                Done
               </button>
-              <a
-                href={mintedNFT.explorerUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-1.5 rounded-full hover:bg-dark-600 text-primary-light hover:text-primary transition-all"
-                title="View on explorer"
-              >
-                <ExternalLink className="h-4 w-4" />
-              </a>
             </div>
-
-            <button
-              onClick={onClose}
-              className="w-full bg-white/5 backdrop-blur-sm py-4 rounded-2xl font-semibold text-white border border-white/10 hover:bg-white/10 transition-all"
-            >
-              Done
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-5">
-            {/* Wallet status */}
-            {!connected && (
-              <div className="flex items-center gap-3 rounded-2xl border border-amber-500/20 bg-amber-500/10 p-4 text-sm text-amber-400">
-                <AlertTriangle className="h-5 w-5 flex-shrink-0" />
-                No Solana wallet connected. Connect your wallet to mint.
-              </div>
-            )}
-
-            {connected && walletAddress && (
-              <div className="rounded-2xl bg-dark-700/50 border border-white/5 p-3 text-sm text-gray-400">
-                Minting with wallet:{" "}
-                <span className="font-mono text-gray-300">{shortenAddress(walletAddress, 6)}</span>
-              </div>
-            )}
-
-            {/* Single image preview */}
-            <div className="overflow-hidden rounded-2xl border border-white/10">
-              <img
-                src={image.url}
-                alt="NFT Preview"
-                className="aspect-square w-full object-cover"
-              />
-            </div>
-
-            <div className="space-y-3">
-              <label className="flex items-center gap-2 font-semibold">
-                <Sparkles className="w-4 h-4 text-primary" />
-                NFT Name *
-              </label>
-              <input
-                type="text"
-                value={config.name}
-                onChange={(e) =>
-                  setConfig((c) => ({ ...c, name: e.target.value }))
-                }
-                placeholder="e.g., Cosmic Dreamer #1"
-                className="w-full rounded-2xl border border-white/10 bg-dark-700/50 px-6 py-4 text-white placeholder-gray-400 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
-                disabled={formDisabled}
-                maxLength={100}
-              />
-            </div>
-
-            <div className="space-y-3">
-              <label className="font-semibold">
-                Description
-              </label>
-              <textarea
-                value={config.description}
-                onChange={(e) =>
-                  setConfig((c) => ({ ...c, description: e.target.value }))
-                }
-                placeholder="Describe your NFT..."
-                className="h-24 w-full resize-none rounded-2xl border border-white/10 bg-dark-700/50 px-6 py-4 text-white placeholder-gray-400 outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
-                disabled={formDisabled}
-                maxLength={500}
-              />
-            </div>
-
-            {error && (
-              <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
-                {error}
-              </div>
-            )}
-
-            {progress && (
-              <div className="flex items-center gap-3 rounded-2xl bg-primary/10 border border-primary/20 p-4 text-sm text-primary-light">
-                <div className="w-5 h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
-                {progress}
-              </div>
-            )}
-
-            <button
-              onClick={handleMint}
-              disabled={!config.name || !connected || formDisabled}
-              className="w-full flex items-center justify-center gap-3 bg-gradient-primary px-8 py-4 rounded-2xl text-white font-semibold hover:shadow-neon-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed group text-lg"
-            >
-              {status === "uploading" ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Uploading to Arweave...
-                </>
-              ) : status === "minting" ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Minting on Solana...
-                </>
-              ) : (
-                <>
-                  <Coins className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                  Mint as NFT
-                </>
+          ) : (
+            <div className="space-y-5">
+              {!connected && (
+                <div className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-400">
+                  <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+                  No wallet connected. Connect to mint.
+                </div>
               )}
-            </button>
 
-            <p className="text-center text-sm text-gray-500">
-              Image stored on Arweave. Minting on{" "}
-              {process.env.NEXT_PUBLIC_SOLANA_NETWORK || "devnet"}.
-              One wallet signature to mint.
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
+              {connected && walletAddress && (
+                <div className="rounded-xl bg-surface-2 border border-white/[0.04] p-3 text-xs text-gray-500">
+                  Minting with{" "}
+                  <span className="font-mono text-gray-400">{shortenAddress(walletAddress, 6)}</span>
+                </div>
+              )}
+
+              <div className="overflow-hidden rounded-xl">
+                <img
+                  src={image.url}
+                  alt="NFT Preview"
+                  className="aspect-square w-full object-cover"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-300">
+                  <Sparkles className="w-3.5 h-3.5 text-primary" />
+                  Name
+                </label>
+                <input
+                  type="text"
+                  value={config.name}
+                  onChange={(e) =>
+                    setConfig((c) => ({ ...c, name: e.target.value }))
+                  }
+                  placeholder="e.g., Cosmic Dreamer #1"
+                  className="w-full rounded-xl border border-white/[0.06] bg-surface-2 px-4 py-3 text-sm text-white placeholder-gray-600 outline-none focus:border-primary/40 transition-all"
+                  disabled={formDisabled}
+                  maxLength={100}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-300">
+                  Description
+                </label>
+                <textarea
+                  value={config.description}
+                  onChange={(e) =>
+                    setConfig((c) => ({ ...c, description: e.target.value }))
+                  }
+                  placeholder="Describe your NFT..."
+                  className="h-20 w-full resize-none rounded-xl border border-white/[0.06] bg-surface-2 px-4 py-3 text-sm text-white placeholder-gray-600 outline-none focus:border-primary/40 transition-all"
+                  disabled={formDisabled}
+                  maxLength={500}
+                />
+              </div>
+
+              {error && (
+                <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-400">
+                  {error}
+                </div>
+              )}
+
+              {progress && (
+                <div className="flex items-center gap-3 rounded-xl bg-primary/5 border border-primary/15 p-3 text-xs text-primary-light">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  {progress}
+                </div>
+              )}
+
+              <motion.button
+                onClick={handleMint}
+                disabled={!config.name || !connected || formDisabled}
+                className="w-full flex items-center justify-center gap-2 bg-primary px-6 py-3.5 rounded-xl text-sm text-white font-medium hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                {status === "uploading" ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Uploading to Arweave...
+                  </>
+                ) : status === "minting" ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Minting on Solana...
+                  </>
+                ) : (
+                  <>
+                    <Coins className="w-3.5 h-3.5" />
+                    Mint as NFT
+                  </>
+                )}
+              </motion.button>
+
+              <p className="text-center text-[11px] text-gray-600">
+                Image on Arweave. Minting on{" "}
+                {process.env.NEXT_PUBLIC_SOLANA_NETWORK || "devnet"}.
+              </p>
+            </div>
+          )}
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 }

@@ -3,18 +3,19 @@
 import { useState, useCallback } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import {
-  Sparkles,
   Upload,
   ImagePlus,
   X,
   Check,
   RefreshCw,
   Trash2,
-  Rocket,
+  ArrowRight,
   ArrowLeft,
   Layers,
   BookOpen,
   Image as ImageIcon,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { GeneratedImage, GenerationStatus } from "@/types";
@@ -22,6 +23,8 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { STORAGE_KEYS, GENERATION } from "@/lib/constants";
 import MintPanel from "@/components/create/MintPanel";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { FadeUp } from "@/components/ui/motion";
 
 const STYLE_PRESETS = GENERATION.ALLOWED_STYLES.map((id) => ({
   id,
@@ -141,21 +144,23 @@ export default function CreatePage() {
     return (
       <div className="min-h-screen pt-24 pb-12">
         <div className="max-w-4xl mx-auto px-6 flex flex-col items-center justify-center min-h-[60vh] gap-6">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary/10">
-            <Sparkles className="w-10 h-10 text-primary" />
+          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+            <Sparkles className="w-7 h-7 text-primary" />
           </div>
-          <h2 className="text-3xl font-bold text-white">
+          <h2 className="text-2xl font-bold text-white">
             Connect to Start Creating
           </h2>
-          <p className="text-gray-400 text-lg text-center max-w-md">
+          <p className="text-gray-500 text-sm text-center max-w-md">
             Sign in with your email or wallet to create AI-generated NFTs on Solana.
           </p>
-          <button
+          <motion.button
             onClick={login}
-            className="flex items-center gap-3 bg-gradient-primary px-8 py-4 rounded-full text-white font-semibold hover:shadow-neon-lg transition-all"
+            className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-primary-dark transition-colors"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
             Connect Wallet
-          </button>
+          </motion.button>
         </div>
       </div>
     );
@@ -163,246 +168,251 @@ export default function CreatePage() {
 
   return (
     <div className="min-h-screen pt-24 pb-12">
-      <div className="max-w-5xl mx-auto px-6">
+      <div className="max-w-4xl mx-auto px-6">
         {/* Back link */}
-        <div className="mb-2">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to Home
-          </Link>
-        </div>
+        <FadeUp>
+          <div className="mb-2">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 text-gray-500 hover:text-white transition-colors duration-300 mb-6 text-sm"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              Back
+            </Link>
+          </div>
+        </FadeUp>
 
         {/* Header */}
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold mb-4">
-            Create Your <span className="text-gradient">AI NFT</span>
-          </h2>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto">
-            Describe your vision and let AI generate unique artwork. Pick your
-            favorite and mint it as a 1-of-1 NFT on Solana.
-          </p>
-        </div>
-
-        {/* Main form area */}
-        <div className="space-y-8">
-          <div className="bg-dark-800/50 backdrop-blur-xl rounded-3xl border border-white/10 p-8 shadow-neon">
-            {/* Prompt */}
-            <div className="space-y-4 mb-8">
-              <label className="flex items-center gap-2 text-lg font-semibold">
-                <BookOpen className="w-5 h-5 text-primary" />
-                Describe Your Artwork
-              </label>
-              <textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Tell us your vision. What style, theme, and mood should the AI capture? Be as detailed as you like..."
-                rows={6}
-                className="w-full px-6 py-4 bg-dark-700/50 border border-white/10 rounded-2xl text-white placeholder-gray-400 focus:border-primary/50 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all resize-none"
-                disabled={status === "generating"}
-                maxLength={2000}
-              />
-              <p className="text-sm text-gray-400">
-                Describe your vision in detail to help AI generate better artwork
-              </p>
-            </div>
-
-            {/* Style Preset */}
-            <div className="space-y-4 mb-8">
-              <label className="flex items-center gap-2 text-lg font-semibold">
-                <Sparkles className="w-5 h-5 text-primary" />
-                Art Style
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {STYLE_PRESETS.map((preset) => (
-                  <button
-                    key={preset.id}
-                    onClick={() => setStyle(preset.id)}
-                    disabled={status === "generating"}
-                    className={cn(
-                      "px-4 py-2 rounded-full text-sm font-medium transition-all",
-                      style === preset.id
-                        ? "bg-primary text-white shadow-neon"
-                        : "bg-white/5 text-gray-300 hover:bg-white/10 border border-white/10 hover:border-white/20"
-                    )}
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Variations Count */}
-            <div className="space-y-4 mb-8">
-              <label className="flex items-center gap-2 text-lg font-semibold">
-                <Layers className="w-5 h-5 text-primary" />
-                Number of Variations
-              </label>
-              <div className="flex items-center gap-4">
-                <input
-                  type="range"
-                  min={GENERATION.MIN_COUNT}
-                  max={GENERATION.MAX_COUNT}
-                  value={count}
-                  onChange={(e) => setCount(parseInt(e.target.value))}
-                  disabled={status === "generating"}
-                  className="flex-1 h-2 bg-dark-700 rounded-lg appearance-none cursor-pointer slider"
-                />
-                <div className="px-4 py-2 bg-primary/20 border border-primary/30 rounded-lg text-primary font-semibold min-w-[60px] text-center">
-                  {count}
-                </div>
-              </div>
-              <p className="text-sm text-gray-400">
-                More variations give you more options to choose from
-              </p>
-            </div>
-
-            {/* Reference Image Upload */}
-            <div className="space-y-4">
-              <label className="flex items-center gap-2 text-lg font-semibold">
-                <ImageIcon className="w-5 h-5 text-primary" />
-                Inspiration Image (Optional)
-              </label>
-              <p className="text-sm text-gray-400 mb-4">
-                Upload an image to inspire the AI generation. This can be an art
-                style, color palette, or concept you like.
-              </p>
-              {referenceImage ? (
-                <div className="relative group inline-block">
-                  <img
-                    src={referenceImage}
-                    alt="Reference"
-                    className="w-full max-w-xs h-48 object-cover rounded-2xl border border-white/10"
-                  />
-                  <button
-                    onClick={removeReferenceImage}
-                    className="absolute top-2 right-2 p-2 bg-red-500/80 hover:bg-red-500 rounded-full transition-all opacity-0 group-hover:opacity-100"
-                  >
-                    <X className="w-4 h-4 text-white" />
-                  </button>
-                </div>
-              ) : (
-                <label className="flex flex-col items-center justify-center w-full max-w-xs h-48 border-2 border-dashed border-white/20 rounded-2xl cursor-pointer hover:border-primary/50 transition-all group">
-                  <Upload className="w-8 h-8 text-gray-400 group-hover:text-primary transition-colors mb-2" />
-                  <span className="text-sm text-gray-400 group-hover:text-primary transition-colors">
-                    Upload Image
-                  </span>
-                  <input
-                    type="file"
-                    accept={GENERATION.ALLOWED_IMAGE_TYPES.join(",")}
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                </label>
-              )}
-            </div>
+        <FadeUp delay={0.1}>
+          <div className="mb-12">
+            <h1 className="text-3xl font-bold tracking-tight mb-2">
+              Create Your <span className="text-primary">AI NFT</span>
+            </h1>
+            <p className="text-gray-500 text-sm">
+              Describe your vision and let AI generate unique artwork.
+            </p>
           </div>
+        </FadeUp>
+
+        {/* Main form */}
+        <div className="space-y-8">
+          <FadeUp delay={0.2}>
+            <div className="bg-surface-1 rounded-2xl border border-white/[0.04] p-8 space-y-8">
+              {/* Prompt */}
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-300">
+                  <BookOpen className="w-4 h-4 text-primary" />
+                  Describe Your Artwork
+                </label>
+                <textarea
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  placeholder="Tell us your vision..."
+                  rows={5}
+                  className="w-full px-5 py-4 bg-surface-2 border border-white/[0.06] rounded-xl text-white text-sm placeholder-gray-600 focus:border-primary/40 focus:outline-none transition-all resize-none"
+                  disabled={status === "generating"}
+                  maxLength={2000}
+                />
+              </div>
+
+              {/* Style Preset */}
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-300">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  Art Style
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {STYLE_PRESETS.map((preset) => (
+                    <button
+                      key={preset.id}
+                      onClick={() => setStyle(preset.id)}
+                      disabled={status === "generating"}
+                      className={cn(
+                        "px-4 py-2 rounded-full text-xs font-medium transition-all duration-300",
+                        style === preset.id
+                          ? "bg-primary text-white"
+                          : "bg-surface-2 text-gray-400 hover:text-white border border-white/[0.06] hover:border-white/[0.1]"
+                      )}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Variations */}
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-300">
+                  <Layers className="w-4 h-4 text-primary" />
+                  Variations
+                </label>
+                <div className="flex items-center gap-4">
+                  <input
+                    type="range"
+                    min={GENERATION.MIN_COUNT}
+                    max={GENERATION.MAX_COUNT}
+                    value={count}
+                    onChange={(e) => setCount(parseInt(e.target.value))}
+                    disabled={status === "generating"}
+                    className="flex-1 h-1.5 bg-surface-3 rounded-lg appearance-none cursor-pointer slider"
+                  />
+                  <div className="px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-lg text-primary text-sm font-semibold min-w-[48px] text-center">
+                    {count}
+                  </div>
+                </div>
+              </div>
+
+              {/* Reference Image */}
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 text-sm font-medium text-gray-300">
+                  <ImageIcon className="w-4 h-4 text-primary" />
+                  Inspiration Image
+                  <span className="text-gray-600 font-normal">(Optional)</span>
+                </label>
+                {referenceImage ? (
+                  <div className="relative group inline-block">
+                    <img
+                      src={referenceImage}
+                      alt="Reference"
+                      className="w-full max-w-xs h-40 object-cover rounded-xl"
+                    />
+                    <button
+                      onClick={removeReferenceImage}
+                      className="absolute top-2 right-2 p-1.5 bg-black/60 backdrop-blur-sm rounded-lg text-gray-300 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center w-full max-w-xs h-40 border border-dashed border-white/[0.1] rounded-xl cursor-pointer hover:border-primary/30 transition-all group bg-surface-2">
+                    <Upload className="w-5 h-5 text-gray-600 group-hover:text-primary transition-colors mb-2" />
+                    <span className="text-xs text-gray-600 group-hover:text-gray-400 transition-colors">
+                      Upload Image
+                    </span>
+                    <input
+                      type="file"
+                      accept={GENERATION.ALLOWED_IMAGE_TYPES.join(",")}
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
+          </FadeUp>
 
           {/* Generate Button */}
-          <button
-            onClick={handleGenerate}
-            disabled={!prompt.trim() || status === "generating"}
-            className="w-full flex items-center justify-center gap-3 bg-gradient-primary px-8 py-6 rounded-2xl text-white font-semibold hover:shadow-neon-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed group text-lg"
-          >
-            {status === "generating" ? (
-              <>
-                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Generating Artwork...
-              </>
-            ) : (
-              <>
-                <Rocket className="w-6 h-6 group-hover:scale-110 transition-transform" />
-                {generatedImages.length > 0
-                  ? "Generate New Variations"
-                  : "Generate Artwork"}
-              </>
-            )}
-          </button>
+          <FadeUp delay={0.3}>
+            <motion.button
+              onClick={handleGenerate}
+              disabled={!prompt.trim() || status === "generating"}
+              className="w-full flex items-center justify-center gap-3 bg-primary px-8 py-5 rounded-xl text-white font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              whileHover={{ scale: 1.005 }}
+              whileTap={{ scale: 0.995 }}
+            >
+              {status === "generating" ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Generating Artwork...
+                </>
+              ) : (
+                <>
+                  {generatedImages.length > 0
+                    ? "Generate New Variations"
+                    : "Generate Artwork"}
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </motion.button>
+          </FadeUp>
 
           {error && (
-            <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-sm text-red-400">
+            <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-400">
               {error}
             </div>
           )}
 
-          {/* Generated Images Grid */}
+          {/* Generated Images */}
           {generatedImages.length > 0 && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <h3 className="text-2xl font-bold">
-                  Pick Your <span className="text-gradient">Favorite</span>
-                </h3>
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={handleClearImages}
-                    className="flex items-center gap-2 text-sm text-gray-500 hover:text-white transition-colors"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Clear All
-                  </button>
-                  <button
-                    onClick={handleGenerate}
-                    disabled={status === "generating"}
-                    className="flex items-center gap-2 text-sm text-primary-light hover:text-primary transition-colors"
-                  >
-                    <RefreshCw className="h-4 w-4" />
-                    Regenerate
-                  </button>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {generatedImages.map((img) => (
-                  <button
-                    key={img.id}
-                    onClick={() => selectImage(img.id)}
-                    className={cn(
-                      "group relative overflow-hidden rounded-2xl border-2 transition-all card-hover",
-                      img.selected
-                        ? "border-primary shadow-neon"
-                        : "border-white/5 opacity-70 hover:opacity-100 hover:border-white/20"
-                    )}
-                  >
-                    <img
-                      src={img.url}
-                      alt="Generated NFT"
-                      className="aspect-square w-full object-cover group-hover:scale-110 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-dark-800 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div
-                      className={cn(
-                        "absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full transition-all",
-                        img.selected
-                          ? "bg-gradient-primary text-white shadow-neon"
-                          : "bg-dark-700/80 backdrop-blur-sm text-gray-500"
-                      )}
+            <FadeUp>
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">
+                    Pick Your <span className="text-primary">Favorite</span>
+                  </h3>
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={handleClearImages}
+                      className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-white transition-colors"
                     >
-                      <Check className="h-4 w-4" />
-                    </div>
-                  </button>
-                ))}
-              </div>
+                      <Trash2 className="h-3 w-3" />
+                      Clear
+                    </button>
+                    <button
+                      onClick={handleGenerate}
+                      disabled={status === "generating"}
+                      className="flex items-center gap-1.5 text-xs text-primary hover:text-primary-light transition-colors"
+                    >
+                      <RefreshCw className="h-3 w-3" />
+                      Regenerate
+                    </button>
+                  </div>
+                </div>
 
-              {selectedImage && (
-                <button
-                  onClick={() => setShowMintPanel(true)}
-                  className="w-full flex items-center justify-center gap-3 bg-gradient-primary px-8 py-6 rounded-2xl text-white font-semibold hover:shadow-neon-lg transition-all group text-lg"
-                >
-                  <Sparkles className="w-6 h-6 group-hover:rotate-12 transition-transform" />
-                  Mint as NFT
-                </button>
-              )}
-            </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {generatedImages.map((img) => (
+                    <motion.button
+                      key={img.id}
+                      onClick={() => selectImage(img.id)}
+                      className={cn(
+                        "group relative overflow-hidden rounded-xl border-2 transition-all",
+                        img.selected
+                          ? "border-primary"
+                          : "border-transparent opacity-60 hover:opacity-100"
+                      )}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <img
+                        src={img.url}
+                        alt="Generated NFT"
+                        className="aspect-square w-full object-cover"
+                      />
+                      <div
+                        className={cn(
+                          "absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full transition-all",
+                          img.selected
+                            ? "bg-primary text-white"
+                            : "bg-black/40 backdrop-blur-sm text-gray-500"
+                        )}
+                      >
+                        <Check className="h-3 w-3" />
+                      </div>
+                    </motion.button>
+                  ))}
+                </div>
+
+                {selectedImage && (
+                  <motion.button
+                    onClick={() => setShowMintPanel(true)}
+                    className="w-full flex items-center justify-center gap-3 bg-primary px-8 py-5 rounded-xl text-white font-semibold hover:bg-primary-dark transition-colors text-sm"
+                    whileHover={{ scale: 1.005 }}
+                    whileTap={{ scale: 0.995 }}
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Mint as NFT
+                  </motion.button>
+                )}
+              </div>
+            </FadeUp>
           )}
 
-          {/* Empty state for generated images */}
+          {/* Empty state */}
           {generatedImages.length === 0 && status !== "generating" && (
-            <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-white/10 bg-dark-800/30 py-20">
-              <ImagePlus className="mb-4 h-16 w-16 text-gray-600" />
-              <p className="text-gray-500 text-lg">
-                Your generated artwork will appear here
+            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/[0.06] bg-surface-1/50 py-20">
+              <ImagePlus className="mb-3 h-10 w-10 text-gray-700" />
+              <p className="text-gray-600 text-sm">
+                Generated artwork will appear here
               </p>
             </div>
           )}

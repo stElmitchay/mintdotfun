@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useUmi } from "@/hooks/useUmi";
 import { buyNFT } from "@/lib/solana/buyNFT";
+import { motion } from "framer-motion";
 
 interface BuyButtonProps {
   listingId: string;
@@ -51,24 +52,26 @@ export default function BuyButton({
 
   if (isOwnListing) {
     return (
-      <span className={`text-xs text-gray-500 ${className}`}>Your listing</span>
+      <span className={`text-xs text-gray-600 ${className}`}>Your listing</span>
     );
   }
 
   return (
-    <button
+    <motion.button
       onClick={handleBuy}
       disabled={buying}
-      className={`bg-gradient-primary py-3 rounded-xl font-semibold hover:shadow-neon transition-all disabled:opacity-50 flex items-center justify-center gap-2 ${className}`}
+      className={`bg-primary py-3 rounded-xl text-sm font-semibold text-white hover:bg-primary-dark transition-colors disabled:opacity-50 flex items-center justify-center gap-2 ${className}`}
+      whileHover={{ scale: 1.01 }}
+      whileTap={{ scale: 0.99 }}
     >
       {buying ? (
         <>
-          <Loader2 className="w-4 h-4 animate-spin" />
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
           Buying...
         </>
       ) : (
         `Buy for ${priceSol} SOL`
       )}
-    </button>
+    </motion.button>
   );
 }

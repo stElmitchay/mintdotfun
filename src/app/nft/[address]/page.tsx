@@ -10,13 +10,14 @@ import {
   Loader2,
   ArrowLeft,
   Wallet,
-  Tag,
   CheckCircle2,
   XCircle,
 } from "lucide-react";
 import Link from "next/link";
 import type { Listing } from "@/types";
 import ListingModal from "@/components/marketplace/ListingModal";
+import { motion } from "framer-motion";
+import { FadeUp } from "@/components/ui/motion";
 
 export default function NFTDetailPage({
   params,
@@ -47,7 +48,6 @@ export default function NFTDetailPage({
   const isOwner = walletAddress && asset?.owner === walletAddress;
   const isListed = !!listing;
 
-  // Fetch asset data on-chain
   useEffect(() => {
     async function fetchAsset() {
       try {
@@ -59,7 +59,6 @@ export default function NFTDetailPage({
         );
         const assetData = await fetchAssetFn(umi, toPublicKey(address));
 
-        // Resolve metadata
         let imageUrl = "";
         let description = "";
         if (assetData.uri) {
@@ -150,7 +149,7 @@ export default function NFTDetailPage({
   if (loading) {
     return (
       <div className="min-h-screen pt-24 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <Loader2 className="w-6 h-6 animate-spin text-gray-600" />
       </div>
     );
   }
@@ -158,16 +157,16 @@ export default function NFTDetailPage({
   if (!asset) {
     return (
       <div className="min-h-screen pt-24 px-6">
-        <div className="max-w-4xl mx-auto text-center py-20">
-          <h1 className="text-2xl font-bold mb-4">NFT Not Found</h1>
-          <p className="text-gray-400 mb-6">
+        <div className="max-w-4xl mx-auto text-center py-32">
+          <h1 className="text-xl font-bold mb-4">NFT Not Found</h1>
+          <p className="text-gray-500 text-sm mb-6">
             Could not find an NFT with address {shortenAddress(address, 8)}
           </p>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-primary hover:text-primary-light"
+            className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary-light transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-3.5 h-3.5" />
             Back to Home
           </Link>
         </div>
@@ -179,154 +178,178 @@ export default function NFTDetailPage({
     <div className="min-h-screen pt-24 pb-12 px-6">
       <div className="max-w-6xl mx-auto">
         {/* Back Link */}
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-8"
+        <motion.div
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3 }}
         >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Marketplace
-        </Link>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-gray-500 hover:text-white transition-colors duration-300 mb-8 text-sm"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            Back
+          </Link>
+        </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           {/* Image */}
-          <div className="relative rounded-2xl overflow-hidden border border-white/10 bg-dark-800">
-            {asset.imageUrl ? (
-              <img
-                src={asset.imageUrl}
-                alt={asset.name}
-                className="w-full aspect-square object-cover"
-              />
-            ) : (
-              <div className="w-full aspect-square bg-gradient-to-br from-teal-500/40 to-cyan-500/40 flex items-center justify-center">
-                <Tag className="w-16 h-16 text-white/30" />
-              </div>
-            )}
-            {isListed && (
-              <div className="absolute top-4 left-4 bg-accent-pink/90 backdrop-blur-sm px-3 py-1.5 rounded-full">
-                <span className="text-xs font-medium">For Sale</span>
-              </div>
-            )}
-          </div>
+          <FadeUp>
+            <div className="relative rounded-2xl overflow-hidden bg-surface-2">
+              {asset.imageUrl ? (
+                <img
+                  src={asset.imageUrl}
+                  alt={asset.name}
+                  className="w-full aspect-square object-cover"
+                />
+              ) : (
+                <div className="w-full aspect-square bg-surface-3 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-full bg-primary/10" />
+                </div>
+              )}
+              {isListed && (
+                <div className="absolute top-4 left-4 bg-primary/90 backdrop-blur-sm px-3 py-1.5 rounded-lg">
+                  <span className="text-xs font-medium text-white">For Sale</span>
+                </div>
+              )}
+            </div>
+          </FadeUp>
 
           {/* Details */}
           <div className="space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold mb-2">{asset.name}</h1>
-              {asset.description && (
-                <p className="text-gray-400 text-lg">{asset.description}</p>
-              )}
-            </div>
-
-            {/* Owner */}
-            <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <div className="text-sm text-gray-400 mb-1">Owner</div>
-              <div className="flex items-center gap-2">
-                <Wallet className="w-4 h-4 text-primary" />
-                <span className="font-mono text-sm">
-                  {shortenAddress(asset.owner, 6)}
-                </span>
-                {isOwner && (
-                  <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
-                    You
-                  </span>
+            <FadeUp delay={0.1}>
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight mb-2">
+                  {asset.name}
+                </h1>
+                {asset.description && (
+                  <p className="text-gray-500">{asset.description}</p>
                 )}
               </div>
-            </div>
+            </FadeUp>
+
+            {/* Owner */}
+            <FadeUp delay={0.2}>
+              <div className="bg-surface-2 rounded-xl p-4 border border-white/[0.04]">
+                <div className="text-xs text-gray-600 mb-1.5">Owner</div>
+                <div className="flex items-center gap-2">
+                  <Wallet className="w-3.5 h-3.5 text-gray-500" />
+                  <span className="font-mono text-sm text-gray-300">
+                    {shortenAddress(asset.owner, 6)}
+                  </span>
+                  {isOwner && (
+                    <span className="text-[10px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                      You
+                    </span>
+                  )}
+                </div>
+              </div>
+            </FadeUp>
 
             {/* Price & Actions */}
             {isListed && listing && (
-              <div className="bg-white/5 rounded-xl p-6 border border-white/10 space-y-4">
-                <div>
-                  <div className="text-sm text-gray-400 mb-1">Price</div>
-                  <div className="text-3xl font-bold text-gradient">
-                    {listing.priceSol} SOL
+              <FadeUp delay={0.3}>
+                <div className="bg-surface-2 rounded-xl p-6 border border-white/[0.04] space-y-4">
+                  <div>
+                    <div className="text-xs text-gray-600 mb-1">Price</div>
+                    <div className="text-3xl font-bold text-white">
+                      {listing.priceSol} <span className="text-lg text-gray-500">SOL</span>
+                    </div>
                   </div>
-                </div>
 
-                {isOwner ? (
-                  <button
-                    onClick={handleDelist}
-                    disabled={delisting}
-                    className="w-full py-3 rounded-xl font-semibold border border-red-500/50 text-red-400 hover:bg-red-500/10 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {delisting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Delisting...
-                      </>
-                    ) : (
-                      "Cancel Listing"
-                    )}
-                  </button>
-                ) : connected ? (
-                  <button
-                    onClick={handleBuy}
-                    disabled={buying}
-                    className="w-full bg-gradient-primary py-3 rounded-xl font-semibold hover:shadow-neon transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                  >
-                    {buying ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Purchasing...
-                      </>
-                    ) : (
-                      `Buy for ${listing.priceSol} SOL`
-                    )}
-                  </button>
-                ) : (
-                  <p className="text-sm text-gray-400 text-center">
-                    Connect your wallet to purchase this NFT
-                  </p>
-                )}
-              </div>
+                  {isOwner ? (
+                    <button
+                      onClick={handleDelist}
+                      disabled={delisting}
+                      className="w-full py-3 rounded-xl text-sm font-medium border border-red-500/30 text-red-400 hover:bg-red-500/5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                      {delisting ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          Delisting...
+                        </>
+                      ) : (
+                        "Cancel Listing"
+                      )}
+                    </button>
+                  ) : connected ? (
+                    <motion.button
+                      onClick={handleBuy}
+                      disabled={buying}
+                      className="w-full bg-primary py-3 rounded-xl text-sm font-semibold text-white hover:bg-primary-dark transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                      whileHover={{ scale: 1.01 }}
+                      whileTap={{ scale: 0.99 }}
+                    >
+                      {buying ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          Purchasing...
+                        </>
+                      ) : (
+                        `Buy for ${listing.priceSol} SOL`
+                      )}
+                    </motion.button>
+                  ) : (
+                    <p className="text-sm text-gray-500 text-center py-2">
+                      Connect your wallet to purchase
+                    </p>
+                  )}
+                </div>
+              </FadeUp>
             )}
 
-            {/* List for Sale (if owned and not listed) */}
+            {/* List for Sale */}
             {isOwner && !isListed && (
-              <button
-                onClick={() => setShowListModal(true)}
-                className="w-full bg-gradient-primary py-3 rounded-xl font-semibold hover:shadow-neon transition-all"
-              >
-                List for Sale
-              </button>
+              <FadeUp delay={0.3}>
+                <motion.button
+                  onClick={() => setShowListModal(true)}
+                  className="w-full bg-primary py-3 rounded-xl text-sm font-semibold text-white hover:bg-primary-dark transition-colors"
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
+                >
+                  List for Sale
+                </motion.button>
+              </FadeUp>
             )}
 
             {/* Transaction Result */}
             {txResult && (
-              <div
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
                 className={`rounded-xl p-4 flex items-start gap-3 ${
                   txResult.type === "success"
-                    ? "bg-green-500/10 border border-green-500/20"
-                    : "bg-red-500/10 border border-red-500/20"
+                    ? "bg-green-500/5 border border-green-500/15"
+                    : "bg-red-500/5 border border-red-500/15"
                 }`}
               >
                 {txResult.type === "success" ? (
-                  <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5 shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-green-400 mt-0.5 shrink-0" />
                 ) : (
-                  <XCircle className="w-5 h-5 text-red-400 mt-0.5 shrink-0" />
+                  <XCircle className="w-4 h-4 text-red-400 mt-0.5 shrink-0" />
                 )}
                 <p
                   className={`text-sm ${
-                    txResult.type === "success"
-                      ? "text-green-400"
-                      : "text-red-400"
+                    txResult.type === "success" ? "text-green-400" : "text-red-400"
                   }`}
                 >
                   {txResult.message}
                 </p>
-              </div>
+              </motion.div>
             )}
 
             {/* Explorer Link */}
-            <a
-              href={getCoreAssetUrl(address)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-primary hover:text-primary-light transition-colors"
-            >
-              <ExternalLink className="w-4 h-4" />
-              View on Metaplex Explorer
-            </a>
+            <FadeUp delay={0.4}>
+              <a
+                href={getCoreAssetUrl(address)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-white transition-colors duration-300"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                View on Metaplex Explorer
+              </a>
+            </FadeUp>
           </div>
         </div>
       </div>

@@ -2,30 +2,25 @@
 
 @theme {
   --color-primary: #0D9488;
-  --color-primary-dark: #0F766E;
+  --color-primary-dark: #0A7A70;
   --color-primary-light: #5EEAD4;
-  --color-accent-cyan: #22D3EE;
-  --color-accent-pink: #22D3EE;
-  --color-accent-purple: #06B6D4;
-  --color-dark-900: #0A1628;
-  --color-dark-800: #0F1D32;
-  --color-dark-700: #162A45;
-  --color-dark-600: #1E3A5F;
+  --color-accent: #22D3EE;
+  --color-surface-0: #060A10;
+  --color-surface-1: #0A0F18;
+  --color-surface-2: #0F1520;
+  --color-surface-3: #151D2A;
+  --color-surface-4: #1C2636;
+  --color-border: rgba(255, 255, 255, 0.06);
 
   --font-sans: "Space Grotesk", sans-serif;
 
   --animate-float: float 6s ease-in-out infinite;
-  --animate-glow: glow 2s ease-in-out infinite alternate;
 }
 
+/* Keyframes */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
-}
-
-@keyframes glow {
-  0% { box-shadow: 0 0 20px rgba(13, 148, 136, 0.5); }
-  100% { box-shadow: 0 0 30px rgba(13, 148, 136, 0.8); }
+  50% { transform: translateY(-12px); }
 }
 
 @keyframes scroll-carousel {
@@ -33,51 +28,48 @@
   100% { transform: translateX(-50%); }
 }
 
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes subtle-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
+}
+
+/* Base */
 body {
-  background: var(--color-dark-900);
-  color: #fff;
+  background: var(--color-surface-0);
+  color: #E4E8EE;
   font-family: var(--font-sans), system-ui, sans-serif;
 }
 
-/* Utility classes */
-.text-gradient {
-  background: linear-gradient(to right, #0D9488, #22D3EE);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+::selection {
+  background: rgba(13, 148, 136, 0.3);
+  color: #fff;
 }
 
-.bg-gradient-primary {
-  background: linear-gradient(135deg, #0D9488 0%, #06B6D4 100%);
+/* Utility — solid accent text */
+.text-accent {
+  color: var(--color-primary);
 }
 
-.bg-gradient-accent {
-  background: linear-gradient(135deg, #22D3EE 0%, #0D9488 100%);
+/* Utility — subtle hover lift */
+.hover-lift {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hover-lift:hover {
+  transform: translateY(-4px);
 }
 
-.card-hover {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.card-hover:hover {
-  transform: translateY(-8px);
-}
-
-.neon-border {
-  border: 1px solid rgba(13, 148, 136, 0.3);
-  box-shadow: 0 0 20px rgba(13, 148, 136, 0.2);
-}
-.neon-border:hover {
-  border-color: rgba(13, 148, 136, 0.6);
-  box-shadow: 0 0 30px rgba(13, 148, 136, 0.4);
-}
-
-.shadow-neon {
-  box-shadow: 0 0 20px rgba(13, 148, 136, 0.5);
-}
-.shadow-neon-lg {
-  box-shadow: 0 0 30px rgba(13, 148, 136, 0.6);
-}
-
+/* Scrollbar hide */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -92,23 +84,18 @@ body {
   height: 20px;
   width: 20px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #0D9488, #06B6D4);
+  background: #0D9488;
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(13, 148, 136, 0.5);
+  box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.15);
 }
 .slider::-moz-range-thumb {
   height: 20px;
   width: 20px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #0D9488, #06B6D4);
+  background: #0D9488;
   cursor: pointer;
   border: none;
-  box-shadow: 0 0 10px rgba(13, 148, 136, 0.5);
-}
-
-/* Radial gradient utility */
-.bg-gradient-radial {
-  background: radial-gradient(circle, var(--tw-gradient-stops));
+  box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.15);
 }
 
 /* Collection slider fade mask */
@@ -141,17 +128,42 @@ body {
   }
 }
 
-/* Custom scrollbar */
+/* Minimal scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
 }
 ::-webkit-scrollbar-track {
-  background: #0F1D32;
+  background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #3f3f46;
-  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #52525b;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Radial gradient for statue aura */
+.bg-gradient-radial {
+  background: radial-gradient(circle, var(--tw-gradient-stops));
+}
+
+/* Masonry grid */
+.masonry-grid {
+  columns: 4;
+  column-gap: 16px;
+}
+.masonry-grid > * {
+  break-inside: avoid;
+  margin-bottom: 16px;
+}
+
+@media (max-width: 1280px) {
+  .masonry-grid { columns: 3; }
+}
+@media (max-width: 768px) {
+  .masonry-grid { columns: 2; }
+}
+@media (max-width: 480px) {
+  .masonry-grid { columns: 1; }
 }

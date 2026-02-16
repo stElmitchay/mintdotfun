@@ -1,9 +1,11 @@
 "use client";
 
-import { Sparkles, Zap, Rocket } from "lucide-react";
+import { Zap, ArrowRight } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { FadeUp, TextReveal } from "@/components/ui/motion";
 
 export default function Hero() {
   const { login, authenticated } = usePrivy();
@@ -43,58 +45,77 @@ export default function Hero() {
       <div className="max-w-7xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8 relative z-10">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm text-primary-light">
-              <Zap className="w-3.5 h-3.5" />
-              Powered by AI + Solana
+            {/* Badge */}
+            <FadeUp delay={0.1}>
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.03] px-4 py-1.5 text-sm text-gray-400">
+                <Zap className="w-3.5 h-3.5 text-primary" />
+                Powered by AI + Solana
+              </div>
+            </FadeUp>
+
+            {/* Heading */}
+            <div>
+              <h1 className="text-5xl lg:text-7xl font-bold leading-[1.1] tracking-tight">
+                <TextReveal text="Create Your" delay={0.2} />
+                <br />
+                <span className="text-primary">
+                  <TextReveal text="AI-Powered NFT" delay={0.35} />
+                </span>
+                <br />
+                <TextReveal text="In Minutes" delay={0.5} />
+              </h1>
             </div>
 
-            <h1 className="text-5xl lg:text-7xl font-bold leading-tight">
-              Create Your{" "}
-              <span className="text-gradient">AI-Powered NFT</span>{" "}
-              In Minutes
-            </h1>
+            {/* Description */}
+            <FadeUp delay={0.6}>
+              <p className="text-lg text-gray-500 leading-relaxed max-w-xl">
+                Describe your vision, let AI generate stunning artwork, and mint
+                it as a 1-of-1 NFT on Solana. No design skills needed.
+              </p>
+            </FadeUp>
 
-            <p className="text-xl text-gray-400 leading-relaxed max-w-xl">
-              Describe your vision, let AI generate stunning artwork, and mint
-              it as a 1-of-1 NFT on Solana. No design skills needed — just your
-              creativity.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <button
-                onClick={handleGetStarted}
-                className="flex items-center gap-3 bg-gradient-primary px-8 py-4 rounded-full text-white font-semibold hover:shadow-neon-lg transition-all group"
-              >
-                <Rocket className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                Start Creating
-              </button>
-              <button
-                onClick={() => router.push("/gallery")}
-                className="flex items-center gap-3 bg-white/5 backdrop-blur-sm px-8 py-4 rounded-full text-white font-semibold border border-white/10 hover:bg-white/10 transition-all"
-              >
-                <Zap className="w-5 h-5" />
-                View Gallery
-              </button>
-            </div>
+            {/* CTAs */}
+            <FadeUp delay={0.7}>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <motion.button
+                  onClick={handleGetStarted}
+                  className="flex items-center gap-3 bg-primary px-8 py-4 rounded-full text-white font-semibold hover:bg-primary-dark transition-colors duration-300 group"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                >
+                  Start Creating
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                </motion.button>
+                <button
+                  onClick={() => router.push("/gallery")}
+                  className="flex items-center gap-3 px-8 py-4 rounded-full text-gray-400 font-medium hover:text-white transition-colors duration-300"
+                >
+                  View Gallery
+                </button>
+              </div>
+            </FadeUp>
 
             {/* Stats */}
-            <div className="grid grid-cols-3 gap-6 pt-8">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gradient">1-of-1</div>
-                <div className="text-sm text-gray-400">Unique NFTs</div>
+            <FadeUp delay={0.85}>
+              <div className="flex gap-10 pt-8 border-t border-white/[0.04]">
+                {[
+                  { label: "Unique NFTs", value: "1-of-1" },
+                  { label: "Generated Art", value: "AI" },
+                  { label: "On-Chain", value: "Solana" },
+                ].map((stat) => (
+                  <div key={stat.label}>
+                    <div className="text-xl font-bold text-white">
+                      {stat.value}
+                    </div>
+                    <div className="text-sm text-gray-600">{stat.label}</div>
+                  </div>
+                ))}
               </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gradient">AI</div>
-                <div className="text-sm text-gray-400">Generated Art</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-gradient">Solana</div>
-                <div className="text-sm text-gray-400">On-Chain</div>
-              </div>
-            </div>
+            </FadeUp>
           </div>
 
-          {/* Statue Section with 3D Parallax */}
+          {/* Statue Section with 3D Parallax — UNTOUCHED */}
           <div className="relative lg:h-[600px] flex items-center justify-center">
             <div
               ref={statueRef}
@@ -116,7 +137,7 @@ export default function Hero() {
                 animation: "float 3s ease-in-out infinite",
               }}
             >
-              {/* Purple aura */}
+              {/* Aura */}
               <div className="absolute inset-0 bg-gradient-radial from-teal-500/30 via-cyan-600/20 to-transparent rounded-full blur-3xl opacity-60 animate-pulse scale-150" />
 
               <div

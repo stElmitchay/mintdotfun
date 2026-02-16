@@ -10,29 +10,32 @@ import {
   Flame,
   Wind,
 } from "lucide-react";
+import { FadeUp } from "@/components/ui/motion";
 
-const collections = [
-  { name: "Cosmic Dreams", count: "AI Art", bg: "from-teal-500/20 to-cyan-500/20", icon: Orbit },
-  { name: "Neon Worlds", count: "Digital", bg: "from-cyan-500/20 to-sky-500/20", icon: Zap },
-  { name: "Abstract Souls", count: "Generative", bg: "from-teal-600/20 to-emerald-500/20", icon: Waves },
-  { name: "Cyber Creatures", count: "AI Art", bg: "from-cyan-600/20 to-teal-500/20", icon: Bug },
-  { name: "Pixel Realms", count: "Pixel Art", bg: "from-sky-500/20 to-cyan-500/20", icon: Grid3X3 },
-  { name: "Mystic Beings", count: "Fantasy", bg: "from-teal-500/20 to-cyan-500/20", icon: Flame },
-  { name: "Astral Flow", count: "Abstract", bg: "from-cyan-500/20 to-teal-600/20", icon: Wind },
+const styles = [
+  { name: "Cosmic Dreams", tag: "AI Art", icon: Orbit },
+  { name: "Neon Worlds", tag: "Digital", icon: Zap },
+  { name: "Abstract Souls", tag: "Generative", icon: Waves },
+  { name: "Cyber Creatures", tag: "AI Art", icon: Bug },
+  { name: "Pixel Realms", tag: "Pixel Art", icon: Grid3X3 },
+  { name: "Mystic Beings", tag: "Fantasy", icon: Flame },
+  { name: "Astral Flow", tag: "Abstract", icon: Wind },
 ];
 
 export default function CollectionSlider() {
   const [paused, setPaused] = useState(false);
-
-  // Duplicate items for seamless infinite loop
-  const items = [...collections, ...collections];
+  const items = [...styles, ...styles];
 
   return (
     <section className="py-16 px-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold">Featured Styles</h2>
-        </div>
+        <FadeUp>
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold tracking-tight text-gray-300">
+              Featured Styles
+            </h2>
+          </div>
+        </FadeUp>
 
         <div
           className="relative overflow-hidden collection-slider-mask"
@@ -40,30 +43,29 @@ export default function CollectionSlider() {
           onMouseLeave={() => setPaused(false)}
         >
           <div
-            className="flex gap-4 w-max"
+            className="flex gap-3 w-max"
             style={{
-              animation: `scroll-carousel 25s linear infinite`,
+              animation: `scroll-carousel 30s linear infinite`,
               animationPlayState: paused ? "paused" : "running",
             }}
           >
-            {items.map((collection, index) => {
-              const Icon = collection.icon;
+            {items.map((style, index) => {
+              const Icon = style.icon;
               return (
-                <div key={index} className="flex-shrink-0 group cursor-pointer">
-                  <div
-                    className={`w-48 h-24 rounded-2xl bg-gradient-to-br ${collection.bg} backdrop-blur-xl border border-white/10 p-4 hover:border-primary/50 transition-all card-hover`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center shrink-0">
-                        <Icon className="w-5 h-5 text-white" />
+                <div
+                  key={index}
+                  className="flex-shrink-0 group cursor-pointer"
+                >
+                  <div className="flex items-center gap-3 px-5 py-3 rounded-full bg-white/[0.03] border border-white/[0.06] hover:border-primary/30 hover:bg-white/[0.05] transition-all duration-300">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Icon className="w-4 h-4 text-primary" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">
+                        {style.name}
                       </div>
-                      <div className="min-w-0">
-                        <div className="text-sm font-semibold line-clamp-1">
-                          {collection.name}
-                        </div>
-                        <div className="text-xs text-gray-400">
-                          {collection.count}
-                        </div>
+                      <div className="text-[11px] text-gray-600">
+                        {style.tag}
                       </div>
                     </div>
                   </div>
