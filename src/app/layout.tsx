@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MintAI - AI-Powered NFT Collection Creator",
+  title: "MintAI - AI-Powered NFT Creator",
   description:
     "Describe your vision, let AI generate the art, and mint directly on Solana. From concept to NFT in minutes.",
 };

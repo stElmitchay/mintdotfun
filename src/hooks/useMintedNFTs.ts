@@ -1,21 +1,21 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import type { MintedCollection } from "@/types";
+import type { MintedNFT } from "@/types";
 import { STORAGE_KEYS } from "@/lib/constants";
 
 /**
- * Fetches the user's minted collections from Supabase.
+ * Fetches the user's minted NFTs from Supabase.
  * Falls back to localStorage if the API is unavailable.
  */
-export function useCollections(walletAddress: string | null) {
-  const [collections, setCollections] = useState<MintedCollection[]>([]);
+export function useMintedNFTs(walletAddress: string | null) {
+  const [nfts, setNFTs] = useState<MintedNFT[]>([]);
   const [loading, setLoading] = useState(true);
   const [source, setSource] = useState<"db" | "local" | null>(null);
 
-  const fetchCollections = useCallback(async () => {
+  const fetchNFTs = useCallback(async () => {
     if (!walletAddress) {
-      setCollections([]);
+      setNFTs([]);
       setLoading(false);
       return;
     }
@@ -27,8 +27,8 @@ export function useCollections(walletAddress: string | null) {
       const res = await fetch(`/api/collections?wallet=${encodeURIComponent(walletAddress)}`);
       if (res.ok) {
         const data = await res.json();
-        if (Array.isArray(data.collections)) {
-          setCollections(data.collections);
+        if (Array.isArray(data.nfts)) {
+          setNFTs(data.nfts);
           setSource("db");
           setLoading(false);
           return;
@@ -40,15 +40,14 @@ export function useCollections(walletAddress: string | null) {
 
     // Fallback: localStorage
     try {
-      const raw = localStorage.getItem(STORAGE_KEYS.COLLECTIONS);
+      const raw = localStorage.getItem(STORAGE_KEYS.MINTED_NFTS);
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
-          // Filter to current wallet
           const filtered = parsed.filter(
-            (c: MintedCollection) => c.walletAddress === walletAddress
+            (n: MintedNFT) => n.walletAddress === walletAddress
           );
-          setCollections(filtered);
+          setNFTs(filtered);
           setSource("local");
           setLoading(false);
           return;
@@ -58,28 +57,28 @@ export function useCollections(walletAddress: string | null) {
       // localStorage parse error
     }
 
-    setCollections([]);
+    setNFTs([]);
     setSource(null);
     setLoading(false);
   }, [walletAddress]);
 
   useEffect(() => {
-    fetchCollections();
-  }, [fetchCollections]);
+    fetchNFTs();
+  }, [fetchNFTs]);
 
-  const removeCollection = useCallback(
-    async (id: string) => {
-      setCollections((prev) => prev.filter((c) => c.id !== id));
+  const removeNFT = useCallback(
+    async (mint: string) => {
+      setNFTs((prev) => prev.filter((n) => n.mint !== mint));
 
       // Also remove from localStorage
       try {
-        const raw = localStorage.getItem(STORAGE_KEYS.COLLECTIONS);
+        const raw = localStorage.getItem(STORAGE_KEYS.MINTED_NFTS);
         if (raw) {
           const parsed = JSON.parse(raw);
           if (Array.isArray(parsed)) {
             localStorage.setItem(
-              STORAGE_KEYS.COLLECTIONS,
-              JSON.stringify(parsed.filter((c: MintedCollection) => c.id !== id))
+              STORAGE_KEYS.MINTED_NFTS,
+              JSON.stringify(parsed.filter((n: MintedNFT) => n.mint !== mint))
             );
           }
         }
@@ -90,5 +89,5 @@ export function useCollections(walletAddress: string | null) {
     []
   );
 
-  return { collections, loading, source, removeCollection, refetch: fetchCollections };
+  return { nfts, loading, source, removeNFT, refetch: fetchNFTs };
 }

@@ -2,72 +2,63 @@
 
 import { useState } from "react";
 import { X, Loader2, ExternalLink, Check, Coins, AlertTriangle, Copy } from "lucide-react";
-import type { GeneratedImage, CollectionConfig, MintedNFT, MintedCollection, MintStatus } from "@/types";
+import type { GeneratedImage, NFTConfig, MintedNFT, MintStatus } from "@/types";
 import { useUmi } from "@/hooks/useUmi";
-import { mintNFTCollection } from "@/lib/solana/mintCollection";
+import { mintSingleNFT } from "@/lib/solana/mintNFT";
 import { STORAGE_KEYS } from "@/lib/constants";
-import { shortenAddress, getCoreAssetUrl } from "@/lib/utils";
+import { shortenAddress } from "@/lib/utils";
 
 interface MintPanelProps {
-  images: GeneratedImage[];
+  image: GeneratedImage;
   onClose: () => void;
 }
 
-export default function MintPanel({ images, onClose }: MintPanelProps) {
+export default function MintPanel({ image, onClose }: MintPanelProps) {
   const { umi, connected, walletAddress } = useUmi();
 
-  const [config, setConfig] = useState<CollectionConfig>({
+  const [config, setConfig] = useState<NFTConfig>({
     name: "",
     description: "",
-    symbol: "",
-    sellerFeeBasisPoints: 500,
   });
 
   const [status, setStatus] = useState<MintStatus>("idle");
-  const [mintedNFTs, setMintedNFTs] = useState<MintedNFT[]>([]);
-  const [collectionAddress, setCollectionAddress] = useState<string | null>(null);
+  const [mintedNFT, setMintedNFT] = useState<MintedNFT | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState("");
-  const [copiedCollection, setCopiedCollection] = useState(false);
+  const [copiedMint, setCopiedMint] = useState(false);
 
   const handleMint = async () => {
-    if (!config.name || !config.symbol || !connected) return;
+    if (!config.name || !connected) return;
 
     setStatus("uploading");
     setError(null);
-    setProgress("Preparing uploads...");
+    setProgress("Preparing upload...");
 
     try {
-      const result = await mintNFTCollection(
+      const result = await mintSingleNFT(
         umi,
         config,
-        images.map((img) => ({ url: img.url, prompt: img.prompt })),
+        image.url,
         (p) => {
           setProgress(p.message);
-          if (p.phase === "collection" || p.phase === "minting") {
+          if (p.phase === "minting") {
             setStatus("minting");
           }
         }
       );
 
-      // Always persist whatever was minted (even on partial failure)
-      if (result.minted.length > 0) {
-        persistCollection(result.collection, result.minted);
-      }
+      const nft: MintedNFT = {
+        ...result,
+        description: config.description,
+        mintedAt: Date.now(),
+        walletAddress: walletAddress || "",
+      };
 
-      setMintedNFTs(result.minted);
-      setCollectionAddress(result.collection);
+      persistNFT(nft);
+      setMintedNFT(nft);
       setProgress("");
-
-      if (result.error) {
-        // Partial failure: some NFTs minted, but not all
-        setError(result.error);
-        setStatus(result.minted.length > 0 ? "complete" : "error");
-      } else {
-        setStatus("complete");
-      }
+      setStatus("complete");
     } catch (err) {
-      // Only catches upfront validation errors (collection creation failure, etc.)
       console.error("Minting error:", err);
       const message =
         err instanceof Error ? err.message : "Minting failed";
@@ -85,45 +76,39 @@ export default function MintPanel({ images, onClose }: MintPanelProps) {
     }
   };
 
-  const persistCollection = async (collectionAddr: string, minted: MintedNFT[]) => {
+  const persistNFT = async (nft: MintedNFT) => {
     // Save to Supabase (primary) — fire and forget, don't block UI
     fetch("/api/collections", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        walletAddress: walletAddress || "",
-        collectionAddress: collectionAddr,
-        config,
-        nfts: minted,
+        walletAddress: nft.walletAddress,
+        mint: nft.mint,
+        name: nft.name,
+        description: nft.description,
+        imageUrl: nft.imageUrl,
+        explorerUrl: nft.explorerUrl,
       }),
     }).catch((err) => {
-      console.warn("Failed to save collection to database:", err);
+      console.warn("Failed to save NFT to database:", err);
     });
 
     // Also save to localStorage as offline cache
     try {
-      const raw = localStorage.getItem(STORAGE_KEYS.COLLECTIONS);
-      let existing: MintedCollection[] = [];
+      const raw = localStorage.getItem(STORAGE_KEYS.MINTED_NFTS);
+      let existing: MintedNFT[] = [];
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed)) {
           existing = parsed;
         }
       }
-      const newCollection: MintedCollection = {
-        id: `col-${Date.now()}`,
-        config,
-        collectionAddress: collectionAddr,
-        nfts: minted,
-        mintedAt: Date.now(),
-        walletAddress: walletAddress || "",
-      };
       localStorage.setItem(
-        STORAGE_KEYS.COLLECTIONS,
-        JSON.stringify([newCollection, ...existing])
+        STORAGE_KEYS.MINTED_NFTS,
+        JSON.stringify([nft, ...existing])
       );
     } catch (err) {
-      console.warn("Failed to save collection to localStorage:", err);
+      console.warn("Failed to save NFT to localStorage:", err);
     }
   };
 
@@ -131,7 +116,7 @@ export default function MintPanel({ images, onClose }: MintPanelProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="relative max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-zinc-800 bg-zinc-950 p-6">
+      <div className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-zinc-800 bg-zinc-950 p-6">
         <button
           onClick={onClose}
           className="absolute right-4 top-4 text-zinc-500 hover:text-white"
@@ -140,86 +125,55 @@ export default function MintPanel({ images, onClose }: MintPanelProps) {
         </button>
 
         <h2 className="mb-6 text-xl font-bold text-white">
-          Mint Your Collection
+          Mint Your NFT
         </h2>
 
-        {status === "complete" ? (
+        {status === "complete" && mintedNFT ? (
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-green-400">
               <Check className="h-5 w-5" />
-              <span className="font-medium">
-                {error
-                  ? `${mintedNFTs.length} of ${images.length} NFTs minted`
-                  : "Collection minted successfully!"}
+              <span className="font-medium">NFT minted successfully!</span>
+            </div>
+
+            <div className="overflow-hidden rounded-xl border border-zinc-800">
+              <img
+                src={mintedNFT.imageUrl}
+                alt={mintedNFT.name}
+                className="aspect-square w-full object-cover"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 rounded-lg bg-zinc-900 p-3">
+              <span className="text-xs text-zinc-500">Mint:</span>
+              <span className="flex-1 truncate font-mono text-xs text-zinc-300">
+                {shortenAddress(mintedNFT.mint, 8)}
               </span>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(mintedNFT.mint);
+                  setCopiedMint(true);
+                  setTimeout(() => setCopiedMint(false), 2000);
+                }}
+                className="text-zinc-500 hover:text-white"
+                title="Copy mint address"
+              >
+                {copiedMint ? (
+                  <Check className="h-3.5 w-3.5 text-green-400" />
+                ) : (
+                  <Copy className="h-3.5 w-3.5" />
+                )}
+              </button>
+              <a
+                href={mintedNFT.explorerUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-violet-400 hover:text-violet-300"
+                title="View on explorer"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+              </a>
             </div>
-            {collectionAddress && (
-              <div className="flex items-center gap-2 rounded-lg bg-zinc-900 p-3">
-                <span className="text-xs text-zinc-500">Collection:</span>
-                <span className="flex-1 truncate font-mono text-xs text-zinc-300">
-                  {shortenAddress(collectionAddress, 8)}
-                </span>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(collectionAddress);
-                    setCopiedCollection(true);
-                    setTimeout(() => setCopiedCollection(false), 2000);
-                  }}
-                  className="text-zinc-500 hover:text-white"
-                  title="Copy collection address"
-                >
-                  {copiedCollection ? (
-                    <Check className="h-3.5 w-3.5 text-green-400" />
-                  ) : (
-                    <Copy className="h-3.5 w-3.5" />
-                  )}
-                </button>
-                <a
-                  href={getCoreAssetUrl(collectionAddress)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-violet-400 hover:text-violet-300"
-                  title="View on explorer"
-                >
-                  <ExternalLink className="h-3.5 w-3.5" />
-                </a>
-              </div>
-            )}
-            {error && (
-              <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-400">
-                {error}
-              </div>
-            )}
-            <div className="space-y-3">
-              {mintedNFTs.map((nft) => (
-                <div
-                  key={nft.mint}
-                  className="flex items-center gap-3 rounded-xl border border-zinc-800 bg-zinc-900 p-3"
-                >
-                  <img
-                    src={nft.imageUrl}
-                    alt={nft.name}
-                    className="h-12 w-12 rounded-lg object-cover"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white">
-                      {nft.name}
-                    </p>
-                    <p className="truncate font-mono text-xs text-zinc-500">
-                      {nft.mint}
-                    </p>
-                  </div>
-                  <a
-                    href={nft.explorerUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex-shrink-0 text-violet-400 hover:text-violet-300"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                </div>
-              ))}
-            </div>
+
             <button
               onClick={onClose}
               className="w-full rounded-xl bg-zinc-800 py-3 font-medium text-white hover:bg-zinc-700"
@@ -244,21 +198,18 @@ export default function MintPanel({ images, onClose }: MintPanelProps) {
               </div>
             )}
 
-            {/* Preview thumbnails */}
-            <div className="flex gap-2 overflow-x-auto pb-2">
-              {images.map((img) => (
-                <img
-                  key={img.id}
-                  src={img.url}
-                  alt="NFT Preview"
-                  className="h-16 w-16 flex-shrink-0 rounded-lg border border-zinc-800 object-cover"
-                />
-              ))}
+            {/* Single image preview */}
+            <div className="overflow-hidden rounded-xl border border-zinc-800">
+              <img
+                src={image.url}
+                alt="NFT Preview"
+                className="aspect-square w-full object-cover"
+              />
             </div>
 
             <div>
               <label className="mb-1.5 block text-sm font-medium text-zinc-300">
-                Collection Name *
+                NFT Name *
               </label>
               <input
                 type="text"
@@ -266,30 +217,10 @@ export default function MintPanel({ images, onClose }: MintPanelProps) {
                 onChange={(e) =>
                   setConfig((c) => ({ ...c, name: e.target.value }))
                 }
-                placeholder="e.g., Mystical Forest Creatures"
+                placeholder="e.g., Cosmic Dreamer #1"
                 className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-violet-500"
                 disabled={formDisabled}
                 maxLength={100}
-              />
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-zinc-300">
-                Symbol *
-              </label>
-              <input
-                type="text"
-                value={config.symbol}
-                onChange={(e) =>
-                  setConfig((c) => ({
-                    ...c,
-                    symbol: e.target.value.toUpperCase().slice(0, 10),
-                  }))
-                }
-                placeholder="e.g., MFC"
-                className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-violet-500"
-                disabled={formDisabled}
-                maxLength={10}
               />
             </div>
 
@@ -302,36 +233,11 @@ export default function MintPanel({ images, onClose }: MintPanelProps) {
                 onChange={(e) =>
                   setConfig((c) => ({ ...c, description: e.target.value }))
                 }
-                placeholder="Describe your collection..."
+                placeholder="Describe your NFT..."
                 className="h-20 w-full resize-none rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-violet-500"
                 disabled={formDisabled}
                 maxLength={500}
               />
-            </div>
-
-            <div>
-              <label className="mb-1.5 block text-sm font-medium text-zinc-300">
-                Royalty: {config.sellerFeeBasisPoints / 100}%
-              </label>
-              <input
-                type="range"
-                min={0}
-                max={1000}
-                step={50}
-                value={config.sellerFeeBasisPoints}
-                onChange={(e) =>
-                  setConfig((c) => ({
-                    ...c,
-                    sellerFeeBasisPoints: parseInt(e.target.value),
-                  }))
-                }
-                className="w-full accent-violet-500"
-                disabled={formDisabled}
-              />
-              <div className="mt-1 flex justify-between text-xs text-zinc-600">
-                <span>0%</span>
-                <span>10%</span>
-              </div>
             </div>
 
             {error && (
@@ -349,7 +255,7 @@ export default function MintPanel({ images, onClose }: MintPanelProps) {
 
             <button
               onClick={handleMint}
-              disabled={!config.name || !config.symbol || !connected || formDisabled}
+              disabled={!config.name || !connected || formDisabled}
               className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3 font-medium text-white transition-all hover:from-violet-500 hover:to-fuchsia-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {status === "uploading" ? (
@@ -365,16 +271,15 @@ export default function MintPanel({ images, onClose }: MintPanelProps) {
               ) : (
                 <>
                   <Coins className="h-4 w-4" />
-                  Mint {images.length} NFT{images.length > 1 ? "s" : ""} on
-                  Solana
+                  Mint as NFT
                 </>
               )}
             </button>
 
             <p className="text-center text-xs text-zinc-600">
-              Images stored on Arweave. Minting on{" "}
+              Image stored on Arweave. Minting on{" "}
               {process.env.NEXT_PUBLIC_SOLANA_NETWORK || "devnet"}.
-              Your wallet will sign uploads and transactions.
+              One wallet signature to mint.
             </p>
           </div>
         )}

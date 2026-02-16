@@ -3,7 +3,7 @@ export const STORAGE_KEYS = {
   PROMPT: "mintai:prompt",
   STYLE: "mintai:style",
   GENERATED_IMAGES: "mintai:generated",
-  COLLECTIONS: "mintai:collections",
+  MINTED_NFTS: "mintai:minted-nfts",
 } as const;
 
 // Generation limits

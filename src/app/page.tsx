@@ -35,14 +35,14 @@ export default function Home() {
             Describe Your Vision.
             <br />
             <span className="bg-gradient-to-r from-violet-400 to-fuchsia-400 bg-clip-text text-transparent">
-              Mint Your Collection.
+              Mint Your NFT.
             </span>
           </h1>
 
           <p className="mx-auto mt-6 max-w-2xl text-lg text-zinc-400">
-            Go from an idea to a fully minted NFT collection on Solana in
-            minutes. Describe what you want, upload inspiration, and let AI
-            create your art. No design skills needed.
+            Go from an idea to a minted 1-of-1 NFT on Solana in minutes.
+            Describe what you want, pick your favorite variation, and mint
+            it on-chain. No design skills needed.
           </p>
 
           <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
@@ -79,7 +79,7 @@ export default function Home() {
             icon={<Coins className="h-6 w-6" />}
             step="3"
             title="Mint"
-            description="Mint your selected artwork as NFTs directly on Solana. Your collection is live on-chain in seconds."
+            description="Mint your favorite artwork as a 1-of-1 NFT directly on Solana. Your NFT is live on-chain in seconds."
           />
         </div>
       </section>

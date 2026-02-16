@@ -123,7 +123,7 @@ export default function CreatePage() {
           id: `gen-${Date.now()}-${i}`,
           url,
           prompt: data.prompt,
-          selected: true,
+          selected: false,
         })
       );
       setGeneratedImages(newImages);
@@ -139,15 +139,17 @@ export default function CreatePage() {
     setStatus("idle");
   };
 
-  const toggleImageSelection = (id: string) => {
+  // Single-select: clicking an image selects it and deselects all others
+  const selectImage = (id: string) => {
     setGeneratedImages((prev) =>
-      prev.map((img) =>
-        img.id === id ? { ...img, selected: !img.selected } : img
-      )
+      prev.map((img) => ({
+        ...img,
+        selected: img.id === id ? !img.selected : false,
+      }))
     );
   };
 
-  const selectedImages = generatedImages.filter((img) => img.selected);
+  const selectedImage = generatedImages.find((img) => img.selected) ?? null;
 
   if (!authenticated) {
     return (
@@ -156,7 +158,7 @@ export default function CreatePage() {
           Connect to Start Creating
         </h2>
         <p className="text-zinc-400">
-          Sign in with your email or wallet to create your NFT collection.
+          Sign in with your email or wallet to create your NFT.
         </p>
         <button
           onClick={login}
@@ -171,9 +173,9 @@ export default function CreatePage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Create Collection</h1>
+        <h1 className="text-3xl font-bold text-white">Create Your NFT</h1>
         <p className="mt-2 text-zinc-400">
-          Describe your vision and let AI generate your NFT artwork.
+          Describe your artwork and let AI generate variations. Pick your favorite to mint.
         </p>
       </div>
 
@@ -183,12 +185,12 @@ export default function CreatePage() {
           {/* Prompt */}
           <div>
             <label className="mb-2 block text-sm font-medium text-zinc-300">
-              Describe your collection
+              Describe your artwork
             </label>
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder="e.g., A collection of mystical forest creatures with bioluminescent features, each in a unique dreamlike environment..."
+              placeholder="e.g., A mystical forest creature with bioluminescent features in a dreamlike environment..."
               className="h-32 w-full resize-none rounded-xl border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-white placeholder-zinc-600 outline-none transition-colors focus:border-violet-500"
               disabled={status === "generating"}
               maxLength={2000}
@@ -255,7 +257,7 @@ export default function CreatePage() {
           {/* Count */}
           <div>
             <label className="mb-2 block text-sm font-medium text-zinc-300">
-              Number of pieces: {count}
+              Number of variations: {count}
             </label>
             <input
               type="range"
@@ -287,8 +289,8 @@ export default function CreatePage() {
               <>
                 <Sparkles className="h-4 w-4" />
                 {generatedImages.length > 0
-                  ? "Generate New Collection"
-                  : "Generate Collection"}
+                  ? "Generate New Variations"
+                  : "Generate Variations"}
               </>
             )}
           </button>
@@ -313,8 +315,7 @@ export default function CreatePage() {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-medium text-zinc-300">
-                  Generated Artwork ({selectedImages.length}/
-                  {generatedImages.length} selected)
+                  Pick your favorite
                 </h3>
                 <div className="flex items-center gap-3">
                   <button
@@ -339,7 +340,7 @@ export default function CreatePage() {
                 {generatedImages.map((img) => (
                   <button
                     key={img.id}
-                    onClick={() => toggleImageSelection(img.id)}
+                    onClick={() => selectImage(img.id)}
                     className={cn(
                       "group relative overflow-hidden rounded-xl border-2 transition-all",
                       img.selected
@@ -366,12 +367,12 @@ export default function CreatePage() {
                 ))}
               </div>
 
-              {selectedImages.length > 0 && (
+              {selectedImage && (
                 <button
                   onClick={() => setShowMintPanel(true)}
                   className="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3 font-medium text-white transition-all hover:from-violet-500 hover:to-fuchsia-500"
                 >
-                  Proceed to Mint ({selectedImages.length} NFTs)
+                  Mint as NFT
                 </button>
               )}
             </div>
@@ -380,9 +381,9 @@ export default function CreatePage() {
       </div>
 
       {/* Mint Panel Modal */}
-      {showMintPanel && (
+      {showMintPanel && selectedImage && (
         <MintPanel
-          images={selectedImages}
+          image={selectedImage}
           onClose={() => setShowMintPanel(false)}
         />
       )}

@@ -20,23 +20,13 @@ export const supabase =
     ? createClient(supabaseUrl, supabaseServiceKey)
     : null;
 
-/** Type-safe row shapes matching the schema. */
-export interface CollectionRow {
-  id: string;
-  wallet_address: string;
-  collection_address: string;
-  name: string;
-  symbol: string;
-  description: string;
-  royalty_bps: number;
-  minted_at: string;
-}
-
+/** Type-safe row shape matching the nfts table schema. */
 export interface NftRow {
   id: string;
-  collection_id: string;
+  wallet_address: string;
   mint_address: string;
   name: string;
+  description: string;
   image_url: string;
   explorer_url: string;
   minted_at: string;

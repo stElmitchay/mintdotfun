@@ -5,11 +5,9 @@ export interface GeneratedImage {
   selected: boolean;
 }
 
-export interface CollectionConfig {
+export interface NFTConfig {
   name: string;
   description: string;
-  symbol: string;
-  sellerFeeBasisPoints: number; // royalty in basis points (e.g., 500 = 5%)
 }
 
 export interface GenerationRequest {
@@ -19,23 +17,12 @@ export interface GenerationRequest {
   referenceImageUrl?: string;
 }
 
-export interface MintRequest {
-  collection: CollectionConfig;
-  images: GeneratedImage[];
-}
-
 export interface MintedNFT {
   mint: string;
   name: string;
+  description: string;
   imageUrl: string;
   explorerUrl: string;
-}
-
-export interface MintedCollection {
-  id: string;
-  config: CollectionConfig;
-  collectionAddress: string;
-  nfts: MintedNFT[];
   mintedAt: number;
   walletAddress: string;
 }

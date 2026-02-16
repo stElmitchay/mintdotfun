@@ -33,7 +33,9 @@ export function useUmi() {
   }, [wallet]);
 
   const umi = useMemo(() => {
-    const instance = createUmi(rpcUrl).use(mplCore()).use(irysUploader());
+    const instance = createUmi(rpcUrl)
+      .use(mplCore())
+      .use(irysUploader({ uploadConcurrency: 1 }));
 
     if (wallet && isPrivySolanaWallet(wallet)) {
       const signer = createSignerFromPrivyWallet(
