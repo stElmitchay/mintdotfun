@@ -28,6 +28,11 @@
   100% { box-shadow: 0 0 30px rgba(13, 148, 136, 0.8); }
 }
 
+@keyframes scroll-carousel {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
 body {
   background: var(--color-dark-900);
   color: #fff;
