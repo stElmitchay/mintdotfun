@@ -24,7 +24,7 @@ export default function PrivyProvider({
 
   if (!appId) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-950 text-zinc-400">
+      <div className="flex min-h-screen items-center justify-center bg-dark-900 text-gray-400">
         <p>
           Missing NEXT_PUBLIC_PRIVY_APP_ID. Add it to your .env.local file.
         </p>
@@ -38,7 +38,7 @@ export default function PrivyProvider({
       config={{
         appearance: {
           theme: "dark",
-          accentColor: "#7c3aed",
+          accentColor: "#8B5CF6",
           logo: undefined,
         },
         loginMethods: ["email", "wallet", "google", "twitter"],

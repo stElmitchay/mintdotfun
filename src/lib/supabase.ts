@@ -31,3 +31,21 @@ export interface NftRow {
   explorer_url: string;
   minted_at: string;
 }
+
+/** Type-safe row shape matching the listings table schema. */
+export interface ListingRow {
+  id: string;
+  nft_mint_address: string;
+  seller_wallet: string;
+  price_lamports: number;
+  status: "active" | "sold" | "cancelled";
+  buyer_wallet: string | null;
+  list_tx: string | null;
+  sale_tx: string | null;
+  listed_at: string;
+  sold_at: string | null;
+  cancelled_at: string | null;
+  nft_name: string;
+  nft_image_url: string;
+  nft_description: string;
+}

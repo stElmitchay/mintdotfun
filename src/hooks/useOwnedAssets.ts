@@ -11,6 +11,8 @@ export interface OwnedAsset {
   name: string;
   imageUrl: string;
   explorerUrl: string;
+  /** True if the NFT has a FreezeDelegate with frozen=true (i.e. listed on marketplace) */
+  isListed: boolean;
 }
 
 /**
@@ -47,7 +49,7 @@ async function resolveImageUrl(uri: string): Promise<string> {
 /**
  * Fetches all mpl-core assets owned by the connected wallet directly
  * from the Solana blockchain. Resolves metadata URIs (Arweave or data URIs)
- * to display images. This proves on-chain ownership regardless of localStorage.
+ * to display images. Includes plugin state to detect listed NFTs.
  */
 export function useOwnedAssets(umi: Umi, walletAddress: string | null) {
   const [assets, setAssets] = useState<OwnedAsset[]>([]);
@@ -66,17 +68,29 @@ export function useOwnedAssets(umi: Umi, walletAddress: string | null) {
     try {
       const owner = toPublicKey(walletAddress);
       const onChainAssets = await fetchAssetsByOwner(umi, owner, {
-        skipDerivePlugins: true,
+        skipDerivePlugins: false,
       });
 
       // Resolve metadata URIs in parallel to extract image URLs
       const parsed = await Promise.all(
-        onChainAssets.map(async (asset) => ({
-          address: asset.publicKey.toString(),
-          name: asset.name,
-          imageUrl: await resolveImageUrl(asset.uri),
-          explorerUrl: getCoreAssetUrl(asset.publicKey.toString()),
-        }))
+        onChainAssets.map(async (asset) => {
+          // Check if the asset has a FreezeDelegate plugin with frozen=true
+          let isListed = false;
+          if (asset.freezeDelegate) {
+            const fd = asset.freezeDelegate as { frozen?: boolean };
+            if (fd.frozen) {
+              isListed = true;
+            }
+          }
+
+          return {
+            address: asset.publicKey.toString(),
+            name: asset.name,
+            imageUrl: await resolveImageUrl(asset.uri),
+            explorerUrl: getCoreAssetUrl(asset.publicKey.toString()),
+            isListed,
+          };
+        })
       );
 
       setAssets(parsed);

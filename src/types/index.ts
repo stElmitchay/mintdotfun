@@ -29,3 +29,18 @@ export interface MintedNFT {
 
 export type GenerationStatus = "idle" | "generating" | "complete" | "error";
 export type MintStatus = "idle" | "uploading" | "minting" | "complete" | "error";
+
+export interface Listing {
+  id: string;
+  mintAddress: string;
+  sellerWallet: string;
+  priceLamports: number;
+  priceSol: number;
+  status: "active" | "sold" | "cancelled";
+  buyerWallet?: string;
+  listedAt: string;
+  soldAt?: string;
+  nftName: string;
+  nftImageUrl: string;
+  nftDescription: string;
+}
