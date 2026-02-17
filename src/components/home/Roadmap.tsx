@@ -1,7 +1,13 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { FadeUp, StaggerContainer, staggerItem } from "@/components/ui/motion";
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useScrollReveal } from "@/hooks/useGSAP";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 const milestones = [
   {
@@ -31,26 +37,89 @@ const milestones = [
 ];
 
 export default function Roadmap() {
+  const headerRef = useRef<HTMLDivElement>(null);
+  const timelineRef = useRef<HTMLDivElement>(null);
+  const lineRef = useRef<HTMLDivElement>(null);
+
+  useScrollReveal(headerRef, { y: 40, duration: 0.8 });
+
+  /* ── Timeline line draw + stagger milestones ─────────────── */
+  useEffect(() => {
+    const container = timelineRef.current;
+    const line = lineRef.current;
+    if (!container || !line) return;
+
+    const items = container.querySelectorAll("[data-milestone]");
+
+    const ctx = gsap.context(() => {
+      // Line grows on scroll
+      gsap.fromTo(
+        line,
+        { scaleY: 0 },
+        {
+          scaleY: 1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: container,
+            start: "top 75%",
+            end: "bottom 50%",
+            scrub: 1,
+          },
+        }
+      );
+
+      // Stagger milestones
+      gsap.set(items, { y: 40, opacity: 0 });
+      items.forEach((item, i) => {
+        gsap.to(item, {
+          y: 0,
+          opacity: 1,
+          duration: 0.8,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: item,
+            start: "top 85%",
+            toggleActions: "play none none none",
+          },
+          delay: i * 0.05,
+        });
+      });
+    }, container);
+
+    return () => ctx.revert();
+  }, []);
+
   return (
     <section className="py-24 px-6">
       <div className="max-w-4xl mx-auto">
-        <FadeUp>
+        <div ref={headerRef}>
           <div className="mb-16">
             <h2 className="text-3xl font-bold tracking-tight mb-3">Roadmap</h2>
             <p className="text-gray-500 text-sm">
               Building the future of AI-powered NFT creation.
             </p>
           </div>
-        </FadeUp>
+        </div>
 
-        <StaggerContainer className="space-y-0">
+        <div ref={timelineRef} className="relative space-y-0">
+          {/* Animated vertical line */}
+          <div
+            ref={lineRef}
+            className="absolute left-[19px] top-10 w-px bg-primary/40"
+            style={{
+              height: "calc(100% - 50px)",
+              transformOrigin: "top",
+              transform: "scaleY(0)",
+            }}
+          />
+
           {milestones.map((milestone, index) => (
-            <motion.div
+            <div
               key={milestone.phase}
-              variants={staggerItem}
+              data-milestone
               className="group relative flex gap-8 pb-12 last:pb-0"
             >
-              {/* Vertical line */}
+              {/* Static track line (subtle) */}
               {index < milestones.length - 1 && (
                 <div className="absolute left-[19px] top-10 w-px h-[calc(100%-10px)] bg-white/[0.04]" />
               )}
@@ -58,9 +127,9 @@ export default function Roadmap() {
               {/* Dot */}
               <div className="relative z-10 flex-shrink-0 mt-1.5">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-mono font-bold ${
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-mono font-bold transition-all duration-500 ${
                     milestone.status === "live"
-                      ? "bg-primary text-white"
+                      ? "bg-primary text-white shadow-[0_0_20px_rgba(13,148,136,0.3)]"
                       : "bg-surface-3 text-gray-500 border border-white/[0.06]"
                   }`}
                 >
@@ -80,11 +149,13 @@ export default function Roadmap() {
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-500">{milestone.description}</p>
+                <p className="text-sm text-gray-500">
+                  {milestone.description}
+                </p>
               </div>
-            </motion.div>
+            </div>
           ))}
-        </StaggerContainer>
+        </div>
       </div>
     </section>
   );

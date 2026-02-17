@@ -1,14 +1,25 @@
+"use client";
+
 import { Twitter, Send, Github } from "lucide-react";
 import Link from "next/link";
+import { useRef } from "react";
+import { useScrollReveal } from "@/hooks/useGSAP";
 
 export default function Footer() {
+  const footerRef = useRef<HTMLElement>(null);
+
+  useScrollReveal(footerRef, { y: 30, duration: 0.8 });
+
   return (
-    <footer className="border-t border-white/[0.04] py-8 px-6">
+    <footer ref={footerRef} className="border-t border-white/[0.04] py-8 px-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Logo + copy */}
           <div className="flex items-center gap-6">
-            <Link href="/" className="text-sm font-bold text-white tracking-tight">
+            <Link
+              href="/"
+              className="text-sm font-bold text-white tracking-tight"
+            >
               Mint<span className="text-primary">AI</span>
             </Link>
             <span className="text-xs text-gray-600">

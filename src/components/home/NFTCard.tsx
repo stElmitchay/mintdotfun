@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { useRef } from "react";
 import type { Listing } from "@/types";
 import { shortenAddress } from "@/lib/utils";
+import { useClipReveal } from "@/hooks/useGSAP";
 
 interface NFTCardProps {
   listing: Listing;
@@ -11,25 +12,31 @@ interface NFTCardProps {
 }
 
 export default function NFTCard({ listing, index = 0 }: NFTCardProps) {
+  const cardRef = useRef<HTMLDivElement>(null);
+
   // Vary aspect ratios for masonry visual interest
-  const aspects = ["aspect-[3/4]", "aspect-square", "aspect-[4/5]", "aspect-[3/4]", "aspect-[5/6]"];
+  const aspects = [
+    "aspect-[3/4]",
+    "aspect-square",
+    "aspect-[4/5]",
+    "aspect-[3/4]",
+    "aspect-[5/6]",
+  ];
   const aspectClass = aspects[index % aspects.length];
 
+  // Vary reveal directions for masonry variety
+  const directions = ["up", "up", "up", "up"] as const;
+  const dir = directions[index % directions.length];
+
+  useClipReveal(cardRef, {
+    direction: dir,
+    duration: 1.2,
+    delay: (index % 4) * 0.08,
+    ease: "power4.out",
+  });
+
   return (
-    <motion.div
-      variants={{
-        hidden: { opacity: 0, y: 20 },
-        visible: {
-          opacity: 1,
-          y: 0,
-          transition: {
-            type: "spring",
-            stiffness: 120,
-            damping: 20,
-          },
-        },
-      }}
-    >
+    <div ref={cardRef}>
       <Link
         href={`/nft/${listing.mintAddress}`}
         className="group block relative rounded-xl overflow-hidden bg-surface-2"
@@ -48,17 +55,17 @@ export default function NFTCard({ listing, index = 0 }: NFTCardProps) {
             </div>
           )}
 
-          {/* Overlay on hover — clean fade with info */}
+          {/* Overlay on hover */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-          {/* Price tag — always visible, bottom left */}
+          {/* Price tag */}
           <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-lg">
             <span className="text-sm font-semibold text-white">
               {listing.priceSol} SOL
             </span>
           </div>
 
-          {/* Info on hover — top area */}
+          {/* Info on hover */}
           <div className="absolute top-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
             <div className="flex items-center justify-between">
               <span className="text-xs text-white/70 bg-black/40 backdrop-blur-sm px-2 py-1 rounded">
@@ -68,13 +75,13 @@ export default function NFTCard({ listing, index = 0 }: NFTCardProps) {
           </div>
         </div>
 
-        {/* Title below image — minimal */}
+        {/* Title */}
         <div className="px-3 py-3">
           <h3 className="text-sm font-medium text-gray-300 truncate group-hover:text-white transition-colors duration-300">
             {listing.nftName}
           </h3>
         </div>
       </Link>
-    </motion.div>
+    </div>
   );
 }

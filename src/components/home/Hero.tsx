@@ -1,11 +1,45 @@
 "use client";
 
 import { Zap, ArrowRight } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { FadeUp, TextReveal } from "@/components/ui/motion";
+import gsap from "gsap";
+import { useMagnetic } from "@/hooks/useGSAP";
+
+/* ── Char-Split Helper ───────────────────────────────────────── */
+function SplitChars({
+  text,
+  className,
+  charRefs,
+  offset,
+}: {
+  text: string;
+  className?: string;
+  charRefs: React.MutableRefObject<(HTMLSpanElement | null)[]>;
+  offset: number;
+}) {
+  return (
+    <span className={className}>
+      {text.split("").map((char, i) => (
+        <span
+          key={i}
+          className="inline-block overflow-hidden align-bottom"
+        >
+          <span
+            ref={(el) => {
+              charRefs.current[offset + i] = el;
+            }}
+            className="inline-block will-change-transform"
+            style={{ transform: "translateY(115%)" }}
+          >
+            {char === " " ? "\u00A0" : char}
+          </span>
+        </span>
+      ))}
+    </span>
+  );
+}
 
 export default function Hero() {
   const { login, authenticated } = usePrivy();
@@ -14,14 +48,94 @@ export default function Hero() {
   const [isHovered, setIsHovered] = useState(false);
   const statueRef = useRef<HTMLDivElement>(null);
 
-  const handleGetStarted = () => {
+  /* Refs for GSAP animation targets */
+  const badgeRef = useRef<HTMLDivElement>(null);
+  const line1Refs = useRef<(HTMLSpanElement | null)[]>([]);
+  const line2Refs = useRef<(HTMLSpanElement | null)[]>([]);
+  const line3Refs = useRef<(HTMLSpanElement | null)[]>([]);
+  const descRef = useRef<HTMLParagraphElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
+  const statsRef = useRef<HTMLDivElement>(null);
+  const ctaBtnRef = useRef<HTMLButtonElement>(null);
+
+  /* Magnetic effect on CTA button */
+  useMagnetic(ctaBtnRef, 0.25);
+
+  const line1 = "Create Your";
+  const line2 = "AI-Powered NFT";
+  const line3 = "In Minutes";
+
+  const handleGetStarted = useCallback(() => {
     if (authenticated) {
       router.push("/create");
     } else {
       login();
     }
-  };
+  }, [authenticated, router, login]);
 
+  /* ── GSAP Entrance Timeline ──────────────────────────────── */
+  useEffect(() => {
+    const ctx = gsap.context(() => {
+      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+
+      // Badge
+      tl.fromTo(
+        badgeRef.current,
+        { y: 20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.6 },
+        0.15
+      );
+
+      // Line 1 chars
+      tl.to(
+        line1Refs.current.filter(Boolean),
+        { y: 0, stagger: 0.025, duration: 0.65 },
+        0.35
+      );
+
+      // Line 2 chars (overlapping)
+      tl.to(
+        line2Refs.current.filter(Boolean),
+        { y: 0, stagger: 0.025, duration: 0.65 },
+        0.65
+      );
+
+      // Line 3 chars
+      tl.to(
+        line3Refs.current.filter(Boolean),
+        { y: 0, stagger: 0.025, duration: 0.65 },
+        0.95
+      );
+
+      // Description
+      tl.fromTo(
+        descRef.current,
+        { y: 24, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.8 },
+        1.1
+      );
+
+      // CTAs
+      tl.fromTo(
+        ctaRef.current,
+        { y: 24, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.8 },
+        1.25
+      );
+
+      // Stats
+      tl.fromTo(
+        statsRef.current,
+        { y: 24, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.8 },
+        1.35
+      );
+    });
+
+    return () => ctx.revert();
+  }, []);
+
+  /* ── Statue Parallax (mouse) ─────────────────────────────── */
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (statueRef.current) {
@@ -46,47 +160,59 @@ export default function Hero() {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-8 relative z-10">
             {/* Badge */}
-            <FadeUp delay={0.1}>
+            <div ref={badgeRef} style={{ opacity: 0 }}>
               <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.03] px-4 py-1.5 text-sm text-gray-400">
                 <Zap className="w-3.5 h-3.5 text-primary" />
                 Powered by AI + Solana
               </div>
-            </FadeUp>
+            </div>
 
-            {/* Heading */}
+            {/* Heading — GSAP character splits */}
             <div>
               <h1 className="text-5xl lg:text-7xl font-bold leading-[1.1] tracking-tight">
-                <TextReveal text="Create Your" delay={0.2} />
+                <SplitChars
+                  text={line1}
+                  charRefs={line1Refs}
+                  offset={0}
+                />
                 <br />
-                <span className="text-primary">
-                  <TextReveal text="AI-Powered NFT" delay={0.35} />
-                </span>
+                <SplitChars
+                  text={line2}
+                  className="text-primary"
+                  charRefs={line2Refs}
+                  offset={0}
+                />
                 <br />
-                <TextReveal text="In Minutes" delay={0.5} />
+                <SplitChars
+                  text={line3}
+                  charRefs={line3Refs}
+                  offset={0}
+                />
               </h1>
             </div>
 
             {/* Description */}
-            <FadeUp delay={0.6}>
-              <p className="text-lg text-gray-500 leading-relaxed max-w-xl">
-                Describe your vision, let AI generate stunning artwork, and mint
-                it as a 1-of-1 NFT on Solana. No design skills needed.
-              </p>
-            </FadeUp>
+            <p
+              ref={descRef}
+              className="text-lg text-gray-500 leading-relaxed max-w-xl"
+              style={{ opacity: 0 }}
+            >
+              Describe your vision, let AI generate stunning artwork, and mint
+              it as a 1-of-1 NFT on Solana. No design skills needed.
+            </p>
 
             {/* CTAs */}
-            <FadeUp delay={0.7}>
+            <div ref={ctaRef} style={{ opacity: 0 }}>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                <motion.button
+                <button
+                  ref={ctaBtnRef}
                   onClick={handleGetStarted}
                   className="flex items-center gap-3 bg-primary px-8 py-4 rounded-full text-white font-semibold hover:bg-primary-dark transition-colors duration-300 group"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  data-cursor-hover
                 >
                   Start Creating
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-                </motion.button>
+                </button>
                 <button
                   onClick={() => router.push("/gallery")}
                   className="flex items-center gap-3 px-8 py-4 rounded-full text-gray-400 font-medium hover:text-white transition-colors duration-300"
@@ -94,10 +220,10 @@ export default function Hero() {
                   View Gallery
                 </button>
               </div>
-            </FadeUp>
+            </div>
 
             {/* Stats */}
-            <FadeUp delay={0.85}>
+            <div ref={statsRef} style={{ opacity: 0 }}>
               <div className="flex gap-10 pt-8 border-t border-white/[0.04]">
                 {[
                   { label: "Unique NFTs", value: "1-of-1" },
@@ -112,7 +238,7 @@ export default function Hero() {
                   </div>
                 ))}
               </div>
-            </FadeUp>
+            </div>
           </div>
 
           {/* Statue Section with 3D Parallax — UNTOUCHED */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import {
   Orbit,
   Zap,
@@ -10,7 +10,7 @@ import {
   Flame,
   Wind,
 } from "lucide-react";
-import { FadeUp } from "@/components/ui/motion";
+import { useScrollReveal, useParallax } from "@/hooks/useGSAP";
 
 const styles = [
   { name: "Cosmic Dreams", tag: "AI Art", icon: Orbit },
@@ -25,19 +25,25 @@ const styles = [
 export default function CollectionSlider() {
   const [paused, setPaused] = useState(false);
   const items = [...styles, ...styles];
+  const headerRef = useRef<HTMLDivElement>(null);
+  const sliderRef = useRef<HTMLDivElement>(null);
+
+  useScrollReveal(headerRef, { y: 30, duration: 0.7 });
+  useParallax(sliderRef, -0.15);
 
   return (
-    <section className="py-16 px-6">
+    <section className="py-16 px-6 overflow-hidden">
       <div className="max-w-7xl mx-auto">
-        <FadeUp>
+        <div ref={headerRef}>
           <div className="mb-8">
             <h2 className="text-xl font-semibold tracking-tight text-gray-300">
               Featured Styles
             </h2>
           </div>
-        </FadeUp>
+        </div>
 
         <div
+          ref={sliderRef}
           className="relative overflow-hidden collection-slider-mask"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
