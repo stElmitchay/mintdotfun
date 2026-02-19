@@ -1,13 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useScrollReveal } from "@/hooks/useGSAP";
-
-if (typeof window !== "undefined") {
-  gsap.registerPlugin(ScrollTrigger);
-}
+import Sheet from "@/components/ui/Sheet";
+import { ClipReveal, motion } from "@/components/ui/motion";
 
 const milestones = [
   {
@@ -37,85 +31,52 @@ const milestones = [
 ];
 
 export default function Roadmap() {
-  const headerRef = useRef<HTMLDivElement>(null);
-  const timelineRef = useRef<HTMLDivElement>(null);
-  const lineRef = useRef<HTMLDivElement>(null);
-
-  useScrollReveal(headerRef, { y: 40, duration: 0.8 });
-
-  useEffect(() => {
-    const container = timelineRef.current;
-    const line = lineRef.current;
-    if (!container || !line) return;
-
-    const items = container.querySelectorAll("[data-milestone]");
-
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        line,
-        { scaleY: 0 },
-        {
-          scaleY: 1,
-          ease: "none",
-          scrollTrigger: {
-            trigger: container,
-            start: "top 75%",
-            end: "bottom 50%",
-            scrub: 1,
-          },
-        }
-      );
-
-      gsap.set(items, { y: 40, opacity: 0 });
-      items.forEach((item, i) => {
-        gsap.to(item, {
-          y: 0,
-          opacity: 1,
-          duration: 0.8,
-          ease: "power3.out",
-          scrollTrigger: {
-            trigger: item,
-            start: "top 85%",
-            toggleActions: "play none none none",
-          },
-          delay: i * 0.05,
-        });
-      });
-    }, container);
-
-    return () => ctx.revert();
-  }, []);
-
   return (
-    <section className="py-24 px-6">
-      <div className="max-w-4xl mx-auto">
-        <div ref={headerRef}>
-          <div className="mb-16">
-            <h2 className="text-3xl font-medium tracking-tight mb-3 text-gray-12">
-              Roadmap
-            </h2>
-            <p className="text-gray-9 text-sm">
-              Building the future of AI-powered NFT creation.
-            </p>
-          </div>
-        </div>
+    <Sheet>
+      {/* Oversized decorative title */}
+      <div className="section-title-oversized mb-8 overflow-hidden leading-none">
+        ROADMAP
+      </div>
 
-        <div ref={timelineRef} className="relative space-y-0">
-          <div
-            ref={lineRef}
+      <div className="max-w-3xl">
+        <ClipReveal as="h2" className="text-3xl font-medium tracking-tight mb-3 text-gray-12" triggerOnScroll>
+          Roadmap
+        </ClipReveal>
+        <motion.p
+          className="text-gray-9 text-sm mb-12"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.4 }}
+        >
+          Building the future of AI-powered NFT creation.
+        </motion.p>
+
+        <div className="relative space-y-0">
+          {/* Timeline line */}
+          <motion.div
             className="absolute left-[19px] top-10 w-px bg-accent/40"
-            style={{
-              height: "calc(100% - 50px)",
-              transformOrigin: "top",
-              transform: "scaleY(0)",
-            }}
+            style={{ height: "calc(100% - 50px)", transformOrigin: "top" }}
+            initial={{ scaleY: 0 }}
+            whileInView={{ scaleY: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 1.2, ease: "easeOut" }}
           />
 
           {milestones.map((milestone, index) => (
-            <div
+            <motion.div
               key={milestone.phase}
-              data-milestone
               className="group relative flex gap-8 pb-12 last:pb-0"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 40,
+                mass: 0.15,
+                delay: index * 0.1,
+              }}
             >
               {index < milestones.length - 1 && (
                 <div className="absolute left-[19px] top-10 w-px h-[calc(100%-10px)] bg-gray-a3" />
@@ -146,10 +107,10 @@ export default function Roadmap() {
                 </div>
                 <p className="text-sm text-gray-9">{milestone.description}</p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
-    </section>
+    </Sheet>
   );
 }

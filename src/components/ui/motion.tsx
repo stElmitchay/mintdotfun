@@ -154,5 +154,95 @@ export function PageTransition({
   );
 }
 
+// ── Rauno Spring Configs ──────────────────────────────────────
+export const raunoSpring = {
+  hero: { type: "spring" as const, stiffness: 240, damping: 32, mass: 0.1 },
+  circle: { type: "spring" as const, stiffness: 600, damping: 80, mass: 0.2 },
+  section: { type: "spring" as const, stiffness: 300, damping: 40, mass: 0.15 },
+};
+
+// ── ClipReveal — text slides up from below ───────────────────
+export function ClipReveal({
+  children,
+  delay = 0,
+  variant,
+  className = "",
+  as: Tag = "p",
+  triggerOnScroll = false,
+}: {
+  children: ReactNode;
+  delay?: number;
+  variant?: "offset";
+  className?: string;
+  as?: "p" | "h1" | "h2" | "h3" | "span" | "div";
+  triggerOnScroll?: boolean;
+}) {
+  const MotionTag = motion.create(Tag);
+
+  const animateProps = triggerOnScroll
+    ? {
+        initial: "hidden" as const,
+        whileInView: "visible" as const,
+        viewport: { once: true, margin: "-40px" },
+      }
+    : {
+        initial: "hidden" as const,
+        animate: "visible" as const,
+      };
+
+  return (
+    <MotionTag
+      className={`overflow-hidden ${variant === "offset" ? "ml-16" : ""} ${className}`}
+      {...animateProps}
+    >
+      <motion.span
+        className="inline-block"
+        variants={{
+          hidden: { y: "110%" },
+          visible: {
+            y: "0%",
+            transition: {
+              y: {
+                ...raunoSpring.hero,
+                delay: delay + 0.2,
+                restSpeed: 0.0001,
+                restDelta: 0.0001,
+              },
+            },
+          },
+        }}
+      >
+        {children}
+      </motion.span>
+    </MotionTag>
+  );
+}
+
+// ── ScaleInCircle — yellow circle scales in ──────────────────
+export function ScaleInCircle({
+  className = "",
+  delay = 0.4,
+  size = 300,
+}: {
+  className?: string;
+  delay?: number;
+  size?: number;
+}) {
+  return (
+    <motion.div
+      className={`rounded-full bg-accent aspect-square ${className}`}
+      style={{ width: size, height: size }}
+      initial={{ scale: 0 }}
+      animate={{ scale: 1 }}
+      transition={{
+        ...raunoSpring.circle,
+        delay,
+        restSpeed: 0.0001,
+        restDelta: 0.0001,
+      }}
+    />
+  );
+}
+
 // Re-export motion for direct use
 export { motion };

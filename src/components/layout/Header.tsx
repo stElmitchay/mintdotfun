@@ -43,27 +43,27 @@ export default function Header() {
       transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? "bg-gray-1/90 backdrop-blur-xl border-b border-gray-a3"
+          ? "backdrop-blur-xl bg-gray-4/80 border-b border-gray-a3"
           : "bg-transparent"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-6 py-4">
+      <div className="max-w-[1200px] mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="text-xl font-medium text-gray-12 tracking-tight">
             Mint<span className="text-accent">AI</span>
           </Link>
 
-          {/* Center nav */}
-          <div className="hidden md:flex items-center gap-1 bg-gray-a3 rounded-full px-1 py-1 border border-gray-a4">
+          {/* Center nav — flat text links, no pill */}
+          <div className="hidden md:flex items-center gap-8">
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                className={`text-sm font-medium transition-colors duration-300 ${
                   pathname === link.href
-                    ? "bg-accent text-gray-1"
-                    : "text-gray-11 hover:text-gray-12"
+                    ? "text-gray-12"
+                    : "text-gray-9 hover:text-gray-12"
                 }`}
               >
                 {link.label}
@@ -79,7 +79,7 @@ export default function Header() {
                   <button
                     onClick={copyAddress}
                     title={solanaWallet.address}
-                    className="hidden lg:flex items-center gap-2 bg-gray-a3 rounded-full px-4 py-2 border border-gray-a4 text-sm text-gray-11 hover:text-gray-12 hover:border-gray-a6 transition-all duration-300"
+                    className="hidden lg:flex items-center gap-2 text-sm text-gray-9 hover:text-gray-12 transition-colors duration-300"
                   >
                     <Wallet className="w-3.5 h-3.5" />
                     <span className="font-mono text-xs">
@@ -132,7 +132,7 @@ export default function Header() {
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
-            className="md:hidden overflow-hidden border-t border-gray-a3 bg-gray-1/95 backdrop-blur-xl"
+            className="md:hidden overflow-hidden border-t border-gray-a3 bg-gray-2/95 backdrop-blur-xl"
           >
             <div className="px-6 py-4 space-y-1">
               {navLinks.map((link) => (
@@ -142,8 +142,8 @@ export default function Header() {
                   onClick={() => setMobileOpen(false)}
                   className={`block px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                     pathname === link.href
-                      ? "bg-accent/10 text-accent"
-                      : "text-gray-11 hover:text-gray-12 hover:bg-gray-a3"
+                      ? "text-gray-12"
+                      : "text-gray-9 hover:text-gray-12"
                   }`}
                 >
                   {link.label}
@@ -155,7 +155,7 @@ export default function Header() {
                   <div className="space-y-2">
                     <button
                       onClick={copyAddress}
-                      className="flex w-full items-center gap-2 px-4 py-3 rounded-xl bg-gray-a3 text-sm text-gray-11"
+                      className="flex w-full items-center gap-2 px-4 py-3 rounded-xl text-sm text-gray-9"
                     >
                       <Wallet className="w-3.5 h-3.5" />
                       <span className="font-mono text-xs">

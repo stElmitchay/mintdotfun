@@ -30,10 +30,10 @@ export default function RootLayout({
       <body className="antialiased">
         <PrivyProvider>
           <SmoothScroll>
-            <div className="min-h-screen bg-gray-1 text-gray-12 overflow-x-hidden">
+            <div className="min-h-screen bg-gray-4 text-gray-12 overflow-x-hidden">
               <div className="relative z-10">
                 <Header />
-                <main className="min-h-[calc(100vh-4rem)]">{children}</main>
+                <main>{children}</main>
                 <Footer />
               </div>
             </div>

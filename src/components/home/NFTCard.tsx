@@ -1,10 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRef } from "react";
 import type { Listing } from "@/types";
 import { shortenAddress } from "@/lib/utils";
-import { useClipReveal } from "@/hooks/useGSAP";
+import { motion } from "framer-motion";
 
 interface NFTCardProps {
   listing: Listing;
@@ -12,31 +11,24 @@ interface NFTCardProps {
 }
 
 export default function NFTCard({ listing, index = 0 }: NFTCardProps) {
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  const aspects = [
-    "aspect-[3/4]",
-    "aspect-square",
-    "aspect-[4/5]",
-    "aspect-[3/4]",
-    "aspect-[5/6]",
-  ];
-  const aspectClass = aspects[index % aspects.length];
-
-  useClipReveal(cardRef, {
-    direction: "up",
-    duration: 1.2,
-    delay: (index % 4) * 0.08,
-    ease: "power4.out",
-  });
-
   return (
-    <div ref={cardRef}>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 40,
+        mass: 0.15,
+        delay: (index % 3) * 0.08,
+      }}
+    >
       <Link
         href={`/nft/${listing.mintAddress}`}
-        className="group block relative rounded-xl overflow-hidden bg-gray-2"
+        className="group block rounded-xl overflow-hidden bg-gray-3 hover:shadow-lg transition-shadow duration-300"
       >
-        <div className={`relative ${aspectClass} overflow-hidden`}>
+        <div className="relative aspect-square overflow-hidden">
           {listing.nftImageUrl ? (
             <img
               src={listing.nftImageUrl}
@@ -44,15 +36,13 @@ export default function NFTCard({ listing, index = 0 }: NFTCardProps) {
               className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
             />
           ) : (
-            <div className="w-full h-full bg-gray-3 flex items-center justify-center">
+            <div className="w-full h-full bg-gray-4 flex items-center justify-center">
               <div className="w-8 h-8 rounded-full bg-accent/20" />
             </div>
           )}
 
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
           <div className="absolute bottom-3 left-3 bg-gray-1/80 backdrop-blur-md px-3 py-1.5 rounded-lg">
-            <span className="text-sm font-medium text-gray-12">
+            <span className="text-sm font-medium text-accent">
               {listing.priceSol} SOL
             </span>
           </div>
@@ -70,6 +60,6 @@ export default function NFTCard({ listing, index = 0 }: NFTCardProps) {
           </h3>
         </div>
       </Link>
-    </div>
+    </motion.div>
   );
 }
