@@ -18,14 +18,13 @@ export default function NFTGrid() {
   return (
     <section className="py-24 px-6">
       <div className="max-w-7xl mx-auto">
-        {/* Section header */}
         <div ref={headerRef}>
           <div className="flex items-end justify-between mb-12">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight mb-2">
+              <h2 className="text-3xl font-medium tracking-tight mb-2 text-gray-12">
                 {listings.length > 0 ? "Listed NFTs" : "Marketplace"}
               </h2>
-              <p className="text-gray-500 text-sm">
+              <p className="text-gray-9 text-sm">
                 {listings.length > 0
                   ? "Browse and collect AI-generated digital art"
                   : "List your AI-generated NFTs for sale"}
@@ -33,7 +32,7 @@ export default function NFTGrid() {
             </div>
             <Link
               href="/gallery"
-              className="hidden sm:flex items-center gap-2 text-sm text-gray-500 hover:text-white transition-colors duration-300 group"
+              className="hidden sm:flex items-center gap-2 text-sm text-gray-9 hover:text-gray-12 transition-colors duration-300 group"
             >
               View all
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform duration-300" />
@@ -42,7 +41,7 @@ export default function NFTGrid() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-32 text-gray-600 gap-3">
+          <div className="flex items-center justify-center py-32 text-gray-9 gap-3">
             <Loader2 className="w-5 h-5 animate-spin" />
             <span className="text-sm">Loading...</span>
           </div>
@@ -54,13 +53,13 @@ export default function NFTGrid() {
           </div>
         ) : (
           <div ref={emptyRef}>
-            <div className="text-center py-32 border border-white/[0.04] rounded-2xl bg-surface-1/50">
-              <p className="text-gray-600 mb-6 text-sm">
+            <div className="text-center py-32 border border-gray-a3 rounded-2xl bg-gray-2/50">
+              <p className="text-gray-9 mb-6 text-sm">
                 No listings yet. Be the first to list an NFT.
               </p>
               <Link
                 href="/create"
-                className="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-primary-dark transition-colors duration-300"
+                className="inline-flex items-center gap-2 bg-accent text-gray-1 px-6 py-3 rounded-full text-sm font-medium hover:opacity-90 transition-all duration-300"
               >
                 Create an NFT
                 <ArrowRight className="w-3.5 h-3.5" />

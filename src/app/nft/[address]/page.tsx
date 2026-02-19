@@ -276,7 +276,7 @@ export default function NFTDetailPage({
                     <motion.button
                       onClick={handleBuy}
                       disabled={buying}
-                      className="w-full bg-primary py-3 rounded-xl text-sm font-semibold text-white hover:bg-primary-dark transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                      className="w-full bg-primary py-3 rounded-xl text-sm font-semibold text-black hover:opacity-90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                       whileHover={{ scale: 1.01 }}
                       whileTap={{ scale: 0.99 }}
                     >
@@ -303,7 +303,7 @@ export default function NFTDetailPage({
               <FadeUp delay={0.3}>
                 <motion.button
                   onClick={() => setShowListModal(true)}
-                  className="w-full bg-primary py-3 rounded-xl text-sm font-semibold text-white hover:bg-primary-dark transition-colors"
+                  className="w-full bg-primary py-3 rounded-xl text-sm font-semibold text-black hover:opacity-90 transition-colors"
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                 >

@@ -1,18 +1,9 @@
 import type { Metadata } from "next";
-import { Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import PrivyProvider from "@/components/providers/PrivyProvider";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import SmoothScroll from "@/components/effects/SmoothScroll";
-import CustomCursor from "@/components/effects/CustomCursor";
-import NoiseOverlay from "@/components/effects/NoiseOverlay";
-
-const spaceGrotesk = Space_Grotesk({
-  variable: "--font-space-grotesk",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-});
 
 export const metadata: Metadata = {
   title: "MintAI - AI-Powered NFT Creator",
@@ -27,26 +18,19 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${spaceGrotesk.variable} antialiased`}>
+      <head>
+        <link
+          rel="preload"
+          href="/fonts/dd.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+      </head>
+      <body className="antialiased">
         <PrivyProvider>
           <SmoothScroll>
-            <CustomCursor />
-            <NoiseOverlay />
-
-            <div className="min-h-screen bg-surface-0 text-white overflow-x-hidden">
-              {/* Ambient background — very subtle */}
-              <div className="fixed inset-0 pointer-events-none">
-                <div
-                  className="absolute top-0 left-1/4 w-[600px] h-[600px] rounded-full blur-[160px] opacity-[0.04]"
-                  style={{ background: "#0D9488" }}
-                />
-                <div
-                  className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full blur-[140px] opacity-[0.03]"
-                  style={{ background: "#22D3EE" }}
-                />
-              </div>
-
-              {/* Content */}
+            <div className="min-h-screen bg-gray-1 text-gray-12 overflow-x-hidden">
               <div className="relative z-10">
                 <Header />
                 <main className="min-h-[calc(100vh-4rem)]">{children}</main>

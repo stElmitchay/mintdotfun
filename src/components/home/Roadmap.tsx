@@ -43,7 +43,6 @@ export default function Roadmap() {
 
   useScrollReveal(headerRef, { y: 40, duration: 0.8 });
 
-  /* ── Timeline line draw + stagger milestones ─────────────── */
   useEffect(() => {
     const container = timelineRef.current;
     const line = lineRef.current;
@@ -52,7 +51,6 @@ export default function Roadmap() {
     const items = container.querySelectorAll("[data-milestone]");
 
     const ctx = gsap.context(() => {
-      // Line grows on scroll
       gsap.fromTo(
         line,
         { scaleY: 0 },
@@ -68,7 +66,6 @@ export default function Roadmap() {
         }
       );
 
-      // Stagger milestones
       gsap.set(items, { y: 40, opacity: 0 });
       items.forEach((item, i) => {
         gsap.to(item, {
@@ -94,18 +91,19 @@ export default function Roadmap() {
       <div className="max-w-4xl mx-auto">
         <div ref={headerRef}>
           <div className="mb-16">
-            <h2 className="text-3xl font-bold tracking-tight mb-3">Roadmap</h2>
-            <p className="text-gray-500 text-sm">
+            <h2 className="text-3xl font-medium tracking-tight mb-3 text-gray-12">
+              Roadmap
+            </h2>
+            <p className="text-gray-9 text-sm">
               Building the future of AI-powered NFT creation.
             </p>
           </div>
         </div>
 
         <div ref={timelineRef} className="relative space-y-0">
-          {/* Animated vertical line */}
           <div
             ref={lineRef}
-            className="absolute left-[19px] top-10 w-px bg-primary/40"
+            className="absolute left-[19px] top-10 w-px bg-accent/40"
             style={{
               height: "calc(100% - 50px)",
               transformOrigin: "top",
@@ -119,39 +117,34 @@ export default function Roadmap() {
               data-milestone
               className="group relative flex gap-8 pb-12 last:pb-0"
             >
-              {/* Static track line (subtle) */}
               {index < milestones.length - 1 && (
-                <div className="absolute left-[19px] top-10 w-px h-[calc(100%-10px)] bg-white/[0.04]" />
+                <div className="absolute left-[19px] top-10 w-px h-[calc(100%-10px)] bg-gray-a3" />
               )}
 
-              {/* Dot */}
               <div className="relative z-10 flex-shrink-0 mt-1.5">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-mono font-bold transition-all duration-500 ${
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-xs font-mono font-medium ${
                     milestone.status === "live"
-                      ? "bg-primary text-white shadow-[0_0_20px_rgba(13,148,136,0.3)]"
-                      : "bg-surface-3 text-gray-500 border border-white/[0.06]"
+                      ? "bg-accent text-gray-1"
+                      : "bg-gray-4 text-gray-9 border border-gray-a4"
                   }`}
                 >
                   {milestone.phase}
                 </div>
               </div>
 
-              {/* Content */}
               <div className="flex-1 pt-1">
                 <div className="flex items-center gap-3 mb-1">
-                  <h3 className="text-lg font-semibold text-white">
+                  <h3 className="text-lg font-medium text-gray-12">
                     {milestone.title}
                   </h3>
                   {milestone.status === "live" && (
-                    <span className="text-[10px] font-medium uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full">
+                    <span className="text-[10px] font-medium uppercase tracking-wider text-accent bg-accent-dim px-2 py-0.5 rounded-full">
                       Live
                     </span>
                   )}
                 </div>
-                <p className="text-sm text-gray-500">
-                  {milestone.description}
-                </p>
+                <p className="text-sm text-gray-9">{milestone.description}</p>
               </div>
             </div>
           ))}

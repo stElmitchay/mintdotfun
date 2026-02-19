@@ -6,13 +6,11 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useMagnetic } from "@/hooks/useGSAP";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-/* ── Char-Split for CTA heading ──────────────────────────────── */
 function SplitWords({
   text,
   className,
@@ -26,7 +24,10 @@ function SplitWords({
   return (
     <span className={className}>
       {words.map((word, i) => (
-        <span key={i} className="inline-block overflow-hidden align-bottom mr-[0.3em]">
+        <span
+          key={i}
+          className="inline-block overflow-hidden align-bottom mr-[0.3em]"
+        >
           <span
             ref={(el) => {
               wordRefs.current[i] = el;
@@ -53,8 +54,6 @@ export default function CTASection() {
   const btnRef = useRef<HTMLButtonElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
 
-  useMagnetic(btnRef, 0.25);
-
   const handleGetStarted = useCallback(() => {
     if (authenticated) {
       router.push("/create");
@@ -77,21 +76,18 @@ export default function CTASection() {
         },
       });
 
-      // Line 1 words
       tl.to(
         line1Refs.current.filter(Boolean),
         { y: 0, stagger: 0.06, duration: 0.8 },
         0
       );
 
-      // Line 2 words (primary color)
       tl.to(
         line2Refs.current.filter(Boolean),
         { y: 0, stagger: 0.06, duration: 0.8 },
         0.2
       );
 
-      // Description
       tl.fromTo(
         descRef.current,
         { y: 30, opacity: 0 },
@@ -99,7 +95,6 @@ export default function CTASection() {
         0.5
       );
 
-      // Button
       tl.fromTo(
         btnRef.current,
         { y: 20, opacity: 0 },
@@ -107,7 +102,6 @@ export default function CTASection() {
         0.65
       );
 
-      // Stats
       tl.fromTo(
         statsRef.current,
         { y: 20, opacity: 0 },
@@ -122,19 +116,19 @@ export default function CTASection() {
   return (
     <section ref={sectionRef} className="py-32 px-6">
       <div className="max-w-3xl mx-auto text-center">
-        <h2 className="text-4xl lg:text-5xl font-bold tracking-tight leading-[1.1] mb-6">
+        <h2 className="text-4xl lg:text-5xl font-medium tracking-tight leading-[1.1] mb-6">
           <SplitWords text="Turn your ideas into" wordRefs={line1Refs} />
           <br />
           <SplitWords
             text="unique digital art"
-            className="text-primary"
+            className="text-accent"
             wordRefs={line2Refs}
           />
         </h2>
 
         <p
           ref={descRef}
-          className="text-gray-500 text-lg mb-10 max-w-xl mx-auto"
+          className="text-gray-11 text-lg mb-10 max-w-xl mx-auto"
           style={{ opacity: 0 }}
         >
           From concept to on-chain in minutes. AI-powered creation on Solana.
@@ -143,15 +137,13 @@ export default function CTASection() {
         <button
           ref={btnRef}
           onClick={handleGetStarted}
-          className="inline-flex items-center gap-3 bg-primary text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-primary-dark transition-colors duration-300 group"
+          className="inline-flex items-center gap-3 bg-accent text-gray-1 px-8 py-4 rounded-full font-medium text-lg hover:opacity-90 transition-all duration-300 group"
           style={{ opacity: 0 }}
-          data-cursor-hover
         >
           Get Started
           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
         </button>
 
-        {/* Stats */}
         <div ref={statsRef} style={{ opacity: 0 }}>
           <div className="mt-20 flex items-center justify-center gap-12 text-sm">
             {[
@@ -161,10 +153,8 @@ export default function CTASection() {
               { value: "Arweave", label: "Storage" },
             ].map((stat) => (
               <div key={stat.label} className="text-center">
-                <div className="font-semibold text-gray-300">{stat.value}</div>
-                <div className="text-gray-600 text-xs mt-0.5">
-                  {stat.label}
-                </div>
+                <div className="font-medium text-gray-12">{stat.value}</div>
+                <div className="text-gray-9 text-xs mt-0.5">{stat.label}</div>
               </div>
             ))}
           </div>

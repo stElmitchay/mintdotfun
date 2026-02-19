@@ -60,7 +60,7 @@ export default function BuyButton({
     <motion.button
       onClick={handleBuy}
       disabled={buying}
-      className={`bg-primary py-3 rounded-xl text-sm font-semibold text-white hover:bg-primary-dark transition-colors disabled:opacity-50 flex items-center justify-center gap-2 ${className}`}
+      className={`bg-primary py-3 rounded-xl text-sm font-semibold text-black hover:opacity-90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 ${className}`}
       whileHover={{ scale: 1.01 }}
       whileTap={{ scale: 0.99 }}
     >

@@ -1,92 +1,139 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #0D9488;
-  --color-primary-dark: #0A7A70;
-  --color-primary-light: #5EEAD4;
-  --color-accent: #22D3EE;
-  --color-surface-0: #060A10;
-  --color-surface-1: #0A0F18;
-  --color-surface-2: #0F1520;
-  --color-surface-3: #151D2A;
-  --color-surface-4: #1C2636;
-  --color-border: rgba(255, 255, 255, 0.06);
+  /* ── Rauno Gray Scale (Dark) ──────────────────────────────── */
+  --color-gray-1: hsl(0 0% 8.5%);
+  --color-gray-2: hsl(0 0% 11%);
+  --color-gray-3: hsl(0 0% 13.6%);
+  --color-gray-4: hsl(0 0% 15.8%);
+  --color-gray-5: hsl(0 0% 17.9%);
+  --color-gray-6: hsl(0 0% 20.5%);
+  --color-gray-7: hsl(0 0% 24.3%);
+  --color-gray-8: hsl(0 0% 31.2%);
+  --color-gray-9: hsl(0 0% 43.9%);
+  --color-gray-10: hsl(0 0% 49.4%);
+  --color-gray-11: hsl(0 0% 62.8%);
+  --color-gray-12: hsl(0 0% 93%);
 
-  --font-sans: "Space Grotesk", sans-serif;
+  --color-gray-a1: hsl(0 0% 100% / 0);
+  --color-gray-a2: hsl(0 0% 100% / 0.026);
+  --color-gray-a3: hsl(0 0% 100% / 0.056);
+  --color-gray-a4: hsl(0 0% 100% / 0.077);
+  --color-gray-a5: hsl(0 0% 100% / 0.103);
+  --color-gray-a6: hsl(0 0% 100% / 0.129);
+  --color-gray-a7: hsl(0 0% 100% / 0.172);
+  --color-gray-a8: hsl(0 0% 100% / 0.249);
 
+  /* ── Accent (Yellow) ──────────────────────────────────────── */
+  --color-accent: #ffff02;
+  --color-accent-high: #ffef00;
+  --color-accent-dim: rgba(255, 255, 2, 0.12);
+
+  /* ── Backward compat aliases ──────────────────────────────── */
+  --color-primary: #ffff02;
+  --color-primary-dark: #e6e600;
+  --color-primary-light: #ffff66;
+  --color-surface-0: hsl(0 0% 8.5%);
+  --color-surface-1: hsl(0 0% 11%);
+  --color-surface-2: hsl(0 0% 13.6%);
+  --color-surface-3: hsl(0 0% 15.8%);
+  --color-surface-4: hsl(0 0% 20.5%);
+  --color-border: hsl(0 0% 100% / 0.056);
+
+  /* ── Brand Colors ─────────────────────────────────────────── */
+  --color-brand-red: rgb(244, 40, 0);
+  --color-brand-green: rgb(0, 175, 63);
+  --color-brand-blue: rgb(5, 111, 247);
+  --color-brand-orange: #ff6100;
+
+  /* ── Fonts ────────────────────────────────────────────────── */
+  --font-sans: X, -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans",
+    "Helvetica Neue", sans-serif;
+  --font-mono: "JetBrains Mono", Menlo, monospace;
+
+  /* ── Animations ───────────────────────────────────────────── */
   --animate-float: float 6s ease-in-out infinite;
 }
 
-/* Keyframes */
+/* ── Font Faces ─────────────────────────────────────────────── */
+
+@font-face {
+  font-family: X;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/dd.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: X;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/dd.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/JetBrainsMono-Regular.woff2") format("woff2");
+}
+
+/* ── Keyframes ──────────────────────────────────────────────── */
+
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-12px); }
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
 }
 
 @keyframes scroll-carousel {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+  0% {
+    transform: translateX(0);
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  100% {
+    transform: translateX(-50%);
   }
 }
 
-@keyframes subtle-pulse {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.7; }
+/* ── Base ───────────────────────────────────────────────────── */
+
+*,
+*::before,
+*::after {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-@keyframes grain {
-  0%, 100% { background-position: 0 0; }
-  10% { background-position: -5% -10%; }
-  20% { background-position: -15% 5%; }
-  30% { background-position: 7% -25%; }
-  40% { background-position: -5% 25%; }
-  50% { background-position: -15% 10%; }
-  60% { background-position: 15% 0%; }
-  70% { background-position: 0% 15%; }
-  80% { background-position: 3% 35%; }
-  90% { background-position: -10% 10%; }
-}
-
-.grain-animation {
-  animation: grain 8s steps(10) infinite;
-}
-
-/* Base */
 body {
-  background: var(--color-surface-0);
-  color: #E4E8EE;
-  font-family: var(--font-sans), system-ui, sans-serif;
+  background: var(--color-gray-1);
+  color: var(--color-gray-12);
+}
+
+h1,
+h2,
+h3 {
+  font-weight: 500;
 }
 
 ::selection {
-  background: rgba(13, 148, 136, 0.3);
-  color: #fff;
+  background: var(--color-accent);
+  color: black;
 }
 
-/* Utility — solid accent text */
-.text-accent {
-  color: var(--color-primary);
-}
+/* ── Utilities ──────────────────────────────────────────────── */
 
-/* Utility — subtle hover lift */
 .hover-lift {
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 .hover-lift:hover {
   transform: translateY(-4px);
 }
 
-/* Scrollbar hide */
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -95,24 +142,24 @@ body {
   display: none;
 }
 
-/* Custom range slider */
+/* Range slider */
 .slider::-webkit-slider-thumb {
   appearance: none;
   height: 20px;
   width: 20px;
   border-radius: 50%;
-  background: #0D9488;
+  background: var(--color-accent);
   cursor: pointer;
-  box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.15);
+  box-shadow: 0 0 0 4px rgba(255, 255, 2, 0.15);
 }
 .slider::-moz-range-thumb {
   height: 20px;
   width: 20px;
   border-radius: 50%;
-  background: #0D9488;
+  background: var(--color-accent);
   cursor: pointer;
   border: none;
-  box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.15);
+  box-shadow: 0 0 0 4px rgba(255, 255, 2, 0.15);
 }
 
 /* Collection slider fade mask */
@@ -153,11 +200,11 @@ body {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--color-gray-a6);
   border-radius: 2px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--color-gray-a8);
 }
 
 /* Radial gradient for statue aura */
@@ -176,11 +223,17 @@ body {
 }
 
 @media (max-width: 1280px) {
-  .masonry-grid { columns: 3; }
+  .masonry-grid {
+    columns: 3;
+  }
 }
 @media (max-width: 768px) {
-  .masonry-grid { columns: 2; }
+  .masonry-grid {
+    columns: 2;
+  }
 }
 @media (max-width: 480px) {
-  .masonry-grid { columns: 1; }
+  .masonry-grid {
+    columns: 1;
+  }
 }

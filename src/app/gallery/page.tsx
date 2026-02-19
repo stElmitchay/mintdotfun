@@ -328,7 +328,7 @@ export default function GalleryPage() {
               {!searchQuery && (
                 <Link
                   href="/create"
-                  className="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-primary-dark transition-colors duration-300"
+                  className="inline-flex items-center gap-2 bg-primary text-black px-6 py-3 rounded-full text-sm font-medium hover:opacity-90 transition-all duration-300"
                 >
                   Create an NFT
                   <ArrowRight className="w-3.5 h-3.5" />

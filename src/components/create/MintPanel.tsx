@@ -266,7 +266,7 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
               <motion.button
                 onClick={handleMint}
                 disabled={!config.name || !connected || formDisabled}
-                className="w-full flex items-center justify-center gap-2 bg-primary px-6 py-3.5 rounded-xl text-sm text-white font-medium hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 bg-primary px-6 py-3.5 rounded-xl text-sm text-black font-medium hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
               >

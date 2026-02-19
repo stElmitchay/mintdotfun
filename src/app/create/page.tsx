@@ -155,7 +155,7 @@ export default function CreatePage() {
           </p>
           <motion.button
             onClick={login}
-            className="flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-full text-sm font-medium hover:bg-primary-dark transition-colors"
+            className="flex items-center gap-2 bg-primary text-black px-6 py-3 rounded-full text-sm font-medium hover:opacity-90 transition-all"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -230,8 +230,8 @@ export default function CreatePage() {
                       className={cn(
                         "px-4 py-2 rounded-full text-xs font-medium transition-all duration-300",
                         style === preset.id
-                          ? "bg-primary text-white"
-                          : "bg-surface-2 text-gray-400 hover:text-white border border-white/[0.06] hover:border-white/[0.1]"
+                          ? "bg-primary text-black"
+                          : "bg-surface-2 text-gray-11 hover:text-gray-12 border border-gray-a4 hover:border-gray-a6"
                       )}
                     >
                       {preset.label}
@@ -306,7 +306,7 @@ export default function CreatePage() {
             <motion.button
               onClick={handleGenerate}
               disabled={!prompt.trim() || status === "generating"}
-              className="w-full flex items-center justify-center gap-3 bg-primary px-8 py-5 rounded-xl text-white font-semibold hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+              className="w-full flex items-center justify-center gap-3 bg-primary px-8 py-5 rounded-xl text-black font-semibold hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
               whileHover={{ scale: 1.005 }}
               whileTap={{ scale: 0.995 }}
             >
@@ -382,7 +382,7 @@ export default function CreatePage() {
                         className={cn(
                           "absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full transition-all",
                           img.selected
-                            ? "bg-primary text-white"
+                            ? "bg-primary text-black"
                             : "bg-black/40 backdrop-blur-sm text-gray-500"
                         )}
                       >
@@ -395,7 +395,7 @@ export default function CreatePage() {
                 {selectedImage && (
                   <motion.button
                     onClick={() => setShowMintPanel(true)}
-                    className="w-full flex items-center justify-center gap-3 bg-primary px-8 py-5 rounded-xl text-white font-semibold hover:bg-primary-dark transition-colors text-sm"
+                    className="w-full flex items-center justify-center gap-3 bg-primary px-8 py-5 rounded-xl text-black font-semibold hover:opacity-90 transition-colors text-sm"
                     whileHover={{ scale: 1.005 }}
                     whileTap={{ scale: 0.995 }}
                   >

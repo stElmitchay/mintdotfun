@@ -5,7 +5,6 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import { useRouter } from "next/navigation";
 import gsap from "gsap";
-import { useMagnetic } from "@/hooks/useGSAP";
 
 /* ── Char-Split Helper ───────────────────────────────────────── */
 function SplitChars({
@@ -22,10 +21,7 @@ function SplitChars({
   return (
     <span className={className}>
       {text.split("").map((char, i) => (
-        <span
-          key={i}
-          className="inline-block overflow-hidden align-bottom"
-        >
+        <span key={i} className="inline-block overflow-hidden align-bottom">
           <span
             ref={(el) => {
               charRefs.current[offset + i] = el;
@@ -48,7 +44,6 @@ export default function Hero() {
   const [isHovered, setIsHovered] = useState(false);
   const statueRef = useRef<HTMLDivElement>(null);
 
-  /* Refs for GSAP animation targets */
   const badgeRef = useRef<HTMLDivElement>(null);
   const line1Refs = useRef<(HTMLSpanElement | null)[]>([]);
   const line2Refs = useRef<(HTMLSpanElement | null)[]>([]);
@@ -56,10 +51,6 @@ export default function Hero() {
   const descRef = useRef<HTMLParagraphElement>(null);
   const ctaRef = useRef<HTMLDivElement>(null);
   const statsRef = useRef<HTMLDivElement>(null);
-  const ctaBtnRef = useRef<HTMLButtonElement>(null);
-
-  /* Magnetic effect on CTA button */
-  useMagnetic(ctaBtnRef, 0.25);
 
   const line1 = "Create Your";
   const line2 = "AI-Powered NFT";
@@ -76,9 +67,10 @@ export default function Hero() {
   /* ── GSAP Entrance Timeline ──────────────────────────────── */
   useEffect(() => {
     const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+      const tl = gsap.timeline({
+        defaults: { ease: "power3.out" },
+      });
 
-      // Badge
       tl.fromTo(
         badgeRef.current,
         { y: 20, opacity: 0 },
@@ -86,28 +78,24 @@ export default function Hero() {
         0.15
       );
 
-      // Line 1 chars
       tl.to(
         line1Refs.current.filter(Boolean),
         { y: 0, stagger: 0.025, duration: 0.65 },
         0.35
       );
 
-      // Line 2 chars (overlapping)
       tl.to(
         line2Refs.current.filter(Boolean),
         { y: 0, stagger: 0.025, duration: 0.65 },
         0.65
       );
 
-      // Line 3 chars
       tl.to(
         line3Refs.current.filter(Boolean),
         { y: 0, stagger: 0.025, duration: 0.65 },
         0.95
       );
 
-      // Description
       tl.fromTo(
         descRef.current,
         { y: 24, opacity: 0 },
@@ -115,7 +103,6 @@ export default function Hero() {
         1.1
       );
 
-      // CTAs
       tl.fromTo(
         ctaRef.current,
         { y: 24, opacity: 0 },
@@ -123,7 +110,6 @@ export default function Hero() {
         1.25
       );
 
-      // Stats
       tl.fromTo(
         statsRef.current,
         { y: 24, opacity: 0 },
@@ -161,40 +147,32 @@ export default function Hero() {
           <div className="space-y-8 relative z-10">
             {/* Badge */}
             <div ref={badgeRef} style={{ opacity: 0 }}>
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.06] bg-white/[0.03] px-4 py-1.5 text-sm text-gray-400">
-                <Zap className="w-3.5 h-3.5 text-primary" />
+              <div className="inline-flex items-center gap-2 rounded-full border border-gray-a4 bg-gray-a3 px-4 py-1.5 text-sm text-gray-11">
+                <Zap className="w-3.5 h-3.5 text-accent" />
                 Powered by AI + Solana
               </div>
             </div>
 
-            {/* Heading — GSAP character splits */}
+            {/* Heading */}
             <div>
-              <h1 className="text-5xl lg:text-7xl font-bold leading-[1.1] tracking-tight">
-                <SplitChars
-                  text={line1}
-                  charRefs={line1Refs}
-                  offset={0}
-                />
+              <h1 className="text-5xl lg:text-7xl font-medium leading-[1.1] tracking-tight">
+                <SplitChars text={line1} charRefs={line1Refs} offset={0} />
                 <br />
                 <SplitChars
                   text={line2}
-                  className="text-primary"
+                  className="text-accent"
                   charRefs={line2Refs}
                   offset={0}
                 />
                 <br />
-                <SplitChars
-                  text={line3}
-                  charRefs={line3Refs}
-                  offset={0}
-                />
+                <SplitChars text={line3} charRefs={line3Refs} offset={0} />
               </h1>
             </div>
 
             {/* Description */}
             <p
               ref={descRef}
-              className="text-lg text-gray-500 leading-relaxed max-w-xl"
+              className="text-lg text-gray-11 leading-relaxed max-w-xl"
               style={{ opacity: 0 }}
             >
               Describe your vision, let AI generate stunning artwork, and mint
@@ -205,17 +183,15 @@ export default function Hero() {
             <div ref={ctaRef} style={{ opacity: 0 }}>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                 <button
-                  ref={ctaBtnRef}
                   onClick={handleGetStarted}
-                  className="flex items-center gap-3 bg-primary px-8 py-4 rounded-full text-white font-semibold hover:bg-primary-dark transition-colors duration-300 group"
-                  data-cursor-hover
+                  className="flex items-center gap-3 bg-accent px-8 py-4 rounded-full text-gray-1 font-medium hover:opacity-90 transition-all duration-300 group"
                 >
                   Start Creating
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
                 </button>
                 <button
                   onClick={() => router.push("/gallery")}
-                  className="flex items-center gap-3 px-8 py-4 rounded-full text-gray-400 font-medium hover:text-white transition-colors duration-300"
+                  className="flex items-center gap-3 px-8 py-4 rounded-full text-gray-11 font-medium hover:text-gray-12 transition-colors duration-300"
                 >
                   View Gallery
                 </button>
@@ -224,17 +200,17 @@ export default function Hero() {
 
             {/* Stats */}
             <div ref={statsRef} style={{ opacity: 0 }}>
-              <div className="flex gap-10 pt-8 border-t border-white/[0.04]">
+              <div className="flex gap-10 pt-8 border-t border-gray-a4">
                 {[
                   { label: "Unique NFTs", value: "1-of-1" },
                   { label: "Generated Art", value: "AI" },
                   { label: "On-Chain", value: "Solana" },
                 ].map((stat) => (
                   <div key={stat.label}>
-                    <div className="text-xl font-bold text-white">
+                    <div className="text-xl font-medium text-gray-12">
                       {stat.value}
                     </div>
-                    <div className="text-sm text-gray-600">{stat.label}</div>
+                    <div className="text-sm text-gray-9">{stat.label}</div>
                   </div>
                 ))}
               </div>
@@ -276,7 +252,8 @@ export default function Hero() {
                     alt="NFT Statue"
                     className="w-full h-auto max-w-6xl mx-auto filter drop-shadow-lg"
                     style={{
-                      filter: "drop-shadow(0 0 20px rgba(13, 148, 136, 0.5))",
+                      filter:
+                        "drop-shadow(0 0 20px rgba(13, 148, 136, 0.5))",
                     }}
                   />
                 </div>

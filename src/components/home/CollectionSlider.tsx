@@ -36,7 +36,7 @@ export default function CollectionSlider() {
       <div className="max-w-7xl mx-auto">
         <div ref={headerRef}>
           <div className="mb-8">
-            <h2 className="text-xl font-semibold tracking-tight text-gray-300">
+            <h2 className="text-xl font-medium tracking-tight text-gray-11">
               Featured Styles
             </h2>
           </div>
@@ -58,19 +58,16 @@ export default function CollectionSlider() {
             {items.map((style, index) => {
               const Icon = style.icon;
               return (
-                <div
-                  key={index}
-                  className="flex-shrink-0 group cursor-pointer"
-                >
-                  <div className="flex items-center gap-3 px-5 py-3 rounded-full bg-white/[0.03] border border-white/[0.06] hover:border-primary/30 hover:bg-white/[0.05] transition-all duration-300">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Icon className="w-4 h-4 text-primary" />
+                <div key={index} className="flex-shrink-0 group cursor-pointer">
+                  <div className="flex items-center gap-3 px-5 py-3 rounded-full bg-gray-a3 border border-gray-a4 hover:border-accent/30 hover:bg-gray-a5 transition-all duration-300">
+                    <div className="w-8 h-8 rounded-full bg-accent-dim flex items-center justify-center">
+                      <Icon className="w-4 h-4 text-accent" />
                     </div>
                     <div>
-                      <div className="text-sm font-medium text-gray-300 group-hover:text-white transition-colors">
+                      <div className="text-sm font-medium text-gray-11 group-hover:text-gray-12 transition-colors">
                         {style.name}
                       </div>
-                      <div className="text-[11px] text-gray-600">
+                      <div className="text-[11px] text-gray-9">
                         {style.tag}
                       </div>
                     </div>

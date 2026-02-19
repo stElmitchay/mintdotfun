@@ -11,37 +11,35 @@ export default function Footer() {
   useScrollReveal(footerRef, { y: 30, duration: 0.8 });
 
   return (
-    <footer ref={footerRef} className="border-t border-white/[0.04] py-8 px-6">
+    <footer ref={footerRef} className="border-t border-gray-a3 py-8 px-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          {/* Logo + copy */}
           <div className="flex items-center gap-6">
             <Link
               href="/"
-              className="text-sm font-bold text-white tracking-tight"
+              className="text-sm font-medium text-gray-12 tracking-tight"
             >
-              Mint<span className="text-primary">AI</span>
+              Mint<span className="text-accent">AI</span>
             </Link>
-            <span className="text-xs text-gray-600">
+            <span className="text-xs text-gray-9">
               AI-powered NFTs on Solana
             </span>
           </div>
 
-          {/* Links */}
           <div className="flex items-center gap-6">
             <Link
               href="/create"
-              className="text-xs text-gray-500 hover:text-white transition-colors duration-300"
+              className="text-xs text-gray-9 hover:text-gray-12 transition-colors duration-300"
             >
               Create
             </Link>
             <Link
               href="/gallery"
-              className="text-xs text-gray-500 hover:text-white transition-colors duration-300"
+              className="text-xs text-gray-9 hover:text-gray-12 transition-colors duration-300"
             >
               Gallery
             </Link>
-            <div className="w-px h-3 bg-white/[0.06]" />
+            <div className="w-px h-3 bg-gray-a4" />
             <div className="flex items-center gap-3">
               {[
                 { icon: Twitter, href: "#" },
@@ -51,7 +49,7 @@ export default function Footer() {
                 <a
                   key={i}
                   href={href}
-                  className="text-gray-600 hover:text-white transition-colors duration-300"
+                  className="text-gray-9 hover:text-gray-12 transition-colors duration-300"
                 >
                   <Icon className="w-3.5 h-3.5" />
                 </a>
@@ -59,8 +57,7 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Copyright */}
-          <p className="text-xs text-gray-700">
+          <p className="text-xs text-gray-8">
             &copy; {new Date().getFullYear()} MintAI
           </p>
         </div>
