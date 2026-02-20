@@ -13,7 +13,6 @@ import {
   Layers,
   Image as ImageIcon,
   Sparkles,
-  Loader2,
   Orbit,
   Zap,
   Waves,
@@ -283,50 +282,23 @@ export default function CreatePage() {
     <div className="fixed inset-0 flex flex-col overflow-hidden bg-gray-4">
       <TextureOverlay />
 
-      {/* Top bar — progress + step count */}
-      <div className="relative z-20 flex items-center justify-between px-6 py-4">
-        {/* Back / step indicator */}
-        <button
-          onClick={() => (step > 0 ? prev() : window.history.back())}
+      {/* Back to home — top left */}
+      <div className="absolute top-6 left-6 z-20">
+        <motion.a
+          href="/"
           className="flex items-center gap-2 text-sm text-gray-8 hover:text-white transition-colors"
+          whileHover={{ x: -2 }}
         >
           <ArrowUp className="w-3.5 h-3.5 rotate-[-90deg]" />
-          {step > 0 ? "Back" : "Home"}
-        </button>
-
-        {/* Progress dots */}
-        <div className="flex items-center gap-2">
-          {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-            <button
-              key={i}
-              onClick={() => {
-                if (i <= step || (i === 3 && generatedImages.length > 0)) goTo(i);
-              }}
-              className={cn(
-                "w-2 h-2 rounded-full transition-all duration-300",
-                i === step
-                  ? "bg-accent w-6"
-                  : i < step
-                    ? "bg-accent/40"
-                    : "bg-gray-a4"
-              )}
-            />
-          ))}
-        </div>
-
-        {/* Step label */}
-        <span className="text-xs text-gray-8 font-mono">
-          {step + 1}/{TOTAL_STEPS}
-        </span>
+          Home
+        </motion.a>
       </div>
 
-      {/* Progress bar */}
-      <div className="relative z-20 h-[2px] bg-gray-a3 mx-6">
-        <motion.div
-          className="h-full bg-accent"
-          animate={{ width: `${((step + 1) / TOTAL_STEPS) * 100}%` }}
-          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-        />
+      {/* Step counter — top right */}
+      <div className="absolute top-6 right-6 z-20">
+        <span className="text-xs text-gray-7 font-mono">
+          {step + 1} / {TOTAL_STEPS}
+        </span>
       </div>
 
       {/* Step content — full height, centered */}
@@ -360,11 +332,6 @@ export default function CreatePage() {
                   </span>
                 </div>
               </div>
-              <NextButton
-                onClick={next}
-                disabled={!prompt.trim()}
-                label="Choose Style"
-              />
             </StepShell>
           )}
 
@@ -395,7 +362,6 @@ export default function CreatePage() {
                   ))}
                 </div>
               </div>
-              <NextButton onClick={next} label="Settings" />
             </StepShell>
           )}
 
@@ -461,13 +427,6 @@ export default function CreatePage() {
                   )}
                 </div>
               </div>
-              <NextButton
-                onClick={handleGenerate}
-                disabled={!prompt.trim()}
-                label="Generate Artwork"
-                icon={<Sparkles className="w-4 h-4" />}
-                accent
-              />
             </StepShell>
           )}
 
@@ -607,6 +566,67 @@ export default function CreatePage() {
         </AnimatePresence>
       </div>
 
+      {/* Bottom navigation — prev / next */}
+      {status !== "generating" && (
+        <div className="relative z-20 flex items-center justify-between px-8 py-6">
+          {/* Previous */}
+          {step > 0 && step < 3 ? (
+            <motion.button
+              onClick={prev}
+              className="flex items-center gap-2 text-sm text-gray-8 hover:text-white transition-colors"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              whileHover={{ x: -2 }}
+            >
+              <ArrowUp className="w-3.5 h-3.5 rotate-[-90deg]" />
+              Previous
+            </motion.button>
+          ) : (
+            <div />
+          )}
+
+          {/* Next / Generate */}
+          {step === 0 && (
+            <motion.button
+              onClick={next}
+              disabled={!prompt.trim()}
+              className="flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold bg-gray-2 text-gray-12 border border-gray-a3 hover:border-accent/30 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              whileHover={prompt.trim() ? { scale: 1.02 } : undefined}
+              whileTap={prompt.trim() ? { scale: 0.98 } : undefined}
+            >
+              Choose Style
+              <ArrowRight className="w-3.5 h-3.5" />
+            </motion.button>
+          )}
+          {step === 1 && (
+            <motion.button
+              onClick={next}
+              className="flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold bg-gray-2 text-gray-12 border border-gray-a3 hover:border-accent/30 transition-all"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Settings
+              <ArrowRight className="w-3.5 h-3.5" />
+            </motion.button>
+          )}
+          {step === 2 && (
+            <motion.button
+              onClick={handleGenerate}
+              disabled={!prompt.trim()}
+              className="flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold bg-accent text-[var(--color-on-accent)] hover:opacity-90 transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+              whileHover={prompt.trim() ? { scale: 1.02 } : undefined}
+              whileTap={prompt.trim() ? { scale: 0.98 } : undefined}
+              style={{ boxShadow: "0 4px 24px color-mix(in srgb, var(--color-accent) 25%, transparent)" }}
+            >
+              <Sparkles className="w-4 h-4" />
+              Generate Artwork
+              <ArrowRight className="w-3.5 h-3.5" />
+            </motion.button>
+          )}
+          {step === 3 && <div />}
+        </div>
+      )}
+
       {/* Mint Panel Modal */}
       {showMintPanel && selectedImage && (
         <MintPanel
@@ -661,47 +681,6 @@ function StepLabel({ number, text }: { number: number; text: string }) {
   );
 }
 
-// ============================================
-// Next button
-// ============================================
-
-function NextButton({
-  onClick,
-  disabled,
-  label,
-  icon,
-  accent,
-}: {
-  onClick: () => void;
-  disabled?: boolean;
-  label: string;
-  icon?: React.ReactNode;
-  accent?: boolean;
-}) {
-  return (
-    <motion.button
-      onClick={onClick}
-      disabled={disabled}
-      className={cn(
-        "flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold transition-all disabled:opacity-30 disabled:cursor-not-allowed",
-        accent
-          ? "bg-accent text-[var(--color-on-accent)] hover:opacity-90"
-          : "bg-gray-2 text-gray-12 border border-gray-a3 hover:border-accent/30"
-      )}
-      whileHover={disabled ? undefined : { scale: 1.02 }}
-      whileTap={disabled ? undefined : { scale: 0.98 }}
-      style={
-        accent
-          ? { boxShadow: "0 4px 24px color-mix(in srgb, var(--color-accent) 25%, transparent)" }
-          : undefined
-      }
-    >
-      {icon}
-      {label}
-      <ArrowRight className="w-3.5 h-3.5" />
-    </motion.button>
-  );
-}
 
 // ============================================
 // Texture overlay

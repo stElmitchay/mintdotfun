@@ -113,15 +113,17 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
     document.documentElement.style.setProperty("--statue-hue-rotate", hueRotate);
   }, []);
 
+  const isCreate = pathname === "/create";
+
   const content = (
     <div
       className={`min-h-screen text-gray-12 ${isHome ? "bg-gray-4" : "bg-gray-4 overflow-x-hidden"}`}
       data-page={isHome ? "home" : undefined}
     >
       <div className="relative z-10">
-        <Header />
+        {!isCreate && <Header />}
         <main>{children}</main>
-        {!isHome && <Footer />}
+        {!isHome && !isCreate && <Footer />}
       </div>
     </div>
   );
