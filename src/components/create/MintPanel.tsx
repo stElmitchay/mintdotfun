@@ -113,39 +113,62 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
 
   const formDisabled = status !== "idle" && status !== "error";
 
+  // Shared inline style helpers
+  const onAccent = "var(--color-on-accent)";
+  const accent = "var(--color-accent)";
+  const subtle = (pct: number) =>
+    `color-mix(in srgb, var(--color-on-accent) ${pct}%, transparent)`;
+
   return (
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        style={{ background: "color-mix(in srgb, var(--color-accent) 85%, black)" }}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
       >
         <motion.div
-          initial={{ opacity: 0, scale: 0.97, y: 10 }}
+          initial={{ opacity: 0, scale: 0.95, y: 16 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.97, y: 10 }}
-          transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="relative max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-white/[0.06] bg-surface-1 p-8"
+          exit={{ opacity: 0, scale: 0.95, y: 16 }}
+          transition={{ type: "spring", stiffness: 400, damping: 35 }}
+          className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl p-6"
+          style={{
+            background: onAccent,
+            color: accent,
+          }}
         >
+          {/* Close */}
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 p-2 rounded-lg text-gray-600 hover:text-white transition-colors"
+            className="absolute right-4 top-4 p-2 rounded-lg transition-opacity hover:opacity-60"
+            style={{ color: accent }}
           >
             <X className="h-4 w-4" />
           </button>
 
-          <h2 className="mb-6 text-xl font-bold">
-            Mint Your <span className="text-primary">NFT</span>
+          <h2 className="mb-5 text-lg font-bold" style={{ color: accent }}>
+            Mint NFT
           </h2>
 
           {status === "complete" && mintedNFT ? (
-            <div className="space-y-5">
-              <div className="flex items-center gap-3 rounded-xl bg-green-500/5 border border-green-500/15 p-4 text-green-400">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-green-500/10">
-                  <Check className="h-4 w-4" />
+            /* ── Success ─────────────────────────── */
+            <div className="space-y-4">
+              <div
+                className="flex items-center gap-3 rounded-xl p-3 text-sm font-medium"
+                style={{ background: subtle(8), color: accent }}
+              >
+                <div
+                  className="flex items-center justify-center w-7 h-7 rounded-full"
+                  style={{ background: subtle(12) }}
+                >
+                  <Check className="h-3.5 w-3.5" />
                 </div>
-                <span className="font-medium text-sm">NFT minted successfully!</span>
+                Minted successfully
               </div>
 
               <div className="overflow-hidden rounded-xl">
@@ -156,9 +179,14 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
                 />
               </div>
 
-              <div className="flex items-center gap-2 rounded-xl bg-surface-2 border border-white/[0.04] p-3">
-                <span className="text-[10px] text-gray-600 uppercase tracking-wider">Mint</span>
-                <span className="flex-1 truncate font-mono text-xs text-gray-400">
+              <div
+                className="flex items-center gap-2 rounded-xl p-3"
+                style={{ background: subtle(6) }}
+              >
+                <span className="text-[10px] uppercase tracking-wider" style={{ color: subtle(40) }}>
+                  Mint
+                </span>
+                <span className="flex-1 truncate font-mono text-xs" style={{ color: accent }}>
                   {shortenAddress(mintedNFT.mint, 8)}
                 </span>
                 <button
@@ -167,10 +195,11 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
                     setCopiedMint(true);
                     setTimeout(() => setCopiedMint(false), 2000);
                   }}
-                  className="p-1.5 rounded-lg hover:bg-surface-3 text-gray-500 hover:text-white transition-all"
+                  className="p-1.5 rounded-lg transition-opacity hover:opacity-60"
+                  style={{ color: accent }}
                 >
                   {copiedMint ? (
-                    <Check className="h-3.5 w-3.5 text-primary" />
+                    <Check className="h-3.5 w-3.5" />
                   ) : (
                     <Copy className="h-3.5 w-3.5" />
                   )}
@@ -179,7 +208,8 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
                   href={mintedNFT.explorerUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="p-1.5 rounded-lg hover:bg-surface-3 text-gray-500 hover:text-white transition-all"
+                  className="p-1.5 rounded-lg transition-opacity hover:opacity-60"
+                  style={{ color: accent }}
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
@@ -187,27 +217,36 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
 
               <button
                 onClick={onClose}
-                className="w-full bg-surface-2 border border-white/[0.06] py-3 rounded-xl text-sm font-medium text-white hover:bg-surface-3 transition-colors"
+                className="w-full py-3 rounded-xl text-sm font-medium transition-opacity hover:opacity-80"
+                style={{ background: accent, color: onAccent }}
               >
                 Done
               </button>
             </div>
           ) : (
-            <div className="space-y-5">
+            /* ── Form ─────────────────────────────── */
+            <div className="space-y-4">
               {!connected && (
-                <div className="flex items-center gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 p-3 text-xs text-amber-400">
+                <div
+                  className="flex items-center gap-3 rounded-xl p-3 text-xs font-medium"
+                  style={{ background: subtle(8), color: accent }}
+                >
                   <AlertTriangle className="h-4 w-4 flex-shrink-0" />
                   No wallet connected. Connect to mint.
                 </div>
               )}
 
               {connected && walletAddress && (
-                <div className="rounded-xl bg-surface-2 border border-white/[0.04] p-3 text-xs text-gray-500">
+                <div
+                  className="rounded-xl p-3 text-xs"
+                  style={{ background: subtle(6), color: accent }}
+                >
                   Minting with{" "}
-                  <span className="font-mono text-gray-400">{shortenAddress(walletAddress, 6)}</span>
+                  <span className="font-mono">{shortenAddress(walletAddress, 6)}</span>
                 </div>
               )}
 
+              {/* Image preview */}
               <div className="overflow-hidden rounded-xl">
                 <img
                   src={image.url}
@@ -216,9 +255,10 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-300">
-                  <Sparkles className="w-3.5 h-3.5 text-primary" />
+              {/* Name */}
+              <div className="space-y-1.5">
+                <label className="flex items-center gap-2 text-xs font-medium" style={{ color: accent }}>
+                  <Sparkles className="w-3 h-3" />
                   Name
                 </label>
                 <input
@@ -228,14 +268,20 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
                     setConfig((c) => ({ ...c, name: e.target.value }))
                   }
                   placeholder="e.g., Cosmic Dreamer #1"
-                  className="w-full rounded-xl border border-white/[0.06] bg-surface-2 px-4 py-3 text-sm text-white placeholder-gray-600 outline-none focus:border-primary/40 transition-all"
+                  className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all"
+                  style={{
+                    background: subtle(6),
+                    border: `1px solid ${subtle(10)}`,
+                    color: accent,
+                  }}
                   disabled={formDisabled}
                   maxLength={100}
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-300">
+              {/* Description */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium" style={{ color: accent }}>
                   Description
                 </label>
                 <textarea
@@ -244,29 +290,44 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
                     setConfig((c) => ({ ...c, description: e.target.value }))
                   }
                   placeholder="Describe your NFT..."
-                  className="h-20 w-full resize-none rounded-xl border border-white/[0.06] bg-surface-2 px-4 py-3 text-sm text-white placeholder-gray-600 outline-none focus:border-primary/40 transition-all"
+                  className="h-20 w-full resize-none rounded-xl px-4 py-3 text-sm outline-none transition-all"
+                  style={{
+                    background: subtle(6),
+                    border: `1px solid ${subtle(10)}`,
+                    color: accent,
+                  }}
                   disabled={formDisabled}
                   maxLength={500}
                 />
               </div>
 
+              {/* Error */}
               {error && (
-                <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-3 text-xs text-red-400">
+                <div
+                  className="rounded-xl p-3 text-xs"
+                  style={{ background: subtle(8), color: accent }}
+                >
                   {error}
                 </div>
               )}
 
+              {/* Progress */}
               {progress && (
-                <div className="flex items-center gap-3 rounded-xl bg-primary/5 border border-primary/15 p-3 text-xs text-primary-light">
+                <div
+                  className="flex items-center gap-3 rounded-xl p-3 text-xs"
+                  style={{ background: subtle(6), color: accent }}
+                >
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   {progress}
                 </div>
               )}
 
+              {/* Mint button */}
               <motion.button
                 onClick={handleMint}
                 disabled={!config.name || !connected || formDisabled}
-                className="w-full flex items-center justify-center gap-2 bg-primary px-6 py-3.5 rounded-xl text-sm text-black font-medium hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed"
+                style={{ background: accent, color: onAccent }}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
               >
@@ -288,7 +349,7 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
                 )}
               </motion.button>
 
-              <p className="text-center text-[11px] text-gray-600">
+              <p className="text-center text-[10px]" style={{ color: subtle(40) }}>
                 Image on Arweave. Minting on{" "}
                 {process.env.NEXT_PUBLIC_SOLANA_NETWORK || "devnet"}.
               </p>
