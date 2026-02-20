@@ -263,11 +263,11 @@ function shortenAddr(addr: string): string {
 // ============================================
 
 function MarketplaceFrame() {
-  const { listings, loading } = useListings({ limit: 4, sort: "newest" });
+  const { listings, loading } = useListings({ limit: 3, sort: "newest" });
 
-  // Featured card (first listing)
+  // Max 3: 1 featured + 2 stacked
   const featured = listings[0];
-  const rest = listings.slice(1, 4);
+  const rest = listings.slice(1, 3);
 
   return (
     <div style={{ padding: 40, width: "100%", height: "100%", display: "flex", flexDirection: "column" }}>
@@ -348,7 +348,7 @@ function MarketplaceFrame() {
               </Link>
             )}
 
-            {/* Right column — stacked cards */}
+            {/* Right column — 2 stacked cards */}
             {rest.map((listing) => (
               <Link
                 key={listing.id}
@@ -381,23 +381,20 @@ function MarketplaceFrame() {
               </Link>
             ))}
 
-            {/* Fill empty slots if fewer than 3 rest items */}
-            {rest.length < 3 &&
-              Array.from({ length: 3 - rest.length }).map((_, i) => (
-                <Link
-                  key={`empty-${i}`}
-                  href="/create"
-                  className={styles.nftCard}
-                  style={{ cursor: "pointer" }}
-                >
-                  <div className={styles.nftCardPlaceholder}>
-                    <div style={{ textAlign: "center" }}>
-                      <Sparkles style={{ width: 24, height: 24, color: "var(--color-gray-6)", marginBottom: 8 }} />
-                      <div style={{ fontSize: 12, color: "var(--color-gray-7)" }}>Mint yours</div>
-                    </div>
+            {/* Fill empty slot if only 1 rest item */}
+            {rest.length < 2 && (
+              <Link
+                href="/create"
+                className={styles.nftCard}
+              >
+                <div className={styles.nftCardPlaceholder}>
+                  <div style={{ textAlign: "center" }}>
+                    <Sparkles style={{ width: 24, height: 24, color: "var(--color-gray-6)", marginBottom: 8 }} />
+                    <div style={{ fontSize: 12, color: "var(--color-gray-7)" }}>Mint yours</div>
                   </div>
-                </Link>
-              ))}
+                </div>
+              </Link>
+            )}
           </div>
         ) : (
           /* Empty state — full frame invitation */
@@ -569,8 +566,6 @@ const CONTENT_FRAMES = [
 // ============================================
 // Main page component
 // ============================================
-
-const TOTAL_FRAMES = CONTENT_FRAMES.length + 1;
 
 export default function HomePage() {
   const isTouch = useMediaQuery("(pointer: coarse)");
