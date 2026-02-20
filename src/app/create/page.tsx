@@ -28,7 +28,6 @@ import {
   Triangle,
   Circle,
   Square,
-  Wand2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { GeneratedImage, GenerationStatus } from "@/types";
@@ -36,37 +35,8 @@ import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { STORAGE_KEYS, GENERATION } from "@/lib/constants";
 import MintPanel from "@/components/create/MintPanel";
 import Link from "next/link";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { FadeUp } from "@/components/ui/motion";
-
-// Style presets with emoji icons for visual flair
-const STYLE_DATA: Record<string, { emoji: string }> = {
-  none: { emoji: "✦" },
-  anime: { emoji: "⛩" },
-  "digital-art": { emoji: "🖥" },
-  "pixel-art": { emoji: "👾" },
-  watercolor: { emoji: "🎨" },
-  "3d-render": { emoji: "🧊" },
-  "oil-painting": { emoji: "🖼" },
-  cyberpunk: { emoji: "🌆" },
-  fantasy: { emoji: "🐉" },
-  "pop-art": { emoji: "💥" },
-  surrealism: { emoji: "🫠" },
-  impressionism: { emoji: "🌻" },
-  sketch: { emoji: "✏️" },
-  vaporwave: { emoji: "🌴" },
-  noir: { emoji: "🕵" },
-  minimalist: { emoji: "◻️" },
-  "stained-glass": { emoji: "🪟" },
-  "ukiyo-e": { emoji: "🌊" },
-  "comic-book": { emoji: "💬" },
-  "low-poly": { emoji: "🔺" },
-  steampunk: { emoji: "⚙️" },
-  "art-deco": { emoji: "🏛" },
-  graffiti: { emoji: "🎭" },
-  "glitch-art": { emoji: "📺" },
-  isometric: { emoji: "🧱" },
-};
 
 const STYLE_PRESETS = GENERATION.ALLOWED_STYLES.map((id) => ({
   id,
@@ -77,7 +47,6 @@ const STYLE_PRESETS = GENERATION.ALLOWED_STYLES.map((id) => ({
           .split("-")
           .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
           .join(" "),
-  emoji: STYLE_DATA[id]?.emoji ?? "✦",
 }));
 
 // Texture icons for background pattern
@@ -212,19 +181,16 @@ export default function CreatePage() {
   if (!authenticated) {
     return (
       <div className="min-h-screen pt-24 pb-12 relative overflow-hidden">
+        {/* Texture */}
         <TextureOverlay />
         <div className="max-w-4xl mx-auto px-6 flex flex-col items-center justify-center min-h-[60vh] gap-6 relative z-10">
-          <motion.div
-            className="w-20 h-20 rounded-full bg-accent-dim flex items-center justify-center"
-            animate={{ scale: [1, 1.08, 1] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          >
-            <Sparkles className="w-8 h-8 text-accent" />
-          </motion.div>
-          <h2 className="text-3xl font-bold text-white">
+          <div className="w-16 h-16 rounded-full bg-accent-dim flex items-center justify-center">
+            <Sparkles className="w-7 h-7 text-accent" />
+          </div>
+          <h2 className="text-2xl font-bold text-white">
             Connect to Start Creating
           </h2>
-          <p className="text-gray-8 text-sm text-center max-w-md">
+          <p className="text-gray-500 text-sm text-center max-w-md">
             Sign in with your email or wallet to create AI-generated NFTs on Solana.
           </p>
           <motion.button
@@ -245,22 +211,13 @@ export default function CreatePage() {
       {/* Background texture */}
       <TextureOverlay />
 
-      {/* Accent glow behind header */}
-      <div
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full pointer-events-none z-0"
-        style={{
-          background: "radial-gradient(ellipse, var(--color-accent-dim) 0%, transparent 70%)",
-          filter: "blur(60px)",
-        }}
-      />
-
       <div className="max-w-5xl mx-auto px-6 relative z-10">
         {/* Back link */}
         <FadeUp>
           <div className="mb-2">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 text-gray-8 hover:text-white transition-colors duration-300 mb-6 text-sm"
+              className="inline-flex items-center gap-2 text-gray-500 hover:text-white transition-colors duration-300 mb-6 text-sm"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               Back
@@ -268,67 +225,121 @@ export default function CreatePage() {
           </div>
         </FadeUp>
 
-        {/* Hero header */}
+        {/* Header */}
         <FadeUp delay={0.1}>
-          <div className="mb-10 flex items-center gap-5">
-            <motion.div
-              className="w-14 h-14 rounded-2xl bg-accent-dim flex items-center justify-center flex-shrink-0"
-              animate={{ rotate: [0, 5, -5, 0] }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            >
-              <Wand2 className="w-6 h-6 text-accent" />
-            </motion.div>
-            <div>
-              <h1 className="text-4xl font-bold tracking-tight">
-                Create Your{" "}
-                <span className="text-accent">NFT</span>
-              </h1>
-              <p className="text-gray-8 text-sm mt-1">
-                Describe your vision and let AI generate unique artwork.
-              </p>
-            </div>
+          <div className="mb-12">
+            <h1 className="text-4xl font-bold tracking-tight mb-2">
+              Create Your{" "}
+              <span className="text-accent">NFT</span>
+            </h1>
+            <p className="text-gray-500 text-sm">
+              Describe your vision and let AI generate unique artwork.
+            </p>
           </div>
         </FadeUp>
 
-        {/* Main content */}
-        <div className="space-y-8">
-          {/* Prompt section */}
-          <FadeUp delay={0.15}>
-            <div className="bg-gray-2 rounded-2xl border border-gray-a3 p-6">
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-11 mb-3">
-                <BookOpen className="w-4 h-4 text-accent" />
-                Describe Your Artwork
-              </label>
-              <textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="A cosmic whale swimming through neon galaxies..."
-                rows={4}
-                className="w-full px-5 py-4 bg-gray-3 border border-gray-a3 rounded-xl text-gray-12 text-sm placeholder-gray-8 focus:border-accent/40 focus:outline-none transition-all resize-none"
-                disabled={status === "generating"}
-                maxLength={2000}
-              />
-              <div className="flex items-center justify-between mt-2">
-                <div className="flex items-center gap-3">
-                  {/* Reference image inline */}
+        {/* Two-column layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8">
+          {/* Left — form */}
+          <div className="space-y-6">
+            <FadeUp delay={0.2}>
+              <div className="bg-gray-2 rounded-2xl border border-gray-a3 p-8 space-y-8">
+                {/* Prompt */}
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-11">
+                    <BookOpen className="w-4 h-4 text-accent" />
+                    Describe Your Artwork
+                  </label>
+                  <textarea
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    placeholder="A cosmic whale swimming through neon galaxies..."
+                    rows={5}
+                    className="w-full px-5 py-4 bg-gray-3 border border-gray-a3 rounded-xl text-gray-12 text-sm placeholder-gray-8 focus:border-accent/40 focus:outline-none transition-all resize-none"
+                    disabled={status === "generating"}
+                    maxLength={2000}
+                  />
+                  <div className="flex justify-end">
+                    <span className="text-[11px] text-gray-8">
+                      {prompt.length}/2000
+                    </span>
+                  </div>
+                </div>
+
+                {/* Style Presets */}
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-11">
+                    <Sparkles className="w-4 h-4 text-accent" />
+                    Art Style
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {STYLE_PRESETS.map((preset) => (
+                      <button
+                        key={preset.id}
+                        onClick={() => setStyle(preset.id)}
+                        disabled={status === "generating"}
+                        className={cn(
+                          "px-4 py-2 rounded-full text-xs font-medium transition-all duration-300",
+                          style === preset.id
+                            ? "bg-accent text-[var(--color-on-accent)]"
+                            : "bg-gray-3 text-gray-11 hover:text-gray-12 border border-gray-a4 hover:border-gray-a6"
+                        )}
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Variations */}
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-11">
+                    <Layers className="w-4 h-4 text-accent" />
+                    Variations
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="range"
+                      min={GENERATION.MIN_COUNT}
+                      max={GENERATION.MAX_COUNT}
+                      value={count}
+                      onChange={(e) => setCount(parseInt(e.target.value))}
+                      disabled={status === "generating"}
+                      className="flex-1 h-1.5 bg-gray-4 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                    <div className="px-3 py-1.5 bg-accent-dim border border-accent/20 rounded-lg text-accent text-sm font-semibold min-w-[48px] text-center">
+                      {count}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Reference Image */}
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-11">
+                    <ImageIcon className="w-4 h-4 text-accent" />
+                    Inspiration Image
+                    <span className="text-gray-8 font-normal">(Optional)</span>
+                  </label>
                   {referenceImage ? (
-                    <div className="relative group">
+                    <div className="relative group inline-block">
                       <img
                         src={referenceImage}
                         alt="Reference"
-                        className="w-10 h-10 object-cover rounded-lg border border-gray-a3"
+                        className="w-full max-w-xs h-40 object-cover rounded-xl"
                       />
                       <button
                         onClick={removeReferenceImage}
-                        className="absolute -top-1.5 -right-1.5 p-0.5 bg-gray-4 border border-gray-a3 rounded-full text-gray-9 hover:text-white transition-all"
+                        className="absolute top-2 right-2 p-1.5 bg-black/60 backdrop-blur-sm rounded-lg text-gray-300 hover:text-white transition-all opacity-0 group-hover:opacity-100"
                       >
-                        <X className="w-2.5 h-2.5" />
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ) : (
-                    <label className="flex items-center gap-1.5 text-[11px] text-gray-8 hover:text-accent transition-colors cursor-pointer">
-                      <ImageIcon className="w-3.5 h-3.5" />
-                      Add reference
+                    <label className="flex flex-col items-center justify-center w-full max-w-xs h-40 border border-dashed border-gray-a4 rounded-xl cursor-pointer hover:border-accent/30 transition-all group bg-gray-3">
+                      <Upload className="w-5 h-5 text-gray-8 group-hover:text-accent transition-colors mb-2" />
+                      <span className="text-xs text-gray-8 group-hover:text-gray-11 transition-colors">
+                        Upload Image
+                      </span>
                       <input
                         type="file"
                         accept={GENERATION.ALLOWED_IMAGE_TYPES.join(",")}
@@ -338,229 +349,127 @@ export default function CreatePage() {
                     </label>
                   )}
                 </div>
-                <span className="text-[11px] text-gray-8">
-                  {prompt.length}/2000
-                </span>
               </div>
-            </div>
-          </FadeUp>
+            </FadeUp>
 
-          {/* Art style — horizontal scroll cards */}
-          <FadeUp delay={0.2}>
-            <div>
-              <label className="flex items-center gap-2 text-sm font-medium text-gray-11 mb-4 px-1">
-                <Sparkles className="w-4 h-4 text-accent" />
-                Art Style
-              </label>
-              <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                {STYLE_PRESETS.map((preset) => (
-                  <motion.button
-                    key={preset.id}
-                    onClick={() => setStyle(preset.id)}
-                    disabled={status === "generating"}
-                    className={cn(
-                      "flex-shrink-0 flex flex-col items-center gap-1.5 px-4 py-3 rounded-xl text-xs font-medium transition-all duration-300 min-w-[80px]",
-                      style === preset.id
-                        ? "bg-accent text-[var(--color-on-accent)] shadow-lg"
-                        : "bg-gray-2 text-gray-11 hover:text-gray-12 border border-gray-a3 hover:border-gray-a5"
-                    )}
-                    whileHover={{ y: -2 }}
-                    whileTap={{ scale: 0.96 }}
-                    style={
-                      style === preset.id
-                        ? { boxShadow: "0 4px 24px color-mix(in srgb, var(--color-accent) 30%, transparent)" }
-                        : undefined
-                    }
-                  >
-                    <span className="text-lg">{preset.emoji}</span>
-                    <span className="whitespace-nowrap">{preset.label}</span>
-                  </motion.button>
-                ))}
-              </div>
-            </div>
-          </FadeUp>
-
-          {/* Variations + Generate row */}
-          <FadeUp delay={0.25}>
-            <div className="flex flex-col sm:flex-row gap-4">
-              {/* Variations */}
-              <div className="flex items-center gap-4 bg-gray-2 rounded-xl border border-gray-a3 px-5 py-4 flex-1">
-                <Layers className="w-4 h-4 text-accent flex-shrink-0" />
-                <span className="text-sm text-gray-11 flex-shrink-0">Variations</span>
-                <input
-                  type="range"
-                  min={GENERATION.MIN_COUNT}
-                  max={GENERATION.MAX_COUNT}
-                  value={count}
-                  onChange={(e) => setCount(parseInt(e.target.value))}
-                  disabled={status === "generating"}
-                  className="flex-1 h-1.5 bg-gray-4 rounded-lg appearance-none cursor-pointer slider"
-                />
-                <div className="px-2.5 py-1 bg-accent-dim rounded-md text-accent text-sm font-semibold min-w-[36px] text-center">
-                  {count}
-                </div>
-              </div>
-
-              {/* Generate button */}
+            {/* Generate Button */}
+            <FadeUp delay={0.3}>
               <motion.button
                 onClick={handleGenerate}
                 disabled={!prompt.trim() || status === "generating"}
-                className="flex items-center justify-center gap-3 bg-accent px-8 py-4 rounded-xl text-[var(--color-on-accent)] font-semibold hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm sm:min-w-[220px]"
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
+                className="w-full flex items-center justify-center gap-3 bg-accent px-8 py-5 rounded-xl text-[var(--color-on-accent)] font-semibold hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                whileHover={{ scale: 1.005 }}
+                whileTap={{ scale: 0.995 }}
               >
                 {status === "generating" ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Generating...
+                    Generating Artwork...
                   </>
                 ) : (
                   <>
-                    {generatedImages.length > 0 ? "Regenerate" : "Generate"}
+                    {generatedImages.length > 0
+                      ? "Generate New Variations"
+                      : "Generate Artwork"}
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </motion.button>
-            </div>
-          </FadeUp>
+            </FadeUp>
 
-          {error && (
-            <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-400">
-              {error}
-            </div>
-          )}
-
-          {/* Generating state — pulsing animation */}
-          <AnimatePresence>
-            {status === "generating" && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="flex flex-col items-center justify-center py-20 gap-6"
-              >
-                <div className="relative">
-                  <motion.div
-                    className="w-24 h-24 rounded-full border-2 border-accent/30"
-                    animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0, 0.3] }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                  <motion.div
-                    className="absolute inset-0 flex items-center justify-center"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                  >
-                    <Sparkles className="w-8 h-8 text-accent" />
-                  </motion.div>
-                </div>
-                <p className="text-sm text-gray-8">
-                  Creating {count} variation{count > 1 ? "s" : ""}...
-                </p>
-              </motion.div>
+            {error && (
+              <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-400">
+                {error}
+              </div>
             )}
-          </AnimatePresence>
+          </div>
 
-          {/* Generated Images */}
-          {generatedImages.length > 0 && status !== "generating" && (
-            <FadeUp>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-gray-11">
-                    Pick Your <span className="text-accent">Favorite</span>
-                  </h3>
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={handleClearImages}
-                      className="flex items-center gap-1.5 text-[11px] text-gray-8 hover:text-white transition-colors"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                      Clear
-                    </button>
-                    <button
-                      onClick={handleGenerate}
-                      className="flex items-center gap-1.5 text-[11px] text-accent hover:opacity-70 transition-colors"
-                    >
-                      <RefreshCw className="h-3 w-3" />
-                      Redo
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {generatedImages.map((img, i) => (
-                    <motion.button
-                      key={img.id}
-                      onClick={() => selectImage(img.id)}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: i * 0.08, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                      className={cn(
-                        "group relative overflow-hidden rounded-xl border-2 transition-all",
-                        img.selected
-                          ? "border-accent"
-                          : "border-transparent opacity-60 hover:opacity-100"
-                      )}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                      style={
-                        img.selected
-                          ? { boxShadow: "0 0 30px color-mix(in srgb, var(--color-accent) 25%, transparent)" }
-                          : undefined
-                      }
-                    >
-                      <img
-                        src={img.url}
-                        alt="Generated NFT"
-                        className="aspect-square w-full object-cover"
-                      />
-                      <div
-                        className={cn(
-                          "absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full transition-all",
-                          img.selected
-                            ? "bg-accent text-[var(--color-on-accent)]"
-                            : "bg-black/40 backdrop-blur-sm text-gray-500"
-                        )}
+          {/* Right — preview / results */}
+          <div className="space-y-6">
+            {/* Generated Images */}
+            {generatedImages.length > 0 ? (
+              <FadeUp>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-gray-11">
+                      Pick Your <span className="text-accent">Favorite</span>
+                    </h3>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={handleClearImages}
+                        className="flex items-center gap-1.5 text-[11px] text-gray-8 hover:text-white transition-colors"
                       >
-                        <Check className="h-3 w-3" />
-                      </div>
+                        <Trash2 className="h-3 w-3" />
+                        Clear
+                      </button>
+                      <button
+                        onClick={handleGenerate}
+                        disabled={status === "generating"}
+                        className="flex items-center gap-1.5 text-[11px] text-accent hover:opacity-70 transition-colors"
+                      >
+                        <RefreshCw className="h-3 w-3" />
+                        Redo
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {generatedImages.map((img) => (
+                      <motion.button
+                        key={img.id}
+                        onClick={() => selectImage(img.id)}
+                        className={cn(
+                          "group relative overflow-hidden rounded-xl border-2 transition-all",
+                          img.selected
+                            ? "border-accent"
+                            : "border-transparent opacity-60 hover:opacity-100"
+                        )}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <img
+                          src={img.url}
+                          alt="Generated NFT"
+                          className="aspect-square w-full object-cover"
+                        />
+                        <div
+                          className={cn(
+                            "absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full transition-all",
+                            img.selected
+                              ? "bg-accent text-[var(--color-on-accent)]"
+                              : "bg-black/40 backdrop-blur-sm text-gray-500"
+                          )}
+                        >
+                          <Check className="h-3 w-3" />
+                        </div>
+                      </motion.button>
+                    ))}
+                  </div>
+
+                  {selectedImage && (
+                    <motion.button
+                      onClick={() => setShowMintPanel(true)}
+                      className="w-full flex items-center justify-center gap-3 bg-accent px-6 py-4 rounded-xl text-[var(--color-on-accent)] font-semibold hover:opacity-90 transition-colors text-sm"
+                      whileHover={{ scale: 1.005 }}
+                      whileTap={{ scale: 0.995 }}
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      Mint as NFT
                     </motion.button>
-                  ))}
+                  )}
                 </div>
-
-                {selectedImage && (
-                  <motion.button
-                    onClick={() => setShowMintPanel(true)}
-                    className="w-full flex items-center justify-center gap-3 bg-accent px-8 py-5 rounded-xl text-[var(--color-on-accent)] font-semibold hover:opacity-90 transition-colors text-sm"
-                    whileHover={{ scale: 1.005 }}
-                    whileTap={{ scale: 0.995 }}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    style={{ boxShadow: "0 4px 30px color-mix(in srgb, var(--color-accent) 25%, transparent)" }}
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    Mint as NFT
-                  </motion.button>
-                )}
-              </div>
-            </FadeUp>
-          )}
-
-          {/* Empty state */}
-          {generatedImages.length === 0 && status !== "generating" && (
-            <FadeUp delay={0.3}>
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-a3 bg-gray-2/50 py-20">
-                <motion.div
-                  animate={{ y: [0, -6, 0] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                >
+              </FadeUp>
+            ) : (
+              <FadeUp delay={0.3}>
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-a3 bg-gray-2/50 py-20 min-h-[380px]">
                   <ImagePlus className="mb-3 h-10 w-10 text-gray-7" />
-                </motion.div>
-                <p className="text-gray-8 text-sm">
-                  Generated artwork will appear here
-                </p>
-              </div>
-            </FadeUp>
-          )}
+                  <p className="text-gray-8 text-sm">
+                    Generated artwork will appear here
+                  </p>
+                </div>
+              </FadeUp>
+            )}
+          </div>
         </div>
       </div>
 
