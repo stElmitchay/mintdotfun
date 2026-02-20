@@ -63,11 +63,16 @@ const ACCENTS = [
 
 function pickAccent() {
   const hex = ACCENTS[Math.floor(Math.random() * ACCENTS.length)];
-  // Parse hex to RGB for the dim (12% opacity) variant
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
-  return { accent: hex, dim: `rgba(${r}, ${g}, ${b}, 0.12)` };
+  // Relative luminance (WCAG formula)
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return {
+    accent: hex,
+    dim: `rgba(${r}, ${g}, ${b}, 0.12)`,
+    onAccent: luminance > 0.55 ? "#000" : "#fff",
+  };
 }
 
 export default function LayoutShell({ children }: { children: React.ReactNode }) {
@@ -75,9 +80,10 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   const isHome = pathname === "/";
 
   useEffect(() => {
-    const { accent, dim } = pickAccent();
+    const { accent, dim, onAccent } = pickAccent();
     document.documentElement.style.setProperty("--color-accent", accent);
     document.documentElement.style.setProperty("--color-accent-dim", dim);
+    document.documentElement.style.setProperty("--color-on-accent", onAccent);
   }, []);
 
   const content = (

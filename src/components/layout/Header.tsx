@@ -77,7 +77,7 @@ export default function Header() {
             ) : (
               <button
                 onClick={login}
-                className="flex items-center gap-2 bg-accent text-white px-5 py-2 rounded-full text-sm font-medium hover:opacity-90 transition-all duration-300"
+                className="flex items-center gap-2 bg-accent text-[var(--color-on-accent)] px-5 py-2 rounded-full text-sm font-medium font-semibold hover:opacity-90 transition-all duration-300"
               >
                 <Wallet className="w-3.5 h-3.5" />
                 Connect
