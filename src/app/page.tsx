@@ -250,7 +250,7 @@ function StylesFrame() {
                   width: 40,
                   height: 40,
                   borderRadius: "50%",
-                  background: "rgba(255, 255, 2, 0.12)",
+                  background: "var(--color-accent-dim)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -895,7 +895,7 @@ export default function HomePage() {
                         position: "relative",
                         height: "90%",
                         width: "auto",
-                        filter: "drop-shadow(0 0 60px rgba(255, 255, 2, 0.35))",
+                        filter: "drop-shadow(0 0 60px color-mix(in srgb, var(--color-accent) 35%, transparent))",
                       }}
                     />
                   </motion.div>
