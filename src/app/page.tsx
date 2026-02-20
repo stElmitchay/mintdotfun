@@ -505,11 +505,7 @@ function MarketplaceFrame() {
 // Frame content: QuoteFrame
 // ============================================
 
-function QuoteFrame({
-  onGetStarted,
-}: {
-  onGetStarted: () => void;
-}) {
+function QuoteFrame() {
   const lines = [
     { text: "Turn ideas", mono: false },
     { text: "into art.", mono: true },
@@ -557,35 +553,6 @@ function QuoteFrame({
           </motion.div>
         ))}
 
-        {/* CTA button */}
-        <motion.button
-          onClick={onGetStarted}
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{
-            duration: 0.5,
-            delay: lines.length * 0.12 + 0.1,
-            ease: [0.22, 1, 0.36, 1],
-          }}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 10,
-            background: "var(--color-gray-1)",
-            color: "var(--color-accent)",
-            padding: "14px 32px",
-            borderRadius: 999,
-            fontSize: 16,
-            fontWeight: 600,
-            border: "none",
-            cursor: "pointer",
-            marginTop: 40,
-          }}
-        >
-          Get Started
-          <ArrowRight style={{ width: 16, height: 16 }} />
-        </motion.button>
       </div>
     </div>
   );
@@ -823,7 +790,7 @@ export default function HomePage() {
       case "marketplace":
         return <MarketplaceFrame />;
       case "quote":
-        return <QuoteFrame onGetStarted={handleGetStarted} />;
+        return <QuoteFrame />;
       case "contact":
         return <ContactFrame />;
       default:
