@@ -802,22 +802,6 @@ export default function HomePage() {
                 style={{ width: FRAME_WIDTH, height: FRAME_HEIGHT }}
               >
                 <div data-sheet className={`${styles.sheet} ${styles.main}`}>
-                  {/* Yellow circle */}
-                  <motion.div
-                    className={styles.circleYellow}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 600,
-                      damping: 80,
-                      mass: 0.2,
-                      delay: 0.4,
-                      restSpeed: 0.0001,
-                      restDelta: 0.0001,
-                    }}
-                  />
-
                   {/* Text reveals */}
                   <div style={{ position: "relative", zIndex: 1 }}>
                     <ClipReveal>Create</ClipReveal>
@@ -828,21 +812,6 @@ export default function HomePage() {
                     <ClipReveal delay={0.3} variant="offset">
                       As NFTs
                     </ClipReveal>
-
-                    {/* Description */}
-                    <motion.b
-                      style={{ display: "block", marginTop: 32, maxWidth: 400 }}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 200,
-                        damping: 30,
-                        delay: 1.0,
-                      }}
-                    >
-                      Describe your vision, let AI create the art, mint it as a 1-of-1 NFT on Solana.
-                    </motion.b>
 
                     {/* CTA */}
                     <motion.button
@@ -859,7 +828,7 @@ export default function HomePage() {
                         fontWeight: 500,
                         border: "none",
                         cursor: "pointer",
-                        marginTop: 24,
+                        marginTop: 32,
                       }}
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -867,7 +836,7 @@ export default function HomePage() {
                         type: "spring",
                         stiffness: 200,
                         damping: 30,
-                        delay: 1.2,
+                        delay: 1.0,
                       }}
                     >
                       Start Creating
@@ -875,13 +844,17 @@ export default function HomePage() {
                     </motion.button>
                   </div>
 
-                  {/* Statue image overlaying yellow circle */}
+                  {/* Statue + yellow circle behind it */}
                   <motion.div
                     style={{
                       position: "absolute",
-                      right: 80,
-                      top: "50%",
-                      transform: "translateY(-50%)",
+                      right: 0,
+                      top: 0,
+                      height: "100%",
+                      aspectRatio: "1/1",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                       zIndex: 2,
                       pointerEvents: "none",
                     }}
@@ -894,21 +867,39 @@ export default function HomePage() {
                       delay: 0.8,
                     }}
                   >
+                    {/* Yellow circle — centered on sculpture, 50% its size */}
+                    <motion.div
+                      style={{
+                        position: "absolute",
+                        width: "72%",
+                        aspectRatio: "1/1",
+                        borderRadius: "9999px",
+                        background: "var(--color-accent)",
+                      }}
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 600,
+                        damping: 80,
+                        mass: 0.2,
+                        delay: 0.4,
+                        restSpeed: 0.0001,
+                        restDelta: 0.0001,
+                      }}
+                    />
                     <img
                       src="/images/hero-statue.webp"
                       alt="NFT Statue"
                       style={{
-                        height: 500,
+                        position: "relative",
+                        height: "90%",
                         width: "auto",
-                        filter: "drop-shadow(0 0 40px rgba(255, 255, 2, 0.3))",
+                        filter: "drop-shadow(0 0 60px rgba(255, 255, 2, 0.35))",
                       }}
                     />
                   </motion.div>
 
-                  {/* Accessible hidden heading */}
-                  <h1 className="vh">
-                    MintAI — Create Unique AI Art As NFTs on Solana
-                  </h1>
                 </div>
               </div>
             </motion.div>
