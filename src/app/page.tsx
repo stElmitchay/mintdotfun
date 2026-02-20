@@ -258,6 +258,45 @@ function shortenAddr(addr: string): string {
   return `${addr.slice(0, 4)}...${addr.slice(-4)}`;
 }
 
+// Texture overlay for frames (fewer icons, subtle)
+const FRAME_TEXTURE = [
+  { x: 6, y: 10, size: 14, rotate: 20, opacity: 0.04 },
+  { x: 25, y: 70, size: 11, rotate: -35, opacity: 0.03 },
+  { x: 45, y: 15, size: 16, rotate: 50, opacity: 0.04 },
+  { x: 10, y: 50, size: 12, rotate: -20, opacity: 0.03 },
+  { x: 60, y: 80, size: 14, rotate: 40, opacity: 0.03 },
+  { x: 80, y: 25, size: 10, rotate: -50, opacity: 0.03 },
+  { x: 35, y: 88, size: 15, rotate: 15, opacity: 0.04 },
+  { x: 75, y: 55, size: 12, rotate: -30, opacity: 0.03 },
+  { x: 90, y: 10, size: 13, rotate: 65, opacity: 0.03 },
+  { x: 15, y: 35, size: 11, rotate: -45, opacity: 0.03 },
+];
+
+function FrameTexture({ color = "var(--color-accent)" }: { color?: string }) {
+  return (
+    <div style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none", zIndex: 0 }} aria-hidden>
+      {FRAME_TEXTURE.map((pos, i) => {
+        const Icon = TEXTURE_ICONS[i % TEXTURE_ICONS.length];
+        return (
+          <Icon
+            key={i}
+            style={{
+              position: "absolute",
+              left: `${pos.x}%`,
+              top: `${pos.y}%`,
+              width: pos.size,
+              height: pos.size,
+              opacity: pos.opacity,
+              transform: `rotate(${pos.rotate}deg)`,
+              color,
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 // ============================================
 // Frame content: Marketplace
 // ============================================
@@ -271,7 +310,8 @@ function MarketplaceFrame() {
   const extra = listings.slice(3, 5);
 
   return (
-    <div style={{ padding: 40, width: "100%", height: "100%", display: "flex", flexDirection: "column" }}>
+    <div style={{ padding: 40, width: "100%", height: "100%", display: "flex", flexDirection: "column", position: "relative" }}>
+      <FrameTexture />
       {/* Header */}
       <div
         style={{
@@ -521,9 +561,11 @@ function QuoteFrame() {
         justifyContent: "center",
         height: "100%",
         background: "var(--color-accent)",
+        position: "relative",
       }}
     >
-      <div style={{ textAlign: "left" }}>
+      <FrameTexture color="var(--color-gray-1)" />
+      <div style={{ textAlign: "left", position: "relative", zIndex: 1 }}>
         {lines.map((line, i) => (
           <motion.div
             key={i}
@@ -564,7 +606,8 @@ function QuoteFrame() {
 
 function ContactFrame() {
   return (
-    <div className={styles.contact}>
+    <div className={styles.contact} style={{ position: "relative" }}>
+      <FrameTexture />
       <a href="/create" className={styles.contactTopLeft}>
         Create
       </a>

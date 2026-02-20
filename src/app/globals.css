@@ -31,10 +31,10 @@
   --color-on-accent: #000;
   --statue-hue-rotate: 0deg;
 
-  /* ── Backward compat aliases ──────────────────────────────── */
-  --color-primary: #ffff02;
-  --color-primary-dark: #e6e600;
-  --color-primary-light: #ffff66;
+  /* ── Backward compat aliases (dynamically overridden by LayoutShell) ── */
+  --color-primary: var(--color-accent);
+  --color-primary-dark: var(--color-accent);
+  --color-primary-light: var(--color-accent);
   --color-surface-0: hsl(0 0% 8.5%);
   --color-surface-1: hsl(0 0% 11%);
   --color-surface-2: hsl(0 0% 13.6%);

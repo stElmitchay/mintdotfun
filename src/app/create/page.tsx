@@ -16,6 +16,18 @@ import {
   Image as ImageIcon,
   Sparkles,
   Loader2,
+  Orbit,
+  Zap,
+  Waves,
+  Grid3X3,
+  Flame,
+  Hexagon,
+  Star,
+  Diamond,
+  Pentagon,
+  Triangle,
+  Circle,
+  Square,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { GeneratedImage, GenerationStatus } from "@/types";
@@ -36,6 +48,32 @@ const STYLE_PRESETS = GENERATION.ALLOWED_STYLES.map((id) => ({
           .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
           .join(" "),
 }));
+
+// Texture icons for background pattern
+const TEXTURE_ICONS = [
+  Orbit, Zap, Waves, Grid3X3, Flame,
+  Sparkles, Hexagon, Star, Diamond, Pentagon, Triangle,
+  Circle, Square,
+];
+
+const TEXTURE_POSITIONS = [
+  { x: 5, y: 8, size: 16, rotate: 15, opacity: 0.04 },
+  { x: 20, y: 65, size: 12, rotate: -30, opacity: 0.03 },
+  { x: 38, y: 20, size: 18, rotate: 45, opacity: 0.05 },
+  { x: 8, y: 42, size: 14, rotate: -15, opacity: 0.03 },
+  { x: 52, y: 10, size: 11, rotate: 60, opacity: 0.03 },
+  { x: 15, y: 82, size: 20, rotate: -45, opacity: 0.04 },
+  { x: 45, y: 52, size: 13, rotate: 30, opacity: 0.03 },
+  { x: 28, y: 35, size: 16, rotate: -60, opacity: 0.04 },
+  { x: 60, y: 72, size: 12, rotate: 20, opacity: 0.03 },
+  { x: 72, y: 25, size: 14, rotate: -25, opacity: 0.03 },
+  { x: 85, y: 55, size: 18, rotate: 50, opacity: 0.04 },
+  { x: 78, y: 85, size: 11, rotate: -40, opacity: 0.03 },
+  { x: 90, y: 15, size: 15, rotate: 35, opacity: 0.03 },
+  { x: 65, y: 45, size: 13, rotate: -10, opacity: 0.03 },
+  { x: 35, y: 75, size: 17, rotate: 70, opacity: 0.04 },
+  { x: 55, y: 90, size: 12, rotate: -55, opacity: 0.03 },
+];
 
 export default function CreatePage() {
   const { authenticated, login } = usePrivy();
@@ -142,10 +180,12 @@ export default function CreatePage() {
 
   if (!authenticated) {
     return (
-      <div className="min-h-screen pt-24 pb-12">
-        <div className="max-w-4xl mx-auto px-6 flex flex-col items-center justify-center min-h-[60vh] gap-6">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-            <Sparkles className="w-7 h-7 text-primary" />
+      <div className="min-h-screen pt-24 pb-12 relative overflow-hidden">
+        {/* Texture */}
+        <TextureOverlay />
+        <div className="max-w-4xl mx-auto px-6 flex flex-col items-center justify-center min-h-[60vh] gap-6 relative z-10">
+          <div className="w-16 h-16 rounded-full bg-accent-dim flex items-center justify-center">
+            <Sparkles className="w-7 h-7 text-accent" />
           </div>
           <h2 className="text-2xl font-bold text-white">
             Connect to Start Creating
@@ -155,7 +195,7 @@ export default function CreatePage() {
           </p>
           <motion.button
             onClick={login}
-            className="flex items-center gap-2 bg-primary text-black px-6 py-3 rounded-full text-sm font-medium hover:opacity-90 transition-all"
+            className="flex items-center gap-2 bg-accent text-[var(--color-on-accent)] px-6 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-all"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -167,8 +207,11 @@ export default function CreatePage() {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-12">
-      <div className="max-w-4xl mx-auto px-6">
+    <div className="min-h-screen pt-24 pb-12 relative overflow-hidden">
+      {/* Background texture */}
+      <TextureOverlay />
+
+      <div className="max-w-5xl mx-auto px-6 relative z-10">
         {/* Back link */}
         <FadeUp>
           <div className="mb-2">
@@ -185,8 +228,9 @@ export default function CreatePage() {
         {/* Header */}
         <FadeUp delay={0.1}>
           <div className="mb-12">
-            <h1 className="text-3xl font-bold tracking-tight mb-2">
-              Create Your <span className="text-primary">AI NFT</span>
+            <h1 className="text-4xl font-bold tracking-tight mb-2">
+              Create Your{" "}
+              <span className="text-accent">NFT</span>
             </h1>
             <p className="text-gray-500 text-sm">
               Describe your vision and let AI generate unique artwork.
@@ -194,228 +238,238 @@ export default function CreatePage() {
           </div>
         </FadeUp>
 
-        {/* Main form */}
-        <div className="space-y-8">
-          <FadeUp delay={0.2}>
-            <div className="bg-surface-1 rounded-2xl border border-white/[0.04] p-8 space-y-8">
-              {/* Prompt */}
-              <div className="space-y-3">
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-300">
-                  <BookOpen className="w-4 h-4 text-primary" />
-                  Describe Your Artwork
-                </label>
-                <textarea
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  placeholder="Tell us your vision..."
-                  rows={5}
-                  className="w-full px-5 py-4 bg-surface-2 border border-white/[0.06] rounded-xl text-white text-sm placeholder-gray-600 focus:border-primary/40 focus:outline-none transition-all resize-none"
-                  disabled={status === "generating"}
-                  maxLength={2000}
-                />
-              </div>
-
-              {/* Style Preset */}
-              <div className="space-y-3">
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-300">
-                  <Sparkles className="w-4 h-4 text-primary" />
-                  Art Style
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {STYLE_PRESETS.map((preset) => (
-                    <button
-                      key={preset.id}
-                      onClick={() => setStyle(preset.id)}
-                      disabled={status === "generating"}
-                      className={cn(
-                        "px-4 py-2 rounded-full text-xs font-medium transition-all duration-300",
-                        style === preset.id
-                          ? "bg-primary text-black"
-                          : "bg-surface-2 text-gray-11 hover:text-gray-12 border border-gray-a4 hover:border-gray-a6"
-                      )}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Variations */}
-              <div className="space-y-3">
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-300">
-                  <Layers className="w-4 h-4 text-primary" />
-                  Variations
-                </label>
-                <div className="flex items-center gap-4">
-                  <input
-                    type="range"
-                    min={GENERATION.MIN_COUNT}
-                    max={GENERATION.MAX_COUNT}
-                    value={count}
-                    onChange={(e) => setCount(parseInt(e.target.value))}
-                    disabled={status === "generating"}
-                    className="flex-1 h-1.5 bg-surface-3 rounded-lg appearance-none cursor-pointer slider"
-                  />
-                  <div className="px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-lg text-primary text-sm font-semibold min-w-[48px] text-center">
-                    {count}
-                  </div>
-                </div>
-              </div>
-
-              {/* Reference Image */}
-              <div className="space-y-3">
-                <label className="flex items-center gap-2 text-sm font-medium text-gray-300">
-                  <ImageIcon className="w-4 h-4 text-primary" />
-                  Inspiration Image
-                  <span className="text-gray-600 font-normal">(Optional)</span>
-                </label>
-                {referenceImage ? (
-                  <div className="relative group inline-block">
-                    <img
-                      src={referenceImage}
-                      alt="Reference"
-                      className="w-full max-w-xs h-40 object-cover rounded-xl"
-                    />
-                    <button
-                      onClick={removeReferenceImage}
-                      className="absolute top-2 right-2 p-1.5 bg-black/60 backdrop-blur-sm rounded-lg text-gray-300 hover:text-white transition-all opacity-0 group-hover:opacity-100"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ) : (
-                  <label className="flex flex-col items-center justify-center w-full max-w-xs h-40 border border-dashed border-white/[0.1] rounded-xl cursor-pointer hover:border-primary/30 transition-all group bg-surface-2">
-                    <Upload className="w-5 h-5 text-gray-600 group-hover:text-primary transition-colors mb-2" />
-                    <span className="text-xs text-gray-600 group-hover:text-gray-400 transition-colors">
-                      Upload Image
-                    </span>
-                    <input
-                      type="file"
-                      accept={GENERATION.ALLOWED_IMAGE_TYPES.join(",")}
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
+        {/* Two-column layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8">
+          {/* Left — form */}
+          <div className="space-y-6">
+            <FadeUp delay={0.2}>
+              <div className="bg-gray-2 rounded-2xl border border-gray-a3 p-8 space-y-8">
+                {/* Prompt */}
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-11">
+                    <BookOpen className="w-4 h-4 text-accent" />
+                    Describe Your Artwork
                   </label>
-                )}
-              </div>
-            </div>
-          </FadeUp>
-
-          {/* Generate Button */}
-          <FadeUp delay={0.3}>
-            <motion.button
-              onClick={handleGenerate}
-              disabled={!prompt.trim() || status === "generating"}
-              className="w-full flex items-center justify-center gap-3 bg-primary px-8 py-5 rounded-xl text-black font-semibold hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-              whileHover={{ scale: 1.005 }}
-              whileTap={{ scale: 0.995 }}
-            >
-              {status === "generating" ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Generating Artwork...
-                </>
-              ) : (
-                <>
-                  {generatedImages.length > 0
-                    ? "Generate New Variations"
-                    : "Generate Artwork"}
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </motion.button>
-          </FadeUp>
-
-          {error && (
-            <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-400">
-              {error}
-            </div>
-          )}
-
-          {/* Generated Images */}
-          {generatedImages.length > 0 && (
-            <FadeUp>
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">
-                    Pick Your <span className="text-primary">Favorite</span>
-                  </h3>
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={handleClearImages}
-                      className="flex items-center gap-1.5 text-xs text-gray-600 hover:text-white transition-colors"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                      Clear
-                    </button>
-                    <button
-                      onClick={handleGenerate}
-                      disabled={status === "generating"}
-                      className="flex items-center gap-1.5 text-xs text-primary hover:text-primary-light transition-colors"
-                    >
-                      <RefreshCw className="h-3 w-3" />
-                      Regenerate
-                    </button>
+                  <textarea
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    placeholder="A cosmic whale swimming through neon galaxies..."
+                    rows={5}
+                    className="w-full px-5 py-4 bg-gray-3 border border-gray-a3 rounded-xl text-gray-12 text-sm placeholder-gray-8 focus:border-accent/40 focus:outline-none transition-all resize-none"
+                    disabled={status === "generating"}
+                    maxLength={2000}
+                  />
+                  <div className="flex justify-end">
+                    <span className="text-[11px] text-gray-8">
+                      {prompt.length}/2000
+                    </span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {generatedImages.map((img) => (
-                    <motion.button
-                      key={img.id}
-                      onClick={() => selectImage(img.id)}
-                      className={cn(
-                        "group relative overflow-hidden rounded-xl border-2 transition-all",
-                        img.selected
-                          ? "border-primary"
-                          : "border-transparent opacity-60 hover:opacity-100"
-                      )}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <img
-                        src={img.url}
-                        alt="Generated NFT"
-                        className="aspect-square w-full object-cover"
-                      />
-                      <div
+                {/* Style Presets */}
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-11">
+                    <Sparkles className="w-4 h-4 text-accent" />
+                    Art Style
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {STYLE_PRESETS.map((preset) => (
+                      <button
+                        key={preset.id}
+                        onClick={() => setStyle(preset.id)}
+                        disabled={status === "generating"}
                         className={cn(
-                          "absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full transition-all",
-                          img.selected
-                            ? "bg-primary text-black"
-                            : "bg-black/40 backdrop-blur-sm text-gray-500"
+                          "px-4 py-2 rounded-full text-xs font-medium transition-all duration-300",
+                          style === preset.id
+                            ? "bg-accent text-[var(--color-on-accent)]"
+                            : "bg-gray-3 text-gray-11 hover:text-gray-12 border border-gray-a4 hover:border-gray-a6"
                         )}
                       >
-                        <Check className="h-3 w-3" />
-                      </div>
-                    </motion.button>
-                  ))}
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
-                {selectedImage && (
-                  <motion.button
-                    onClick={() => setShowMintPanel(true)}
-                    className="w-full flex items-center justify-center gap-3 bg-primary px-8 py-5 rounded-xl text-black font-semibold hover:opacity-90 transition-colors text-sm"
-                    whileHover={{ scale: 1.005 }}
-                    whileTap={{ scale: 0.995 }}
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    Mint as NFT
-                  </motion.button>
-                )}
+                {/* Variations */}
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-11">
+                    <Layers className="w-4 h-4 text-accent" />
+                    Variations
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <input
+                      type="range"
+                      min={GENERATION.MIN_COUNT}
+                      max={GENERATION.MAX_COUNT}
+                      value={count}
+                      onChange={(e) => setCount(parseInt(e.target.value))}
+                      disabled={status === "generating"}
+                      className="flex-1 h-1.5 bg-gray-4 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                    <div className="px-3 py-1.5 bg-accent-dim border border-accent/20 rounded-lg text-accent text-sm font-semibold min-w-[48px] text-center">
+                      {count}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Reference Image */}
+                <div className="space-y-3">
+                  <label className="flex items-center gap-2 text-sm font-medium text-gray-11">
+                    <ImageIcon className="w-4 h-4 text-accent" />
+                    Inspiration Image
+                    <span className="text-gray-8 font-normal">(Optional)</span>
+                  </label>
+                  {referenceImage ? (
+                    <div className="relative group inline-block">
+                      <img
+                        src={referenceImage}
+                        alt="Reference"
+                        className="w-full max-w-xs h-40 object-cover rounded-xl"
+                      />
+                      <button
+                        onClick={removeReferenceImage}
+                        className="absolute top-2 right-2 p-1.5 bg-black/60 backdrop-blur-sm rounded-lg text-gray-300 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center w-full max-w-xs h-40 border border-dashed border-gray-a4 rounded-xl cursor-pointer hover:border-accent/30 transition-all group bg-gray-3">
+                      <Upload className="w-5 h-5 text-gray-8 group-hover:text-accent transition-colors mb-2" />
+                      <span className="text-xs text-gray-8 group-hover:text-gray-11 transition-colors">
+                        Upload Image
+                      </span>
+                      <input
+                        type="file"
+                        accept={GENERATION.ALLOWED_IMAGE_TYPES.join(",")}
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  )}
+                </div>
               </div>
             </FadeUp>
-          )}
 
-          {/* Empty state */}
-          {generatedImages.length === 0 && status !== "generating" && (
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/[0.06] bg-surface-1/50 py-20">
-              <ImagePlus className="mb-3 h-10 w-10 text-gray-700" />
-              <p className="text-gray-600 text-sm">
-                Generated artwork will appear here
-              </p>
-            </div>
-          )}
+            {/* Generate Button */}
+            <FadeUp delay={0.3}>
+              <motion.button
+                onClick={handleGenerate}
+                disabled={!prompt.trim() || status === "generating"}
+                className="w-full flex items-center justify-center gap-3 bg-accent px-8 py-5 rounded-xl text-[var(--color-on-accent)] font-semibold hover:opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                whileHover={{ scale: 1.005 }}
+                whileTap={{ scale: 0.995 }}
+              >
+                {status === "generating" ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Generating Artwork...
+                  </>
+                ) : (
+                  <>
+                    {generatedImages.length > 0
+                      ? "Generate New Variations"
+                      : "Generate Artwork"}
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </motion.button>
+            </FadeUp>
+
+            {error && (
+              <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-sm text-red-400">
+                {error}
+              </div>
+            )}
+          </div>
+
+          {/* Right — preview / results */}
+          <div className="space-y-6">
+            {/* Generated Images */}
+            {generatedImages.length > 0 ? (
+              <FadeUp>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-semibold text-gray-11">
+                      Pick Your <span className="text-accent">Favorite</span>
+                    </h3>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={handleClearImages}
+                        className="flex items-center gap-1.5 text-[11px] text-gray-8 hover:text-white transition-colors"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                        Clear
+                      </button>
+                      <button
+                        onClick={handleGenerate}
+                        disabled={status === "generating"}
+                        className="flex items-center gap-1.5 text-[11px] text-accent hover:opacity-70 transition-colors"
+                      >
+                        <RefreshCw className="h-3 w-3" />
+                        Redo
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    {generatedImages.map((img) => (
+                      <motion.button
+                        key={img.id}
+                        onClick={() => selectImage(img.id)}
+                        className={cn(
+                          "group relative overflow-hidden rounded-xl border-2 transition-all",
+                          img.selected
+                            ? "border-accent"
+                            : "border-transparent opacity-60 hover:opacity-100"
+                        )}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                      >
+                        <img
+                          src={img.url}
+                          alt="Generated NFT"
+                          className="aspect-square w-full object-cover"
+                        />
+                        <div
+                          className={cn(
+                            "absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full transition-all",
+                            img.selected
+                              ? "bg-accent text-[var(--color-on-accent)]"
+                              : "bg-black/40 backdrop-blur-sm text-gray-500"
+                          )}
+                        >
+                          <Check className="h-3 w-3" />
+                        </div>
+                      </motion.button>
+                    ))}
+                  </div>
+
+                  {selectedImage && (
+                    <motion.button
+                      onClick={() => setShowMintPanel(true)}
+                      className="w-full flex items-center justify-center gap-3 bg-accent px-6 py-4 rounded-xl text-[var(--color-on-accent)] font-semibold hover:opacity-90 transition-colors text-sm"
+                      whileHover={{ scale: 1.005 }}
+                      whileTap={{ scale: 0.995 }}
+                    >
+                      <Sparkles className="w-4 h-4" />
+                      Mint as NFT
+                    </motion.button>
+                  )}
+                </div>
+              </FadeUp>
+            ) : (
+              <FadeUp delay={0.3}>
+                <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-a3 bg-gray-2/50 py-20 min-h-[380px]">
+                  <ImagePlus className="mb-3 h-10 w-10 text-gray-7" />
+                  <p className="text-gray-8 text-sm">
+                    Generated artwork will appear here
+                  </p>
+                </div>
+              </FadeUp>
+            )}
+          </div>
         </div>
       </div>
 
@@ -426,6 +480,35 @@ export default function CreatePage() {
           onClose={() => setShowMintPanel(false)}
         />
       )}
+    </div>
+  );
+}
+
+// Scattered vector icon texture overlay
+function TextureOverlay() {
+  return (
+    <div
+      className="absolute inset-0 overflow-hidden pointer-events-none z-0"
+      aria-hidden
+    >
+      {TEXTURE_POSITIONS.map((pos, i) => {
+        const Icon = TEXTURE_ICONS[i % TEXTURE_ICONS.length];
+        return (
+          <Icon
+            key={i}
+            style={{
+              position: "absolute",
+              left: `${pos.x}%`,
+              top: `${pos.y}%`,
+              width: pos.size,
+              height: pos.size,
+              opacity: pos.opacity,
+              transform: `rotate(${pos.rotate}deg)`,
+              color: "var(--color-accent)",
+            }}
+          />
+        );
+      })}
     </div>
   );
 }
