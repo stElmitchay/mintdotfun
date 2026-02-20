@@ -29,6 +29,7 @@
   --color-accent-high: #ffef00;
   --color-accent-dim: rgba(255, 255, 2, 0.12);
   --color-on-accent: #000;
+  --statue-hue-rotate: 0deg;
 
   /* ── Backward compat aliases ──────────────────────────────── */
   --color-primary: #ffff02;

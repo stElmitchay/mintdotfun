@@ -868,14 +868,21 @@ export default function HomePage() {
                         restDelta: 0.0001,
                       }}
                     />
-                    <img
+                    <motion.img
                       src="/images/hero-statue.webp"
                       alt="NFT Statue"
+                      animate={{ y: [0, -12, 0] }}
+                      transition={{
+                        duration: 6,
+                        ease: "easeInOut",
+                        repeat: Infinity,
+                      }}
                       style={{
                         position: "relative",
                         height: "90%",
                         width: "auto",
-                        filter: "drop-shadow(0 0 60px color-mix(in srgb, var(--color-accent) 35%, transparent))",
+                        filter:
+                          "hue-rotate(var(--statue-hue-rotate, 0deg)) saturate(1.4) drop-shadow(0 0 60px color-mix(in srgb, var(--color-accent) 35%, transparent))",
                       }}
                     />
                   </motion.div>

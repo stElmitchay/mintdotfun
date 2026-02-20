@@ -61,6 +61,26 @@ const ACCENTS = [
   "#44ffcc", // Seafoam
 ];
 
+// Original lightning color in the statue image is purple (~280°)
+const STATUE_BASE_HUE = 280;
+
+function hexToHue(hex: string): number {
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+  if (delta === 0) return 0;
+  let hue: number;
+  if (max === r) hue = ((g - b) / delta) % 6;
+  else if (max === g) hue = (b - r) / delta + 2;
+  else hue = (r - g) / delta + 4;
+  hue = Math.round(hue * 60);
+  if (hue < 0) hue += 360;
+  return hue;
+}
+
 function pickAccent() {
   const hex = ACCENTS[Math.floor(Math.random() * ACCENTS.length)];
   const r = parseInt(hex.slice(1, 3), 16);
@@ -68,10 +88,16 @@ function pickAccent() {
   const b = parseInt(hex.slice(5, 7), 16);
   // Relative luminance (WCAG formula)
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  // Hue rotation to shift statue lightning from purple to accent color
+  const targetHue = hexToHue(hex);
+  let hueRotate = targetHue - STATUE_BASE_HUE;
+  if (hueRotate < -180) hueRotate += 360;
+  if (hueRotate > 180) hueRotate -= 360;
   return {
     accent: hex,
     dim: `rgba(${r}, ${g}, ${b}, 0.12)`,
     onAccent: luminance > 0.55 ? "#000" : "#fff",
+    hueRotate: `${hueRotate}deg`,
   };
 }
 
@@ -80,10 +106,11 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   const isHome = pathname === "/";
 
   useEffect(() => {
-    const { accent, dim, onAccent } = pickAccent();
+    const { accent, dim, onAccent, hueRotate } = pickAccent();
     document.documentElement.style.setProperty("--color-accent", accent);
     document.documentElement.style.setProperty("--color-accent-dim", dim);
     document.documentElement.style.setProperty("--color-on-accent", onAccent);
+    document.documentElement.style.setProperty("--statue-hue-rotate", hueRotate);
   }, []);
 
   const content = (
