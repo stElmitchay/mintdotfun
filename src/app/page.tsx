@@ -511,45 +511,65 @@ function QuoteFrame({
   onGetStarted: () => void;
 }) {
   return (
-    <div className={styles.contentsYellow}>
-      <div style={{ textAlign: "center" }}>
-        <p
-          style={{
-            fontSize: 65,
-            fontWeight: 400,
-            color: "var(--color-gray-1)",
-            lineHeight: 1.15,
-            marginBottom: 40,
-          }}
-        >
-          Turn ideas into art.
-          <br />
-          Mint it. Own it.
-          <br />
-          Make it unique.
-          <br />
-          Make it yours.
-        </p>
-        <button
-          onClick={onGetStarted}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 10,
-            background: "var(--color-gray-1)",
-            color: "var(--color-accent)",
-            padding: "14px 32px",
-            borderRadius: 999,
-            fontSize: 16,
-            fontWeight: 500,
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          Get Started
-          <ArrowRight style={{ width: 16, height: 16 }} />
-        </button>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        height: "100%",
+        background: "var(--color-accent)",
+        padding: "64px 64px",
+      }}
+    >
+      <div>
+        {/* Line 1 — sans */}
+        <div className={styles.clipReveal}>
+          <p style={{ fontSize: 95, fontWeight: 400, color: "var(--color-gray-1)", lineHeight: 1.05 }}>
+            Turn ideas
+          </p>
+        </div>
+        {/* Line 2 — offset, mono */}
+        <div className={styles.clipRevealOffset}>
+          <p style={{ fontSize: 95, fontWeight: 400, color: "var(--color-gray-1)", lineHeight: 1.05, fontFamily: "var(--font-mono)", fontStyle: "italic" }}>
+            into art.
+          </p>
+        </div>
+        {/* Line 3 — sans */}
+        <div className={styles.clipReveal}>
+          <p style={{ fontSize: 95, fontWeight: 400, color: "var(--color-gray-1)", lineHeight: 1.05 }}>
+            Mint it.
+          </p>
+        </div>
+        {/* Line 4 — offset, mono */}
+        <div className={styles.clipRevealOffset}>
+          <p style={{ fontSize: 95, fontWeight: 400, color: "var(--color-gray-1)", lineHeight: 1.05, fontFamily: "var(--font-mono)", fontStyle: "italic" }}>
+            Own it.
+          </p>
+        </div>
       </div>
+
+      {/* CTA button */}
+      <button
+        onClick={onGetStarted}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 10,
+          background: "var(--color-gray-1)",
+          color: "var(--color-accent)",
+          padding: "14px 32px",
+          borderRadius: 999,
+          fontSize: 16,
+          fontWeight: 600,
+          border: "none",
+          cursor: "pointer",
+          marginTop: 40,
+          width: "fit-content",
+        }}
+      >
+        Get Started
+        <ArrowRight style={{ width: 16, height: 16 }} />
+      </button>
     </div>
   );
 }
