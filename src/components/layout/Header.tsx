@@ -43,7 +43,7 @@ export default function Header() {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="text-xl font-medium text-gray-12 tracking-tight">
-            Mint<span className="text-accent">AI</span>
+            mint<span className="text-accent">IT</span>
           </Link>
 
           {/* Right actions */}

@@ -571,22 +571,22 @@ function ContactFrame() {
         <span
           style={{
             fontSize: 14,
-            color: "var(--color-gray-8)",
+            color: "var(--color-accent)",
             fontWeight: 400,
           }}
         >
-          &copy; {new Date().getFullYear()} MintAI
+          &copy; {new Date().getFullYear()} mintIT
         </span>
       </div>
       <div className={styles.contactBottomRight} style={{ display: "flex", gap: 24 }}>
-        <a href="#" style={{ fontSize: 14 }} aria-label="Twitter">
-          <Twitter style={{ width: 20, height: 20, color: "var(--color-gray-9)" }} />
+        <a href="https://x.com/el_saintt" target="_blank" rel="noopener noreferrer" style={{ fontSize: 14 }} aria-label="X">
+          <Twitter style={{ width: 20, height: 20, color: "var(--color-accent)" }} />
         </a>
         <a href="#" style={{ fontSize: 14 }} aria-label="Telegram">
-          <Send style={{ width: 20, height: 20, color: "var(--color-gray-9)" }} />
+          <Send style={{ width: 20, height: 20, color: "var(--color-accent)" }} />
         </a>
-        <a href="#" style={{ fontSize: 14 }} aria-label="GitHub">
-          <Github style={{ width: 20, height: 20, color: "var(--color-gray-9)" }} />
+        <a href="https://github.com/stElmitchay/mintdotfun" target="_blank" rel="noopener noreferrer" style={{ fontSize: 14 }} aria-label="GitHub">
+          <Github style={{ width: 20, height: 20, color: "var(--color-accent)" }} />
         </a>
       </div>
 
@@ -599,7 +599,7 @@ function ContactFrame() {
             color: "var(--color-gray-12)",
           }}
         >
-          Mint
+          mint
         </span>
         <span
           style={{
@@ -608,7 +608,7 @@ function ContactFrame() {
             color: "var(--color-accent)",
           }}
         >
-          AI
+          IT
         </span>
       </div>
     </div>

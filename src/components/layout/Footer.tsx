@@ -41,21 +41,21 @@ export default function Footer() {
           {/* Bottom-left */}
           <div className="absolute bottom-0 left-0">
             <p className="text-xs text-gray-8">
-              &copy; {new Date().getFullYear()} MintAI
+              &copy; {new Date().getFullYear()} mintIT
             </p>
           </div>
 
           {/* Bottom-right */}
           <div className="absolute bottom-0 right-0 flex items-center gap-4">
             {[
-              { icon: Twitter, href: "#", label: "Twitter" },
+              { icon: Twitter, href: "https://x.com/el_saintt", label: "X" },
               { icon: Send, href: "#", label: "Telegram" },
-              { icon: Github, href: "#", label: "GitHub" },
+              { icon: Github, href: "https://github.com/stElmitchay/mintdotfun", label: "GitHub" },
             ].map(({ icon: Icon, href, label }) => (
               <a
                 key={label}
                 href={href}
-                className="text-gray-9 hover:text-gray-12 transition-colors duration-300"
+                className="text-accent hover:opacity-70 transition-opacity duration-300"
                 aria-label={label}
               >
                 <Icon className="w-4 h-4" />
@@ -69,7 +69,7 @@ export default function Footer() {
               href="/"
               className="text-2xl font-medium text-gray-12 tracking-tight hover:text-accent transition-colors duration-300"
             >
-              Mint<span className="text-accent">AI</span>
+              mint<span className="text-accent">IT</span>
             </Link>
           </div>
         </motion.div>

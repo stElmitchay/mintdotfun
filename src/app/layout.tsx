@@ -4,7 +4,7 @@ import PrivyProvider from "@/components/providers/PrivyProvider";
 import LayoutShell from "@/components/layout/LayoutShell";
 
 export const metadata: Metadata = {
-  title: "MintAI - AI-Powered NFT Creator",
+  title: "mintIT - AI-Powered NFT Creator",
   description:
     "Describe your vision, let AI generate the art, and mint directly on Solana. From concept to NFT in minutes.",
 };
