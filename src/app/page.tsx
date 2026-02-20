@@ -263,11 +263,11 @@ function shortenAddr(addr: string): string {
 // ============================================
 
 function MarketplaceFrame() {
-  const { listings, loading } = useListings({ limit: 5, sort: "newest" });
+  const { listings, loading } = useListings({ limit: 3, sort: "newest" });
 
-  // 1 featured + up to 4 stacked (2 visible cols of 2)
+  // Max 3: 1 featured + 2 stacked
   const featured = listings[0];
-  const rest = listings.slice(1, 5);
+  const rest = listings.slice(1, 3);
 
   return (
     <div style={{ padding: 40, width: "100%", height: "100%", display: "flex", flexDirection: "column" }}>
@@ -381,22 +381,20 @@ function MarketplaceFrame() {
               </Link>
             ))}
 
-            {/* Fill empty slots up to 4 rest cards */}
-            {rest.length < 4 &&
-              Array.from({ length: 4 - rest.length }).map((_, i) => (
-                <Link
-                  key={`empty-${i}`}
-                  href="/create"
-                  className={styles.nftCard}
-                >
-                  <div className={styles.nftCardPlaceholder}>
-                    <div style={{ textAlign: "center" }}>
-                      <Sparkles style={{ width: 24, height: 24, color: "var(--color-gray-6)", marginBottom: 8 }} />
-                      <div style={{ fontSize: 12, color: "var(--color-gray-7)" }}>Mint yours</div>
-                    </div>
+            {/* Fill empty slot if only 1 rest item */}
+            {rest.length < 2 && (
+              <Link
+                href="/create"
+                className={styles.nftCard}
+              >
+                <div className={styles.nftCardPlaceholder}>
+                  <div style={{ textAlign: "center" }}>
+                    <Sparkles style={{ width: 24, height: 24, color: "var(--color-gray-6)", marginBottom: 8 }} />
+                    <div style={{ fontSize: 12, color: "var(--color-gray-7)" }}>Mint yours</div>
                   </div>
-                </Link>
-              ))}
+                </div>
+              </Link>
+            )}
           </div>
         ) : (
           /* Empty state — full frame invitation */

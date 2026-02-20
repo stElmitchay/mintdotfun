@@ -218,11 +218,11 @@
 
 .marketplaceGrid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   grid-template-rows: 1fr 1fr;
   gap: 12px;
   height: 100%;
-  width: calc(100% + 330px);
+  width: 100%;
 }
 
 .nftCard {
