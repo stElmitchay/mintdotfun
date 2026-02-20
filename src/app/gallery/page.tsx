@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Sparkles,
   Loader2,
@@ -21,7 +21,9 @@ import ListingModal from "@/components/marketplace/ListingModal";
 import { motion } from "framer-motion";
 
 function timeAgo(dateStr: string): string {
-  const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  const seconds = Math.floor(
+    (Date.now() - new Date(dateStr).getTime()) / 1000
+  );
   if (seconds < 60) return "just now";
   const minutes = Math.floor(seconds / 60);
   if (minutes < 60) return `${minutes}m ago`;
@@ -31,13 +33,287 @@ function timeAgo(dateStr: string): string {
   return `${days}d ago`;
 }
 
-function cardTransition(i: number) {
-  return {
-    delay: i * 0.06,
-    duration: 0.5,
-    ease: [0.2, 0.8, 0.2, 1] as const,
+// Varying aspect ratios for masonry effect
+const ASPECTS = [
+  "aspect-[3/4]",
+  "aspect-square",
+  "aspect-[4/5]",
+  "aspect-[3/4]",
+  "aspect-[5/6]",
+  "aspect-[4/3]",
+  "aspect-square",
+  "aspect-[3/5]",
+];
+
+// ============================================
+// Card components
+// ============================================
+
+function ListingCard({
+  listing,
+  index,
+}: {
+  listing: {
+    id: string;
+    mintAddress: string;
+    nftName: string;
+    nftImageUrl: string;
+    priceSol: number;
+    sellerWallet: string;
+    listedAt: string;
   };
+  index: number;
+}) {
+  const aspectClass = ASPECTS[index % ASPECTS.length];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        delay: index * 0.05,
+        duration: 0.5,
+        ease: [0.2, 0.8, 0.2, 1],
+      }}
+      className="break-inside-avoid mb-4"
+    >
+      <Link
+        href={`/nft/${listing.mintAddress}`}
+        className="group block rounded-2xl overflow-hidden bg-gray-2 border border-gray-a3 hover:border-gray-a5 transition-all duration-300"
+      >
+        {/* Header — name + date */}
+        <div className="flex items-center justify-between px-4 pt-4 pb-2">
+          <h3 className="text-sm font-medium text-gray-11 truncate group-hover:text-gray-12 transition-colors">
+            {listing.nftName}
+          </h3>
+          <span className="text-xs text-gray-8 flex-shrink-0 ml-3">
+            {timeAgo(listing.listedAt)}
+          </span>
+        </div>
+
+        {/* Image */}
+        <div className={`relative ${aspectClass} overflow-hidden mx-2`}>
+          {listing.nftImageUrl ? (
+            <img
+              src={listing.nftImageUrl}
+              alt={listing.nftName}
+              className="w-full h-full object-cover rounded-xl transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-3 rounded-xl flex items-center justify-center">
+              <Sparkles className="w-8 h-8 text-gray-7" />
+            </div>
+          )}
+
+          {/* Price badge */}
+          <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-lg">
+            <span className="text-xs font-semibold text-accent">
+              {listing.priceSol} SOL
+            </span>
+          </div>
+        </div>
+
+        {/* Footer CTA */}
+        <div className="flex items-center justify-center gap-2 px-4 py-3 text-xs text-gray-9 group-hover:text-accent transition-colors">
+          View NFT
+        </div>
+      </Link>
+    </motion.div>
+  );
 }
+
+function AssetCard({
+  asset,
+  index,
+  onList,
+  onDelist,
+  delisting,
+}: {
+  asset: {
+    address: string;
+    name: string;
+    imageUrl: string;
+    isListed: boolean;
+  };
+  index: number;
+  onList: () => void;
+  onDelist: () => void;
+  delisting: boolean;
+}) {
+  const aspectClass = ASPECTS[(index + 2) % ASPECTS.length];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        delay: index * 0.05,
+        duration: 0.5,
+        ease: [0.2, 0.8, 0.2, 1],
+      }}
+      className="break-inside-avoid mb-4"
+    >
+      <div className="group relative rounded-2xl overflow-hidden bg-gray-2 border border-gray-a3 hover:border-gray-a5 transition-all duration-300">
+        <Link href={`/nft/${asset.address}`}>
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 pt-4 pb-2">
+            <h3 className="text-sm font-medium text-gray-11 truncate group-hover:text-gray-12 transition-colors">
+              {asset.name}
+            </h3>
+            <span className="text-xs text-gray-8 font-mono flex-shrink-0 ml-3">
+              {shortenAddress(asset.address, 4)}
+            </span>
+          </div>
+
+          {/* Image */}
+          <div className={`relative ${aspectClass} overflow-hidden mx-2`}>
+            {asset.imageUrl ? (
+              <img
+                src={asset.imageUrl}
+                alt={asset.name}
+                className="w-full h-full object-cover rounded-xl transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-3 rounded-xl flex items-center justify-center">
+                <Sparkles className="w-8 h-8 text-gray-7" />
+              </div>
+            )}
+
+            {/* Listed badge */}
+            {asset.isListed && (
+              <div className="absolute top-3 left-3 bg-accent/90 backdrop-blur-sm px-2.5 py-1 rounded-md">
+                <span className="text-[10px] font-medium flex items-center gap-1 text-[var(--color-on-accent)]">
+                  <Tag className="w-2.5 h-2.5" />
+                  Listed
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-center gap-2 px-4 py-3 text-xs text-gray-9 group-hover:text-accent transition-colors">
+            {asset.isListed ? "View Listing" : "View NFT"}
+          </div>
+        </Link>
+
+        {/* Action button on hover */}
+        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          {asset.isListed ? (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                onDelist();
+              }}
+              disabled={delisting}
+              className="px-3 py-1.5 bg-black/60 backdrop-blur-sm rounded-lg text-[11px] font-medium text-red-400 hover:text-red-300 transition-all disabled:opacity-50"
+            >
+              {delisting ? <Loader2 className="w-3 h-3 animate-spin" /> : "Delist"}
+            </button>
+          ) : (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                onList();
+              }}
+              className="px-3 py-1.5 bg-black/60 backdrop-blur-sm rounded-lg text-[11px] font-medium text-accent hover:opacity-80 transition-all"
+            >
+              List
+            </button>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function MintedCard({
+  nft,
+  index,
+  onRemove,
+}: {
+  nft: { mint: string; name: string; imageUrl: string };
+  index: number;
+  onRemove: () => void;
+}) {
+  const aspectClass = ASPECTS[(index + 4) % ASPECTS.length];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        delay: index * 0.05,
+        duration: 0.5,
+        ease: [0.2, 0.8, 0.2, 1],
+      }}
+      className="break-inside-avoid mb-4"
+    >
+      <div className="group relative rounded-2xl overflow-hidden bg-gray-2 border border-gray-a3 hover:border-gray-a5 transition-all duration-300">
+        <Link href={`/nft/${nft.mint}`}>
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 pt-4 pb-2">
+            <h3 className="text-sm font-medium text-gray-11 truncate group-hover:text-gray-12 transition-colors">
+              {nft.name}
+            </h3>
+            <span className="text-xs text-gray-8 font-mono flex-shrink-0 ml-3">
+              {shortenAddress(nft.mint, 4)}
+            </span>
+          </div>
+
+          {/* Image */}
+          <div className={`relative ${aspectClass} overflow-hidden mx-2`}>
+            <img
+              src={nft.imageUrl}
+              alt={nft.name}
+              className="w-full h-full object-cover rounded-xl transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+            />
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-center gap-2 px-4 py-3 text-xs text-gray-9 group-hover:text-accent transition-colors">
+            View NFT
+          </div>
+        </Link>
+
+        {/* Delete button */}
+        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <button
+            onClick={() => onRemove()}
+            className="p-2 bg-black/60 backdrop-blur-sm rounded-lg text-gray-400 hover:text-red-400 transition-all"
+            title="Remove from gallery"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ============================================
+// Masonry helper — distribute items across 3 columns
+// ============================================
+
+function MasonryGrid({ children }: { children: React.ReactNode[] }) {
+  const cols: React.ReactNode[][] = [[], [], []];
+  children.forEach((child, i) => {
+    cols[i % 3].push(child);
+  });
+
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+      {cols.map((col, i) => (
+        <div key={i} className="flex flex-col">
+          {col}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ============================================
+// Page
+// ============================================
 
 export default function GalleryPage() {
   const { umi, connected, walletAddress } = useUmi();
@@ -47,8 +323,14 @@ export default function GalleryPage() {
     error: chainError,
     refetch: refetchChain,
   } = useOwnedAssets(umi, walletAddress);
-  const { nfts: mintedNFTs, loading: dbLoading, removeNFT } = useMintedNFTs(walletAddress);
-  const { listings, loading: listingsLoading } = useListings({ sort: "newest" });
+  const {
+    nfts: mintedNFTs,
+    loading: dbLoading,
+    removeNFT,
+  } = useMintedNFTs(walletAddress);
+  const { listings, loading: listingsLoading } = useListings({
+    sort: "newest",
+  });
 
   const [searchQuery, setSearchQuery] = useState("");
   const [listingAsset, setListingAsset] = useState<{
@@ -122,15 +404,58 @@ export default function GalleryPage() {
     filteredAssets.length > 0 ||
     filteredMinted.length > 0;
 
+  // Build all cards into one flat array for masonry
+  const allCards = useMemo(() => {
+    const cards: React.ReactNode[] = [];
+
+    filteredListings.forEach((listing, i) => {
+      cards.push(
+        <ListingCard key={`l-${listing.id}`} listing={listing} index={i} />
+      );
+    });
+
+    filteredAssets.forEach((asset, i) => {
+      cards.push(
+        <AssetCard
+          key={`a-${asset.address}`}
+          asset={asset}
+          index={i + filteredListings.length}
+          onList={() =>
+            setListingAsset({
+              address: asset.address,
+              name: asset.name,
+              imageUrl: asset.imageUrl,
+            })
+          }
+          onDelist={() => handleDelist(asset)}
+          delisting={delisting === asset.address}
+        />
+      );
+    });
+
+    filteredMinted.forEach((nft, i) => {
+      cards.push(
+        <MintedCard
+          key={`m-${nft.mint}`}
+          nft={nft}
+          index={i + filteredListings.length + filteredAssets.length}
+          onRemove={() => removeNFT(nft.mint)}
+        />
+      );
+    });
+
+    return cards;
+  }, [filteredListings, filteredAssets, filteredMinted, delisting]);
+
   return (
     <div className="min-h-screen pt-24 pb-20">
-      <div className="max-w-[960px] mx-auto px-6">
+      <div className="max-w-[1100px] mx-auto px-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
-          className="mb-10 mt-6"
+          className="mb-8 mt-6"
         >
           <h1 className="text-[32px] font-medium tracking-tight text-gray-12 mb-1">
             Gallery
@@ -144,8 +469,12 @@ export default function GalleryPage() {
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.05, ease: [0.2, 0.8, 0.2, 1] }}
-          className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between mb-12"
+          transition={{
+            duration: 0.5,
+            delay: 0.05,
+            ease: [0.2, 0.8, 0.2, 1],
+          }}
+          className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between mb-10"
         >
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-8" />
@@ -162,7 +491,9 @@ export default function GalleryPage() {
             {connected && walletAddress && (
               <div className="flex items-center gap-2 text-xs text-gray-8">
                 <Wallet className="w-3 h-3" />
-                <span className="font-mono">{shortenAddress(walletAddress)}</span>
+                <span className="font-mono">
+                  {shortenAddress(walletAddress)}
+                </span>
               </div>
             )}
             {connected && (
@@ -171,7 +502,9 @@ export default function GalleryPage() {
                 disabled={chainLoading}
                 className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-9 hover:text-gray-12 bg-gray-2 border border-gray-a3 hover:border-gray-a5 transition-all duration-300"
               >
-                <RefreshCw className={`w-3 h-3 ${chainLoading ? "animate-spin" : ""}`} />
+                <RefreshCw
+                  className={`w-3 h-3 ${chainLoading ? "animate-spin" : ""}`}
+                />
                 Refresh
               </button>
             )}
@@ -192,225 +525,8 @@ export default function GalleryPage() {
           </div>
         )}
 
-        {/* Marketplace Listings — vertical feed */}
-        {filteredListings.length > 0 && (
-          <section className="mb-16">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-sm font-medium text-gray-9 uppercase tracking-wider">
-                Listed
-              </h2>
-              <span className="text-xs text-gray-8">{filteredListings.length}</span>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              {filteredListings.map((listing, i) => (
-                <motion.div
-                  key={listing.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={cardTransition(i)}
-                >
-                  <Link
-                    href={`/nft/${listing.mintAddress}`}
-                    className="group block rounded-2xl overflow-hidden bg-gray-2 border border-gray-a3 hover:border-gray-a5 transition-all duration-300"
-                  >
-                    {/* Image */}
-                    <div className="relative aspect-[16/9] overflow-hidden">
-                      {listing.nftImageUrl ? (
-                        <img
-                          src={listing.nftImageUrl}
-                          alt={listing.nftName}
-                          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gray-3 flex items-center justify-center">
-                          <Sparkles className="w-8 h-8 text-gray-7" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Metadata */}
-                    <div className="flex items-center justify-between px-5 py-4">
-                      <div className="min-w-0 flex-1">
-                        <h3 className="text-sm font-medium text-gray-11 truncate group-hover:text-gray-12 transition-colors duration-300">
-                          {listing.nftName}
-                        </h3>
-                        <span className="text-xs text-gray-8 font-mono">
-                          {shortenAddress(listing.sellerWallet)} &middot; {timeAgo(listing.listedAt)}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-3 ml-4 flex-shrink-0">
-                        <span className="text-sm font-semibold text-accent">
-                          {listing.priceSol} SOL
-                        </span>
-                        <ArrowRight className="w-4 h-4 text-gray-8 opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-1 group-hover:translate-x-0" style={{ transition: "opacity 0.3s, transform 0.3s" }} />
-                      </div>
-                    </div>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* On-chain assets — vertical feed */}
-        {filteredAssets.length > 0 && (
-          <section className="mb-16">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-sm font-medium text-gray-9 uppercase tracking-wider">
-                Your Collection
-              </h2>
-              <span className="text-xs text-gray-8">{filteredAssets.length}</span>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              {filteredAssets.map((asset, i) => (
-                <motion.div
-                  key={asset.address}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={cardTransition(i)}
-                >
-                  <div className="group relative rounded-2xl overflow-hidden bg-gray-2 border border-gray-a3 hover:border-gray-a5 transition-all duration-300">
-                    <Link href={`/nft/${asset.address}`}>
-                      {/* Image */}
-                      <div className="relative aspect-[16/9] overflow-hidden">
-                        {asset.imageUrl ? (
-                          <img
-                            src={asset.imageUrl}
-                            alt={asset.name}
-                            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-gray-3 flex items-center justify-center">
-                            <Sparkles className="w-8 h-8 text-gray-7" />
-                          </div>
-                        )}
-
-                        {/* Listed badge */}
-                        {asset.isListed && (
-                          <div className="absolute top-3 left-3 bg-accent/90 backdrop-blur-sm px-2.5 py-1 rounded-md">
-                            <span className="text-[10px] font-medium flex items-center gap-1 text-[var(--color-on-accent)]">
-                              <Tag className="w-2.5 h-2.5" />
-                              Listed
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Metadata */}
-                      <div className="flex items-center justify-between px-5 py-4">
-                        <div className="min-w-0 flex-1">
-                          <h3 className="text-sm font-medium text-gray-11 truncate group-hover:text-gray-12 transition-colors duration-300">
-                            {asset.name}
-                          </h3>
-                          <span className="text-xs text-gray-8 font-mono">
-                            {shortenAddress(asset.address, 4)}
-                          </span>
-                        </div>
-                        <ArrowRight className="w-4 h-4 text-gray-8 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 ml-4 flex-shrink-0" style={{ transition: "opacity 0.3s, transform 0.3s" }} />
-                      </div>
-                    </Link>
-
-                    {/* Action button */}
-                    <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      {asset.isListed ? (
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handleDelist(asset);
-                          }}
-                          disabled={delisting === asset.address}
-                          className="px-3 py-1.5 bg-black/60 backdrop-blur-sm rounded-lg text-[11px] font-medium text-red-400 hover:text-red-300 transition-all disabled:opacity-50"
-                        >
-                          {delisting === asset.address ? (
-                            <Loader2 className="w-3 h-3 animate-spin" />
-                          ) : (
-                            "Delist"
-                          )}
-                        </button>
-                      ) : (
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setListingAsset({
-                              address: asset.address,
-                              name: asset.name,
-                              imageUrl: asset.imageUrl,
-                            });
-                          }}
-                          className="px-3 py-1.5 bg-black/60 backdrop-blur-sm rounded-lg text-[11px] font-medium text-accent hover:opacity-80 transition-all"
-                        >
-                          List
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Mint History — vertical feed */}
-        {filteredMinted.length > 0 && (
-          <section className="mb-16">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-sm font-medium text-gray-9 uppercase tracking-wider">
-                Mint History
-              </h2>
-              <span className="text-xs text-gray-8">{filteredMinted.length}</span>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              {filteredMinted.map((nft, i) => (
-                <motion.div
-                  key={nft.mint}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={cardTransition(i)}
-                >
-                  <div className="group relative rounded-2xl overflow-hidden bg-gray-2 border border-gray-a3 hover:border-gray-a5 transition-all duration-300">
-                    <Link href={`/nft/${nft.mint}`}>
-                      {/* Image */}
-                      <div className="relative aspect-[16/9] overflow-hidden">
-                        <img
-                          src={nft.imageUrl}
-                          alt={nft.name}
-                          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
-                        />
-                      </div>
-
-                      {/* Metadata */}
-                      <div className="flex items-center justify-between px-5 py-4">
-                        <div className="min-w-0 flex-1">
-                          <h3 className="text-sm font-medium text-gray-11 truncate group-hover:text-gray-12 transition-colors duration-300">
-                            {nft.name}
-                          </h3>
-                          <span className="text-xs text-gray-8 font-mono">
-                            {shortenAddress(nft.mint, 4)}
-                          </span>
-                        </div>
-                        <ArrowRight className="w-4 h-4 text-gray-8 opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 ml-4 flex-shrink-0" style={{ transition: "opacity 0.3s, transform 0.3s" }} />
-                      </div>
-                    </Link>
-
-                    {/* Delete button */}
-                    <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <button
-                        onClick={() => removeNFT(nft.mint)}
-                        className="p-2 bg-black/60 backdrop-blur-sm rounded-lg text-gray-400 hover:text-red-400 transition-all"
-                        title="Remove from gallery"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </section>
-        )}
+        {/* Masonry grid — all cards mixed */}
+        {hasAny && <MasonryGrid>{allCards}</MasonryGrid>}
 
         {/* Empty state */}
         {!loading && !listingsLoading && !hasAny && (
