@@ -300,15 +300,15 @@ function MarketplaceFrame() {
         </Link>
       </div>
 
-      {/* Content — grid + extra square cards in a flex row */}
-      <div style={{ flex: 1, minHeight: 0, display: "flex", gap: 12 }}>
+      {/* Content */}
+      <div style={{ flex: 1, minHeight: 0, position: "relative" }}>
         {loading ? (
           <div
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: "100%",
+              height: "100%",
               color: "var(--color-gray-9)",
               fontSize: 14,
             }}
@@ -317,8 +317,8 @@ function MarketplaceFrame() {
           </div>
         ) : listings.length > 0 ? (
           <>
-            {/* Main grid — untouched layout */}
-            <div className={styles.marketplaceGrid} style={{ flex: 1, minWidth: 0 }}>
+            {/* Main grid — same layout as before */}
+            <div className={styles.marketplaceGrid}>
               {/* Featured card — left column, full height */}
               {featured && (
                 <Link
@@ -400,8 +400,19 @@ function MarketplaceFrame() {
               )}
             </div>
 
-            {/* Extra square cards — fill the parallax gap */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, width: 290, flexShrink: 0 }}>
+            {/* Extra cards — positioned in the parallax gap, outside the grid */}
+            <div
+              style={{
+                position: "absolute",
+                right: -370,
+                top: 0,
+                bottom: 0,
+                width: 330,
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+              }}
+            >
               {extra.map((listing) => (
                 <Link
                   key={listing.id}
@@ -429,7 +440,6 @@ function MarketplaceFrame() {
                   </div>
                 </Link>
               ))}
-              {/* Fill empty extra slots */}
               {extra.length < 2 &&
                 Array.from({ length: 2 - extra.length }).map((_, i) => (
                   <Link
