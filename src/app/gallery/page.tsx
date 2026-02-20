@@ -1,13 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Sparkles,
   Loader2,
-  RefreshCw,
-  Wallet,
   Trash2,
-  Search,
   Tag,
   ArrowRight,
 } from "lucide-react";
@@ -291,6 +288,90 @@ function MintedCard({
 }
 
 // ============================================
+// Minimap — scroll-position indicator (matches rauno.me/craft)
+// ============================================
+
+const MINIMAP_LINES = [
+  { type: "rect" as const },
+  { type: "line" as const },
+  { type: "line" as const },
+  { type: "line" as const },
+  { type: "rect" as const },
+  { type: "line" as const },
+  { type: "line" as const },
+  { type: "rect" as const },
+  { type: "line" as const },
+  { type: "line" as const },
+];
+
+function GalleryMinimap() {
+  const [scrollPct, setScrollPct] = useState(0);
+
+  useEffect(() => {
+    function onScroll() {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      setScrollPct(max > 0 ? window.scrollY / max : 0);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Map scroll % to which rect index is active (0, 1, or 2)
+  const rectIndices = MINIMAP_LINES
+    .map((l, i) => (l.type === "rect" ? i : -1))
+    .filter((i) => i !== -1);
+  const activeRectIdx =
+    scrollPct < 0.33 ? 0 : scrollPct < 0.66 ? 1 : 2;
+  const activeLineIndex = rectIndices[activeRectIdx];
+
+  return (
+    <div
+      aria-hidden
+      className="fixed top-5 left-1/2 -translate-x-1/2 z-40"
+    >
+      <div className="flex items-end gap-[9px]">
+        {MINIMAP_LINES.map((line, i) =>
+          line.type === "rect" ? (
+            <div
+              key={i}
+              className="relative"
+              style={{ width: 30, height: 12 }}
+            >
+              <div
+                style={{
+                  width: 30,
+                  height: 12,
+                  border: "1px solid var(--color-gray-9)",
+                  background:
+                    i === activeLineIndex
+                      ? "var(--color-accent)"
+                      : "transparent",
+                  borderColor:
+                    i === activeLineIndex
+                      ? "var(--color-accent)"
+                      : "var(--color-gray-9)",
+                  transition:
+                    "background 200ms ease-in-out 200ms, border-color 200ms ease-in-out 200ms",
+                }}
+              />
+            </div>
+          ) : (
+            <div
+              key={i}
+              style={{
+                width: 1,
+                height: 12,
+                background: "var(--color-gray-9)",
+              }}
+            />
+          )
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================
 // Masonry helper — distribute items across 3 columns
 // ============================================
 
@@ -316,7 +397,7 @@ function MasonryGrid({ children }: { children: React.ReactNode[] }) {
 // ============================================
 
 export default function GalleryPage() {
-  const { umi, connected, walletAddress } = useUmi();
+  const { umi, walletAddress } = useUmi();
   const {
     assets,
     loading: chainLoading,
@@ -332,7 +413,6 @@ export default function GalleryPage() {
     sort: "newest",
   });
 
-  const [searchQuery, setSearchQuery] = useState("");
   const [listingAsset, setListingAsset] = useState<{
     address: string;
     name: string;
@@ -341,27 +421,6 @@ export default function GalleryPage() {
   const [delisting, setDelisting] = useState<string | null>(null);
 
   const loading = chainLoading || dbLoading;
-
-  const filteredListings = listings.filter(
-    (l) =>
-      !searchQuery ||
-      l.nftName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      l.mintAddress.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const filteredAssets = assets.filter(
-    (a) =>
-      !searchQuery ||
-      a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.address.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const filteredMinted = mintedNFTs.filter(
-    (n) =>
-      !searchQuery ||
-      n.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      n.mint.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   const handleDelist = async (asset: { address: string }) => {
     if (!walletAddress) return;
@@ -400,26 +459,24 @@ export default function GalleryPage() {
   };
 
   const hasAny =
-    filteredListings.length > 0 ||
-    filteredAssets.length > 0 ||
-    filteredMinted.length > 0;
+    listings.length > 0 || assets.length > 0 || mintedNFTs.length > 0;
 
   // Build all cards into one flat array for masonry
   const allCards = useMemo(() => {
     const cards: React.ReactNode[] = [];
 
-    filteredListings.forEach((listing, i) => {
+    listings.forEach((listing, i) => {
       cards.push(
         <ListingCard key={`l-${listing.id}`} listing={listing} index={i} />
       );
     });
 
-    filteredAssets.forEach((asset, i) => {
+    assets.forEach((asset, i) => {
       cards.push(
         <AssetCard
           key={`a-${asset.address}`}
           asset={asset}
-          index={i + filteredListings.length}
+          index={i + listings.length}
           onList={() =>
             setListingAsset({
               address: asset.address,
@@ -433,84 +490,26 @@ export default function GalleryPage() {
       );
     });
 
-    filteredMinted.forEach((nft, i) => {
+    mintedNFTs.forEach((nft, i) => {
       cards.push(
         <MintedCard
           key={`m-${nft.mint}`}
           nft={nft}
-          index={i + filteredListings.length + filteredAssets.length}
+          index={i + listings.length + assets.length}
           onRemove={() => removeNFT(nft.mint)}
         />
       );
     });
 
     return cards;
-  }, [filteredListings, filteredAssets, filteredMinted, delisting]);
+  }, [listings, assets, mintedNFTs, delisting]);
 
   return (
-    <div className="min-h-screen pt-24 pb-20">
-      <div className="max-w-[1100px] mx-auto px-6">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
-          className="mb-8 mt-6"
-        >
-          <h1 className="text-[32px] font-medium tracking-tight text-gray-12 mb-1">
-            Gallery
-          </h1>
-          <p className="text-sm text-gray-9">
-            Browse listed NFTs and your collection
-          </p>
-        </motion.div>
+    <div className="min-h-screen pt-16 pb-20">
+      {/* Minimap */}
+      <GalleryMinimap />
 
-        {/* Search + Controls */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{
-            duration: 0.5,
-            delay: 0.05,
-            ease: [0.2, 0.8, 0.2, 1],
-          }}
-          className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between mb-10"
-        >
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-8" />
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-2 border border-gray-a3 rounded-xl pl-11 pr-4 py-2.5 text-sm text-gray-12 placeholder-gray-8 focus:outline-none focus:border-accent/40 transition-all duration-300"
-            />
-          </div>
-
-          <div className="flex items-center gap-3">
-            {connected && walletAddress && (
-              <div className="flex items-center gap-2 text-xs text-gray-8">
-                <Wallet className="w-3 h-3" />
-                <span className="font-mono">
-                  {shortenAddress(walletAddress)}
-                </span>
-              </div>
-            )}
-            {connected && (
-              <button
-                onClick={refetchChain}
-                disabled={chainLoading}
-                className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs text-gray-9 hover:text-gray-12 bg-gray-2 border border-gray-a3 hover:border-gray-a5 transition-all duration-300"
-              >
-                <RefreshCw
-                  className={`w-3 h-3 ${chainLoading ? "animate-spin" : ""}`}
-                />
-                Refresh
-              </button>
-            )}
-          </div>
-        </motion.div>
-
+      <div className="max-w-[1100px] mx-auto px-6 mt-10">
         {/* Loading */}
         {(loading || listingsLoading) && !hasAny && (
           <div className="flex items-center justify-center gap-3 py-32 text-gray-8">
@@ -537,29 +536,21 @@ export default function GalleryPage() {
             className="text-center py-32"
           >
             <div className="w-16 h-16 bg-gray-3 rounded-full flex items-center justify-center mx-auto mb-6">
-              {searchQuery ? (
-                <Search className="w-6 h-6 text-gray-8" />
-              ) : (
-                <Sparkles className="w-6 h-6 text-gray-8" />
-              )}
+              <Sparkles className="w-6 h-6 text-gray-8" />
             </div>
             <h3 className="text-lg font-medium text-gray-11 mb-2">
-              {searchQuery ? "No NFTs Found" : "No NFTs Yet"}
+              No NFTs Yet
             </h3>
             <p className="text-gray-8 text-sm max-w-sm mx-auto mb-8">
-              {searchQuery
-                ? "Try adjusting your search."
-                : "Create your first AI-powered NFT."}
+              Create your first AI-powered NFT.
             </p>
-            {!searchQuery && (
-              <Link
-                href="/create"
-                className="inline-flex items-center gap-2 bg-accent text-[var(--color-on-accent)] px-6 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-all duration-300"
-              >
-                Create an NFT
-                <ArrowRight className="w-3.5 h-3.5" />
-              </Link>
-            )}
+            <Link
+              href="/create"
+              className="inline-flex items-center gap-2 bg-accent text-[var(--color-on-accent)] px-6 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-all duration-300"
+            >
+              Create an NFT
+              <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
           </motion.div>
         )}
       </div>
