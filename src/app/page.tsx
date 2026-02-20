@@ -240,29 +240,48 @@ function Minimap() {
 }
 
 // ============================================
+// Helpers
+// ============================================
+
+function timeAgo(dateStr: string): string {
+  const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+}
+
+function shortenAddr(addr: string): string {
+  return `${addr.slice(0, 4)}...${addr.slice(-4)}`;
+}
+
+// ============================================
 // Frame content: Marketplace
 // ============================================
 
 function MarketplaceFrame() {
   const { listings, loading } = useListings({ limit: 4, sort: "newest" });
 
+  // Featured card (first listing)
+  const featured = listings[0];
+  const rest = listings.slice(1, 4);
+
   return (
-    <div style={{ padding: 64, width: "100%", height: "100%" }}>
+    <div style={{ padding: 40, width: "100%", height: "100%", display: "flex", flexDirection: "column" }}>
+      {/* Header */}
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: 32,
+          marginBottom: 20,
+          flexShrink: 0,
         }}
       >
-        <p
-          style={{
-            fontSize: 24,
-            fontWeight: 500,
-            color: "var(--color-gray-11)",
-          }}
-        >
+        <p style={{ fontSize: 24, fontWeight: 500, color: "var(--color-gray-11)" }}>
           {listings.length > 0 ? "Trending" : "Marketplace"}
         </p>
         <Link
@@ -279,126 +298,146 @@ function MarketplaceFrame() {
           View all <ArrowRight style={{ width: 14, height: 14 }} />
         </Link>
       </div>
-      {loading ? (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            height: 400,
-            color: "var(--color-gray-9)",
-            fontSize: 14,
-          }}
-        >
-          Loading...
-        </div>
-      ) : listings.length > 0 ? (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(2, 1fr)",
-            gap: 16,
-          }}
-        >
-          {listings.slice(0, 4).map((listing) => (
-            <Link
-              key={listing.id}
-              href={`/nft/${listing.mintAddress}`}
-              style={{
-                display: "block",
-                borderRadius: 12,
-                overflow: "hidden",
-                background: "var(--color-gray-3)",
-                textDecoration: "none",
-              }}
-            >
-              <div style={{ aspectRatio: "1/1", position: "relative" }}>
+
+      {/* Content */}
+      <div style={{ flex: 1, minHeight: 0 }}>
+        {loading ? (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              color: "var(--color-gray-9)",
+              fontSize: 14,
+            }}
+          >
+            Loading...
+          </div>
+        ) : listings.length > 0 ? (
+          <div className={styles.marketplaceGrid}>
+            {/* Featured card — left column, full height */}
+            {featured && (
+              <Link
+                href={`/nft/${featured.mintAddress}`}
+                className={`${styles.nftCard} ${styles.nftCardFeatured}`}
+              >
+                {featured.nftImageUrl ? (
+                  <img
+                    src={featured.nftImageUrl}
+                    alt={featured.nftName}
+                    className={styles.nftCardImage}
+                  />
+                ) : (
+                  <div className={styles.nftCardPlaceholder}>
+                    <Sparkles style={{ width: 32, height: 32, color: "var(--color-gray-7)" }} />
+                  </div>
+                )}
+                <div className={styles.nftCardOverlay} />
+                <div className={styles.nftCardInfo}>
+                  <div className={styles.nftCardName}>{featured.nftName}</div>
+                  <div className={styles.nftCardMeta}>
+                    <span className={styles.nftCardPrice}>
+                      {featured.priceSol} SOL
+                    </span>
+                    <span className={styles.nftCardSeller}>
+                      {shortenAddr(featured.sellerWallet)} &middot; {timeAgo(featured.listedAt)}
+                    </span>
+                  </div>
+                </div>
+              </Link>
+            )}
+
+            {/* Right column — stacked cards */}
+            {rest.map((listing) => (
+              <Link
+                key={listing.id}
+                href={`/nft/${listing.mintAddress}`}
+                className={styles.nftCard}
+              >
                 {listing.nftImageUrl ? (
                   <img
                     src={listing.nftImageUrl}
                     alt={listing.nftName}
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
+                    className={styles.nftCardImage}
                   />
                 ) : (
-                  <div
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      background: "var(--color-gray-4)",
-                    }}
-                  />
+                  <div className={styles.nftCardPlaceholder}>
+                    <Sparkles style={{ width: 20, height: 20, color: "var(--color-gray-7)" }} />
+                  </div>
                 )}
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: 8,
-                    left: 8,
-                    background: "rgba(0,0,0,0.7)",
-                    backdropFilter: "blur(8px)",
-                    padding: "4px 10px",
-                    borderRadius: 8,
-                    fontSize: 13,
-                    fontWeight: 500,
-                    color: "var(--color-accent)",
-                  }}
-                >
-                  {listing.priceSol} SOL
+                <div className={styles.nftCardOverlay} />
+                <div className={styles.nftCardInfoCompact}>
+                  <div className={styles.nftCardNameCompact}>{listing.nftName}</div>
+                  <div className={styles.nftCardMeta}>
+                    <span className={styles.nftCardPriceCompact}>
+                      {listing.priceSol} SOL
+                    </span>
+                    <span className={styles.nftCardSeller}>
+                      {timeAgo(listing.listedAt)}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <div style={{ padding: "10px 12px" }}>
-                <div
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 500,
-                    color: "var(--color-gray-11)",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
+              </Link>
+            ))}
+
+            {/* Fill empty slots if fewer than 3 rest items */}
+            {rest.length < 3 &&
+              Array.from({ length: 3 - rest.length }).map((_, i) => (
+                <Link
+                  key={`empty-${i}`}
+                  href="/create"
+                  className={styles.nftCard}
+                  style={{ cursor: "pointer" }}
                 >
-                  {listing.nftName}
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      ) : (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            height: 400,
-            gap: 16,
-          }}
-        >
-          <p style={{ fontSize: 14, color: "var(--color-gray-9)" }}>
-            No listings yet. Be the first.
-          </p>
-          <Link
-            href="/create"
+                  <div className={styles.nftCardPlaceholder}>
+                    <div style={{ textAlign: "center" }}>
+                      <Sparkles style={{ width: 24, height: 24, color: "var(--color-gray-6)", marginBottom: 8 }} />
+                      <div style={{ fontSize: 12, color: "var(--color-gray-7)" }}>Mint yours</div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+          </div>
+        ) : (
+          /* Empty state — full frame invitation */
+          <div
             style={{
-              display: "inline-flex",
+              display: "flex",
+              flexDirection: "column",
               alignItems: "center",
-              gap: 8,
-              background: "var(--color-accent)",
-              color: "var(--color-on-accent)",
-              padding: "10px 20px",
-              borderRadius: 999,
-              fontSize: 14,
-              fontWeight: 600,
-              textDecoration: "none",
+              justifyContent: "center",
+              height: "100%",
+              gap: 20,
             }}
           >
-            Create an NFT <ArrowRight style={{ width: 14, height: 14 }} />
-          </Link>
-        </div>
-      )}
+            <Sparkles style={{ width: 48, height: 48, color: "var(--color-gray-6)" }} />
+            <p style={{ fontSize: 20, color: "var(--color-gray-9)", fontWeight: 500 }}>
+              No listings yet
+            </p>
+            <p style={{ fontSize: 14, color: "var(--color-gray-7)", maxWidth: 300, textAlign: "center", lineHeight: 1.5 }}>
+              Create AI-powered art and be the first to list on the marketplace.
+            </p>
+            <Link
+              href="/create"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: "var(--color-accent)",
+                color: "var(--color-on-accent)",
+                padding: "12px 28px",
+                borderRadius: 999,
+                fontSize: 15,
+                fontWeight: 600,
+                textDecoration: "none",
+              }}
+            >
+              Start Creating <ArrowRight style={{ width: 15, height: 15 }} />
+            </Link>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
