@@ -259,7 +259,7 @@ export default function CreatePage() {
           <h2 className="text-3xl font-bold text-center" style={{ color: "var(--color-on-accent)" }}>
             Connect to Start Creating
           </h2>
-          <p className="text-sm text-center max-w-md" style={{ color: "color-mix(in srgb, var(--color-on-accent) 60%, transparent)" }}>
+          <p className="text-sm text-center max-w-md" style={{ color: "var(--color-on-accent)" }}>
             Sign in with your email or wallet to create AI-generated NFTs on Solana.
           </p>
           <motion.button
@@ -289,7 +289,7 @@ export default function CreatePage() {
         <motion.a
           href="/"
           className="flex items-center gap-2 text-sm transition-colors"
-          style={{ color: "color-mix(in srgb, var(--color-on-accent) 60%, transparent)" }}
+          style={{ color: "var(--color-on-accent)" }}
           whileHover={{ x: -2 }}
         >
           <ArrowUp className="w-3.5 h-3.5 rotate-[-90deg]" />
@@ -299,7 +299,7 @@ export default function CreatePage() {
 
       {/* Step counter — top right */}
       <div className="absolute top-6 right-6 z-20">
-        <span className="text-xs font-mono" style={{ color: "color-mix(in srgb, var(--color-on-accent) 50%, transparent)" }}>
+        <span className="text-xs font-mono" style={{ color: "var(--color-on-accent)" }}>
           {step + 1} / {TOTAL_STEPS}
         </span>
       </div>
@@ -332,11 +332,11 @@ export default function CreatePage() {
                   }}
                 />
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px]" style={{ color: "color-mix(in srgb, var(--color-on-accent) 50%, transparent)" }}>
+                  <span className="text-[11px]" style={{ color: "var(--color-on-accent)" }}>
                     {prompt.length}/2000
                   </span>
-                  <span className="text-[11px]" style={{ color: "color-mix(in srgb, var(--color-on-accent) 40%, transparent)" }}>
-                    Press <kbd className="px-1.5 py-0.5 rounded text-[10px] font-mono" style={{ background: "color-mix(in srgb, var(--color-on-accent) 10%, transparent)", color: "color-mix(in srgb, var(--color-on-accent) 60%, transparent)" }}>Enter ↵</kbd> to continue
+                  <span className="text-[11px]" style={{ color: "var(--color-on-accent)" }}>
+                    Press <kbd className="px-1.5 py-0.5 rounded text-[10px] font-mono" style={{ background: "color-mix(in srgb, var(--color-on-accent) 10%, transparent)", color: "var(--color-on-accent)" }}>Enter ↵</kbd> to continue
                   </span>
                 </div>
               </div>
@@ -365,7 +365,7 @@ export default function CreatePage() {
                             }
                           : {
                               background: "color-mix(in srgb, var(--color-on-accent) 8%, transparent)",
-                              color: "color-mix(in srgb, var(--color-on-accent) 80%, transparent)",
+                              color: "var(--color-on-accent)",
                               border: "1px solid color-mix(in srgb, var(--color-on-accent) 12%, transparent)",
                             }
                       }
@@ -386,7 +386,7 @@ export default function CreatePage() {
               <div className="w-full max-w-lg space-y-8">
                 {/* Variations */}
                 <div className="space-y-3">
-                  <label className="flex items-center gap-2 text-sm font-medium" style={{ color: "color-mix(in srgb, var(--color-on-accent) 80%, transparent)" }}>
+                  <label className="flex items-center gap-2 text-sm font-medium" style={{ color: "var(--color-on-accent)" }}>
                     <Layers className="w-4 h-4" style={{ color: "var(--color-on-accent)" }} />
                     How many variations?
                   </label>
@@ -415,10 +415,10 @@ export default function CreatePage() {
 
                 {/* Reference Image */}
                 <div className="space-y-3">
-                  <label className="flex items-center gap-2 text-sm font-medium" style={{ color: "color-mix(in srgb, var(--color-on-accent) 80%, transparent)" }}>
+                  <label className="flex items-center gap-2 text-sm font-medium" style={{ color: "var(--color-on-accent)" }}>
                     <ImageIcon className="w-4 h-4" style={{ color: "var(--color-on-accent)" }} />
                     Reference image
-                    <span className="font-normal text-xs" style={{ color: "color-mix(in srgb, var(--color-on-accent) 40%, transparent)" }}>(optional)</span>
+                    <span className="font-normal text-xs" style={{ color: "var(--color-on-accent)" }}>(optional)</span>
                   </label>
                   {referenceImage ? (
                     <div className="relative group inline-block">
@@ -443,8 +443,8 @@ export default function CreatePage() {
                         background: "color-mix(in srgb, var(--color-on-accent) 5%, transparent)",
                       }}
                     >
-                      <Upload className="w-5 h-5 mb-2 transition-colors" style={{ color: "color-mix(in srgb, var(--color-on-accent) 50%, transparent)" }} />
-                      <span className="text-xs transition-colors" style={{ color: "color-mix(in srgb, var(--color-on-accent) 50%, transparent)" }}>
+                      <Upload className="w-5 h-5 mb-2 transition-colors" style={{ color: "var(--color-on-accent)" }} />
+                      <span className="text-xs transition-colors" style={{ color: "var(--color-on-accent)" }}>
                         Upload
                       </span>
                       <input
@@ -491,7 +491,7 @@ export default function CreatePage() {
                     <p className="text-lg font-medium mb-1" style={{ color: "var(--color-on-accent)" }}>
                       Creating your artwork
                     </p>
-                    <p className="text-sm" style={{ color: "color-mix(in srgb, var(--color-on-accent) 60%, transparent)" }}>
+                    <p className="text-sm" style={{ color: "var(--color-on-accent)" }}>
                       Generating {count} variation{count > 1 ? "s" : ""}...
                     </p>
                   </div>
@@ -512,7 +512,7 @@ export default function CreatePage() {
                   <button
                     onClick={() => goTo(0)}
                     className="text-sm transition-colors"
-                    style={{ color: "color-mix(in srgb, var(--color-on-accent) 60%, transparent)" }}
+                    style={{ color: "var(--color-on-accent)" }}
                   >
                     Start over
                   </button>
@@ -528,7 +528,7 @@ export default function CreatePage() {
                       <button
                         onClick={handleClearImages}
                         className="flex items-center gap-1.5 text-xs transition-colors"
-                        style={{ color: "color-mix(in srgb, var(--color-on-accent) 60%, transparent)" }}
+                        style={{ color: "var(--color-on-accent)" }}
                       >
                         <Trash2 className="h-3 w-3" />
                         Clear
@@ -623,7 +623,7 @@ export default function CreatePage() {
             <motion.button
               onClick={prev}
               className="flex items-center gap-2 text-sm transition-colors"
-              style={{ color: "color-mix(in srgb, var(--color-on-accent) 60%, transparent)" }}
+              style={{ color: "var(--color-on-accent)" }}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               whileHover={{ x: -2 }}
@@ -735,7 +735,7 @@ function StepShell({
 function StepLabel({ number, text }: { number: number; text: string }) {
   return (
     <div className="text-center">
-      <span className="text-xs font-mono mb-2 block" style={{ color: "color-mix(in srgb, var(--color-on-accent) 60%, transparent)" }}>
+      <span className="text-xs font-mono mb-2 block" style={{ color: "var(--color-on-accent)" }}>
         {String(number).padStart(2, "0")}
       </span>
       <h2 className="text-2xl sm:text-3xl font-bold tracking-tight" style={{ color: "var(--color-on-accent)" }}>
