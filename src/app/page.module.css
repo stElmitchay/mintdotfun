@@ -1,0 +1,258 @@
+/* ============================================
+   Horizontal Scroll Frame System
+   ============================================ */
+
+.root {
+  --background: var(--color-gray-4);
+}
+
+/* Ghost (invisible sizing element for scroll area) */
+.ghost {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
+
+/* Fixed center container */
+.center {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Frames flex row */
+.frames {
+  display: flex;
+  gap: 8px;
+  flex-direction: row;
+  width: var(--frame-width);
+  height: var(--frame-height);
+}
+
+/* Frame entrance animation */
+@keyframes fadeFrames {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Individual frame */
+.frame {
+  outline: 0;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.frame:not([data-variant="main"]) {
+  opacity: 0;
+  animation: fadeFrames 0.35s ease-in-out 0.8s forwards;
+}
+
+/* Frame text sizing */
+.frame a,
+.frame p {
+  font-size: 85px;
+  font-weight: 400;
+}
+
+.frame h3 {
+  font-size: 720px;
+  font-weight: 400;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
+
+/* Main hero frame */
+.main {
+  padding: 64px;
+  display: flex;
+  align-items: center;
+  gap: 64px;
+  color: var(--color-gray-12);
+}
+
+.main b {
+  color: var(--color-gray-11);
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 28px;
+}
+
+/* Sheet backgrounds */
+.sheet {
+  width: 100%;
+  height: 100%;
+  background: var(--color-gray-2);
+  overflow-x: clip;
+}
+
+.sheetYellow {
+  width: 100%;
+  height: 100%;
+  background: var(--color-accent);
+  overflow-x: clip;
+}
+
+/* Frame contents wrapper */
+.contents {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.contentsYellow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: var(--color-accent);
+  padding: 50px;
+}
+
+/* ClipReveal text animation */
+.clipReveal {
+  overflow: hidden;
+}
+
+.clipReveal span {
+  display: inline-block;
+}
+
+.clipRevealOffset {
+  overflow: hidden;
+  margin-left: 64px;
+}
+
+.clipRevealOffset span {
+  display: inline-block;
+}
+
+/* Yellow circle */
+.circleYellow {
+  background: var(--color-accent);
+  height: 100%;
+  position: absolute;
+  display: flex;
+  right: 0;
+  top: 0;
+  border-radius: 9999px;
+  aspect-ratio: 1 / 1;
+}
+
+/* ContactFrame layout */
+.contact {
+  --padding: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  padding: var(--padding);
+}
+
+.contact a {
+  color: var(--color-gray-12);
+  text-decoration: none;
+  font-size: 85px;
+  font-weight: 400;
+}
+
+.contact a:hover {
+  color: var(--color-accent);
+}
+
+.contactTopLeft {
+  position: absolute;
+  top: var(--padding);
+  left: var(--padding);
+}
+
+.contactTopRight {
+  position: absolute;
+  top: var(--padding);
+  right: var(--padding);
+}
+
+.contactBottomLeft {
+  position: absolute;
+  bottom: var(--padding);
+  left: var(--padding);
+}
+
+.contactBottomRight {
+  position: absolute;
+  bottom: var(--padding);
+  right: var(--padding);
+}
+
+/* Main frame container */
+.mainContainer {
+  /* Handled by framer-motion */
+}
+
+/* ============================================
+   Minimap
+   ============================================ */
+
+.minimap {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 40;
+}
+
+.minimapInner {
+  display: flex;
+  align-items: flex-end;
+  gap: 9px;
+}
+
+.minimapLine {
+  width: var(--line-width, 1px);
+  height: 12px;
+  background: var(--color-gray-9);
+  position: relative;
+}
+
+.minimapTracker {
+  width: 30px;
+  height: 12px;
+  position: absolute;
+  background: transparent;
+  border: 1px solid var(--color-gray-9);
+  transition: background 200ms ease-in-out 200ms,
+    border-color 200ms ease-in-out 200ms;
+}
+
+.minimapTrackerActive {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+/* ============================================
+   Responsive — Touch devices
+   ============================================ */
+
+@media (pointer: coarse) {
+  .ghost {
+    height: 1px !important;
+  }
+
+  .center {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    height: 100%;
+  }
+
+  .mainContainer {
+    position: absolute;
+  }
+}

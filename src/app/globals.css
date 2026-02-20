@@ -262,3 +262,25 @@ h3 {
     columns: 1;
   }
 }
+
+/* ── Homepage Horizontal Scroll Overrides ──────────────────── */
+
+[data-page="home"] {
+  overscroll-behavior: none;
+  touch-action: pan-x pan-y;
+}
+
+[data-page="home"]::-webkit-scrollbar {
+  display: none;
+}
+
+/* Visually hidden (accessibility) */
+.vh {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 1px;
+  position: absolute;
+}

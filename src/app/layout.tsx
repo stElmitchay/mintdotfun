@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import PrivyProvider from "@/components/providers/PrivyProvider";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
-import SmoothScroll from "@/components/effects/SmoothScroll";
+import LayoutShell from "@/components/layout/LayoutShell";
 
 export const metadata: Metadata = {
   title: "MintAI - AI-Powered NFT Creator",
@@ -29,15 +27,7 @@ export default function RootLayout({
       </head>
       <body className="antialiased">
         <PrivyProvider>
-          <SmoothScroll>
-            <div className="min-h-screen bg-gray-4 text-gray-12 overflow-x-hidden">
-              <div className="relative z-10">
-                <Header />
-                <main>{children}</main>
-                <Footer />
-              </div>
-            </div>
-          </SmoothScroll>
+          <LayoutShell>{children}</LayoutShell>
         </PrivyProvider>
       </body>
     </html>
