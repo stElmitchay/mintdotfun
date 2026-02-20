@@ -40,8 +40,10 @@ export default function PrivyProvider({
           theme: "dark",
           accentColor: "#0D9488",
           logo: undefined,
+          walletList: ["phantom", "solflare", "backpack"],
+          walletChainType: "solana-only",
         },
-        loginMethods: ["email", "wallet", "google", "twitter"],
+        loginMethods: ["wallet"],
         embeddedWallets: {
           solana: {
             createOnLogin: "all-users",
