@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, type ReactNode } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, type ReactNode } from "react";
 import {
   motion,
   useSpring,
@@ -21,6 +21,14 @@ import {
   Bug,
   Grid3X3,
   Flame,
+  Sparkles,
+  Hexagon,
+  Star,
+  Diamond,
+  Pentagon,
+  Triangle,
+  Circle,
+  Square,
   ArrowRight,
   Twitter,
   Send,
@@ -43,16 +51,41 @@ import {
 import styles from "./page.module.css";
 
 // ============================================
-// Data
+// Texture icons — scattered across hero frame
 // ============================================
 
-const ART_STYLES = [
-  { name: "Cosmic Dreams", tag: "AI Art", icon: Orbit },
-  { name: "Neon Worlds", tag: "Digital", icon: Zap },
-  { name: "Abstract Souls", tag: "Generative", icon: Waves },
-  { name: "Cyber Creatures", tag: "AI Art", icon: Bug },
-  { name: "Pixel Realms", tag: "Pixel Art", icon: Grid3X3 },
-  { name: "Mystic Beings", tag: "Fantasy", icon: Flame },
+const TEXTURE_ICONS = [
+  Orbit, Zap, Waves, Bug, Grid3X3, Flame,
+  Sparkles, Hexagon, Star, Diamond, Pentagon, Triangle,
+  Circle, Square,
+];
+
+// Pre-computed positions for texture icons (deterministic so no hydration mismatch)
+const TEXTURE_POSITIONS = [
+  { x: 8, y: 12, size: 18, rotate: 15, opacity: 0.06 },
+  { x: 22, y: 68, size: 14, rotate: -30, opacity: 0.05 },
+  { x: 35, y: 25, size: 20, rotate: 45, opacity: 0.07 },
+  { x: 5, y: 45, size: 16, rotate: -15, opacity: 0.05 },
+  { x: 48, y: 8, size: 12, rotate: 60, opacity: 0.04 },
+  { x: 15, y: 85, size: 22, rotate: -45, opacity: 0.06 },
+  { x: 42, y: 55, size: 15, rotate: 30, opacity: 0.05 },
+  { x: 28, y: 40, size: 18, rotate: -60, opacity: 0.06 },
+  { x: 55, y: 75, size: 14, rotate: 20, opacity: 0.04 },
+  { x: 10, y: 30, size: 16, rotate: -25, opacity: 0.05 },
+  { x: 38, y: 90, size: 20, rotate: 50, opacity: 0.06 },
+  { x: 50, y: 35, size: 13, rotate: -40, opacity: 0.04 },
+  { x: 18, y: 55, size: 17, rotate: 35, opacity: 0.05 },
+  { x: 45, y: 15, size: 15, rotate: -10, opacity: 0.05 },
+  { x: 30, y: 75, size: 19, rotate: 70, opacity: 0.06 },
+  { x: 3, y: 60, size: 14, rotate: -55, opacity: 0.04 },
+  { x: 52, y: 50, size: 16, rotate: 25, opacity: 0.05 },
+  { x: 25, y: 5, size: 18, rotate: -35, opacity: 0.06 },
+  { x: 40, y: 65, size: 13, rotate: 40, opacity: 0.04 },
+  { x: 12, y: 75, size: 20, rotate: -20, opacity: 0.07 },
+  { x: 55, y: 25, size: 15, rotate: 55, opacity: 0.05 },
+  { x: 33, y: 50, size: 17, rotate: -50, opacity: 0.05 },
+  { x: 7, y: 92, size: 14, rotate: 15, opacity: 0.04 },
+  { x: 47, y: 42, size: 16, rotate: -65, opacity: 0.05 },
 ];
 
 // ============================================
@@ -207,86 +240,6 @@ function Minimap() {
 }
 
 // ============================================
-// Frame content: Styles
-// ============================================
-
-function StylesFrame() {
-  return (
-    <div style={{ padding: 64, width: "100%", height: "100%" }}>
-      <p
-        style={{
-          fontSize: 24,
-          fontWeight: 500,
-          color: "var(--color-gray-11)",
-          marginBottom: 40,
-        }}
-      >
-        Featured Styles
-      </p>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 16,
-        }}
-      >
-        {ART_STYLES.map((style) => {
-          const Icon = style.icon;
-          return (
-            <div
-              key={style.name}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: "16px 20px",
-                borderRadius: 12,
-                background: "var(--color-gray-3)",
-                border: "1px solid var(--color-gray-a3)",
-              }}
-            >
-              <div
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: "50%",
-                  background: "var(--color-accent-dim)",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}
-              >
-                <Icon style={{ width: 18, height: 18, color: "var(--color-accent)" }} />
-              </div>
-              <div>
-                <div
-                  style={{
-                    fontSize: 16,
-                    fontWeight: 500,
-                    color: "var(--color-gray-12)",
-                  }}
-                >
-                  {style.name}
-                </div>
-                <div
-                  style={{
-                    fontSize: 12,
-                    color: "var(--color-gray-9)",
-                  }}
-                >
-                  {style.tag}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// ============================================
 // Frame content: Marketplace
 // ============================================
 
@@ -434,7 +387,7 @@ function MarketplaceFrame() {
               alignItems: "center",
               gap: 8,
               background: "var(--color-accent)",
-              color: "var(--color-gray-1)",
+              color: "#fff",
               padding: "10px 20px",
               borderRadius: 999,
               fontSize: 14,
@@ -565,11 +518,10 @@ function ContactFrame() {
 }
 
 // ============================================
-// Frame definitions
+// Frame definitions (styles removed — now 3 content frames)
 // ============================================
 
 const CONTENT_FRAMES = [
-  { id: "styles", variant: "slide" as const },
   { id: "marketplace", variant: "slide" as const },
   { id: "quote", variant: "default" as const, color: "var(--color-accent)" },
   { id: "contact", variant: "slide" as const },
@@ -735,8 +687,6 @@ export default function HomePage() {
   // Render frame content based on ID
   function renderFrameContent(id: string) {
     switch (id) {
-      case "styles":
-        return <StylesFrame />;
       case "marketplace":
         return <MarketplaceFrame />;
       case "quote":
@@ -802,6 +752,36 @@ export default function HomePage() {
                 style={{ width: FRAME_WIDTH, height: FRAME_HEIGHT }}
               >
                 <div data-sheet className={`${styles.sheet} ${styles.main}`}>
+                  {/* Vector texture — scattered style icons */}
+                  <div
+                    style={{
+                      position: "absolute",
+                      inset: 0,
+                      overflow: "hidden",
+                      pointerEvents: "none",
+                      zIndex: 0,
+                    }}
+                  >
+                    {TEXTURE_POSITIONS.map((pos, i) => {
+                      const Icon = TEXTURE_ICONS[i % TEXTURE_ICONS.length];
+                      return (
+                        <Icon
+                          key={i}
+                          style={{
+                            position: "absolute",
+                            left: `${pos.x}%`,
+                            top: `${pos.y}%`,
+                            width: pos.size,
+                            height: pos.size,
+                            opacity: pos.opacity,
+                            transform: `rotate(${pos.rotate}deg)`,
+                            color: "var(--color-accent)",
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+
                   {/* Text reveals */}
                   <div style={{ position: "relative", zIndex: 1 }}>
                     <ClipReveal>Create</ClipReveal>
@@ -821,7 +801,7 @@ export default function HomePage() {
                         alignItems: "center",
                         gap: 10,
                         background: "var(--color-accent)",
-                        color: "var(--color-gray-1)",
+                        color: "#fff",
                         padding: "14px 32px",
                         borderRadius: 999,
                         fontSize: 16,
@@ -844,7 +824,7 @@ export default function HomePage() {
                     </motion.button>
                   </div>
 
-                  {/* Statue + yellow circle behind it */}
+                  {/* Statue + accent circle behind it */}
                   <motion.div
                     style={{
                       position: "absolute",
@@ -867,7 +847,7 @@ export default function HomePage() {
                       delay: 0.8,
                     }}
                   >
-                    {/* Yellow circle — centered on sculpture, 50% its size */}
+                    {/* Accent circle — centered on sculpture, ~72% its size */}
                     <motion.div
                       style={{
                         position: "absolute",

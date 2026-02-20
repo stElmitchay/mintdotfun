@@ -3,19 +3,16 @@
 import { useState, useEffect } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import { useWallets } from "@privy-io/react-auth/solana";
-import { LogOut, Wallet, Copy, Check, Menu, X } from "lucide-react";
+import { LogOut, Wallet, Copy, Check } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { shortenAddress } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 export default function Header() {
   const { login, logout, authenticated } = usePrivy();
   const { wallets } = useWallets();
   const solanaWallet = wallets[0];
-  const pathname = usePathname();
   const [copied, setCopied] = useState(false);
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -30,11 +27,6 @@ export default function Header() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
-
-  const navLinks = [
-    { href: "/create", label: "Create" },
-    { href: "/gallery", label: "Gallery" },
-  ];
 
   return (
     <motion.nav
@@ -54,23 +46,6 @@ export default function Header() {
             Mint<span className="text-accent">AI</span>
           </Link>
 
-          {/* Center nav — flat text links, no pill */}
-          <div className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`text-sm font-medium transition-colors duration-300 ${
-                  pathname === link.href
-                    ? "text-gray-12"
-                    : "text-gray-9 hover:text-gray-12"
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
-
           {/* Right actions */}
           <div className="flex items-center gap-3">
             {authenticated ? (
@@ -79,7 +54,7 @@ export default function Header() {
                   <button
                     onClick={copyAddress}
                     title={solanaWallet.address}
-                    className="hidden lg:flex items-center gap-2 text-sm text-gray-9 hover:text-gray-12 transition-colors duration-300"
+                    className="flex items-center gap-2 text-sm text-gray-9 hover:text-gray-12 transition-colors duration-300"
                   >
                     <Wallet className="w-3.5 h-3.5" />
                     <span className="font-mono text-xs">
@@ -94,7 +69,7 @@ export default function Header() {
                 )}
                 <button
                   onClick={logout}
-                  className="hidden md:flex items-center gap-2 text-sm text-gray-9 hover:text-gray-12 transition-colors duration-300 px-3 py-2"
+                  className="flex items-center gap-2 text-sm text-gray-9 hover:text-gray-12 transition-colors duration-300 px-3 py-2"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                 </button>
@@ -102,99 +77,15 @@ export default function Header() {
             ) : (
               <button
                 onClick={login}
-                className="hidden md:flex items-center gap-2 bg-accent text-gray-1 px-5 py-2 rounded-full text-sm font-medium hover:opacity-90 transition-all duration-300"
+                className="flex items-center gap-2 bg-accent text-white px-5 py-2 rounded-full text-sm font-medium hover:opacity-90 transition-all duration-300"
               >
                 <Wallet className="w-3.5 h-3.5" />
                 Connect
               </button>
             )}
-
-            {/* Mobile toggle */}
-            <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 text-gray-11 hover:text-gray-12 transition-colors"
-            >
-              {mobileOpen ? (
-                <X className="w-5 h-5" />
-              ) : (
-                <Menu className="w-5 h-5" />
-              )}
-            </button>
           </div>
         </div>
       </div>
-
-      {/* Mobile dropdown */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.2, 0.8, 0.2, 1] }}
-            className="md:hidden overflow-hidden border-t border-gray-a3 bg-gray-2/95 backdrop-blur-xl"
-          >
-            <div className="px-6 py-4 space-y-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`block px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                    pathname === link.href
-                      ? "text-gray-12"
-                      : "text-gray-9 hover:text-gray-12"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
-
-              <div className="pt-3 mt-3 border-t border-gray-a3">
-                {authenticated && solanaWallet ? (
-                  <div className="space-y-2">
-                    <button
-                      onClick={copyAddress}
-                      className="flex w-full items-center gap-2 px-4 py-3 rounded-xl text-sm text-gray-9"
-                    >
-                      <Wallet className="w-3.5 h-3.5" />
-                      <span className="font-mono text-xs">
-                        {shortenAddress(solanaWallet.address)}
-                      </span>
-                      {copied ? (
-                        <Check className="w-3 h-3 text-accent ml-auto" />
-                      ) : (
-                        <Copy className="w-3 h-3 opacity-40 ml-auto" />
-                      )}
-                    </button>
-                    <button
-                      onClick={() => {
-                        logout();
-                        setMobileOpen(false);
-                      }}
-                      className="flex w-full items-center gap-2 px-4 py-3 rounded-xl text-sm text-gray-9 hover:text-gray-12 transition-colors"
-                    >
-                      <LogOut className="w-3.5 h-3.5" />
-                      Sign Out
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => {
-                      login();
-                      setMobileOpen(false);
-                    }}
-                    className="flex w-full items-center justify-center gap-2 bg-accent text-gray-1 px-5 py-3 rounded-xl text-sm font-medium"
-                  >
-                    <Wallet className="w-3.5 h-3.5" />
-                    Connect Wallet
-                  </button>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </motion.nav>
   );
 }
