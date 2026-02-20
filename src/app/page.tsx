@@ -282,14 +282,14 @@ function MarketplaceFrame() {
           flexShrink: 0,
         }}
       >
-        <p style={{ fontSize: 72, fontWeight: 600, color: "var(--color-accent)", lineHeight: 1, letterSpacing: "-0.03em" }}>
+        <p style={{ fontSize: 72, fontWeight: 600, color: "var(--color-accent)", lineHeight: 1, letterSpacing: "-0.03em", fontFamily: "var(--font-mono)" }}>
           {listings.length > 0 ? "Trending" : "Marketplace"}
         </p>
         <Link
           href="/gallery"
           style={{
             fontSize: 14,
-            color: "var(--color-gray-9)",
+            color: "var(--color-accent)",
             textDecoration: "none",
             display: "flex",
             alignItems: "center",
