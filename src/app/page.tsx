@@ -510,66 +510,83 @@ function QuoteFrame({
 }: {
   onGetStarted: () => void;
 }) {
+  const lines = [
+    { text: "Turn ideas", mono: false },
+    { text: "into art.", mono: true },
+    { text: "Mint it.", mono: false },
+    { text: "Own it.", mono: true },
+  ];
+
   return (
     <div
       style={{
         display: "flex",
-        flexDirection: "column",
+        alignItems: "center",
         justifyContent: "center",
         height: "100%",
         background: "var(--color-accent)",
-        padding: "64px 64px",
       }}
     >
-      <div>
-        {/* Line 1 — sans */}
-        <div className={styles.clipReveal}>
-          <p style={{ fontSize: 95, fontWeight: 400, color: "var(--color-gray-1)", lineHeight: 1.05 }}>
-            Turn ideas
-          </p>
-        </div>
-        {/* Line 2 — offset, mono */}
-        <div className={styles.clipRevealOffset}>
-          <p style={{ fontSize: 95, fontWeight: 400, color: "var(--color-gray-1)", lineHeight: 1.05, fontFamily: "var(--font-mono)", fontStyle: "italic" }}>
-            into art.
-          </p>
-        </div>
-        {/* Line 3 — sans */}
-        <div className={styles.clipReveal}>
-          <p style={{ fontSize: 95, fontWeight: 400, color: "var(--color-gray-1)", lineHeight: 1.05 }}>
-            Mint it.
-          </p>
-        </div>
-        {/* Line 4 — offset, mono */}
-        <div className={styles.clipRevealOffset}>
-          <p style={{ fontSize: 95, fontWeight: 400, color: "var(--color-gray-1)", lineHeight: 1.05, fontFamily: "var(--font-mono)", fontStyle: "italic" }}>
-            Own it.
-          </p>
-        </div>
-      </div>
+      <div style={{ textAlign: "left" }}>
+        {lines.map((line, i) => (
+          <motion.div
+            key={i}
+            className={i % 2 === 1 ? styles.clipRevealOffset : styles.clipReveal}
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{
+              duration: 0.6,
+              delay: i * 0.12,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+          >
+            <p
+              style={{
+                fontSize: 95,
+                fontWeight: 400,
+                color: "var(--color-gray-1)",
+                lineHeight: 1.05,
+                ...(line.mono
+                  ? { fontFamily: "var(--font-mono)", fontStyle: "italic" }
+                  : {}),
+              }}
+            >
+              {line.text}
+            </p>
+          </motion.div>
+        ))}
 
-      {/* CTA button */}
-      <button
-        onClick={onGetStarted}
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 10,
-          background: "var(--color-gray-1)",
-          color: "var(--color-accent)",
-          padding: "14px 32px",
-          borderRadius: 999,
-          fontSize: 16,
-          fontWeight: 600,
-          border: "none",
-          cursor: "pointer",
-          marginTop: 40,
-          width: "fit-content",
-        }}
-      >
-        Get Started
-        <ArrowRight style={{ width: 16, height: 16 }} />
-      </button>
+        {/* CTA button */}
+        <motion.button
+          onClick={onGetStarted}
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{
+            duration: 0.5,
+            delay: lines.length * 0.12 + 0.1,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 10,
+            background: "var(--color-gray-1)",
+            color: "var(--color-accent)",
+            padding: "14px 32px",
+            borderRadius: 999,
+            fontSize: 16,
+            fontWeight: 600,
+            border: "none",
+            cursor: "pointer",
+            marginTop: 40,
+          }}
+        >
+          Get Started
+          <ArrowRight style={{ width: 16, height: 16 }} />
+        </motion.button>
+      </div>
     </div>
   );
 }
