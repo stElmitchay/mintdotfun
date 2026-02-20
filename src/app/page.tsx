@@ -622,7 +622,7 @@ function ContactFrame() {
 const CONTENT_FRAMES = [
   { id: "marketplace", variant: "slide" as const },
   { id: "quote", variant: "default" as const, color: "var(--color-accent)" },
-  { id: "contact", variant: "slide" as const },
+  { id: "contact", variant: "default" as const },
 ];
 
 // ============================================

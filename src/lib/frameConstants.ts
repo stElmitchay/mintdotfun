@@ -12,9 +12,9 @@ export const MINIMAP_TOTAL_WIDTH = 160;
 // Scale limits
 export const MIN_SCALE = 0.6;
 
-// Parallax offsets per slide frame [Marketplace, ContactFrame]
-// (QuoteFrame is "default" variant so no parallax entry needed)
-export const PARALLAX_OFFSETS = [330, 0, 1373];
+// Parallax offsets per slide frame [Marketplace only]
+// (QuoteFrame and ContactFrame are "default" variant — no parallax)
+export const PARALLAX_OFFSETS = [330, 0, 0];
 
 // Frame count (main + 3 content frames)
 export const FRAME_COUNT = 4;
