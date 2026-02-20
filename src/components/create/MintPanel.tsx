@@ -271,7 +271,7 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
                   className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all"
                   style={{
                     background: subtle(6),
-                    border: `1px solid ${subtle(10)}`,
+                    border: `1.5px solid ${subtle(25)}`,
                     color: accent,
                   }}
                   disabled={formDisabled}
@@ -293,7 +293,7 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
                   className="h-20 w-full resize-none rounded-xl px-4 py-3 text-sm outline-none transition-all"
                   style={{
                     background: subtle(6),
-                    border: `1px solid ${subtle(10)}`,
+                    border: `1.5px solid ${subtle(25)}`,
                     color: accent,
                   }}
                   disabled={formDisabled}
@@ -311,17 +311,6 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
                 </div>
               )}
 
-              {/* Progress */}
-              {progress && (
-                <div
-                  className="flex items-center gap-3 rounded-xl p-3 text-xs"
-                  style={{ background: subtle(6), color: accent }}
-                >
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  {progress}
-                </div>
-              )}
-
               {/* Mint button */}
               <motion.button
                 onClick={handleMint}
@@ -331,15 +320,10 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
               >
-                {status === "uploading" ? (
+                {formDisabled ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    Uploading to Arweave...
-                  </>
-                ) : status === "minting" ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    Minting on Solana...
+                    Minting...
                   </>
                 ) : (
                   <>
@@ -349,10 +333,6 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
                 )}
               </motion.button>
 
-              <p className="text-center text-[10px]" style={{ color: subtle(40) }}>
-                Image on Arweave. Minting on{" "}
-                {process.env.NEXT_PUBLIC_SOLANA_NETWORK || "devnet"}.
-              </p>
             </div>
           )}
         </motion.div>
