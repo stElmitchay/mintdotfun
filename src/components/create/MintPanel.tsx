@@ -7,6 +7,7 @@ import { useUmi } from "@/hooks/useUmi";
 import { mintSingleNFT } from "@/lib/solana/mintNFT";
 import { STORAGE_KEYS } from "@/lib/constants";
 import { shortenAddress } from "@/lib/utils";
+import { useWhimsicalWord } from "@/hooks/useWhimsicalWord";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface MintPanelProps {
@@ -112,6 +113,7 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
   };
 
   const formDisabled = status !== "idle" && status !== "error";
+  const whimsicalWord = useWhimsicalWord(formDisabled);
 
   // Shared inline style helpers
   const onAccent = "var(--color-on-accent)";
@@ -323,7 +325,7 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
                 {formDisabled ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    Minting...
+                    {whimsicalWord}...
                   </>
                 ) : (
                   <>

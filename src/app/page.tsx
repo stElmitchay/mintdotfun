@@ -211,9 +211,21 @@ function Frame({
 // Minimap
 // ============================================
 
-function Minimap() {
+function Minimap({ translateX }: { translateX?: MotionValue<number> }) {
   const lineCount = 16;
   const lines = Array.from({ length: lineCount });
+  const visibleLines = lineCount - 3; // first 3 are invisible
+  const [activeIdx, setActiveIdx] = useState(-1);
+
+  useEffect(() => {
+    if (!translateX) return;
+    const unsub = translateX.on("change", (val) => {
+      const pct = Math.abs(val) / TOTAL_WIDTH;
+      const idx = Math.floor(pct * visibleLines) + 3; // offset by 3 invisible
+      setActiveIdx(Math.min(idx, lineCount - 1));
+    });
+    return unsub;
+  }, [translateX]);
 
   return (
     <div
@@ -231,7 +243,15 @@ function Minimap() {
           <div
             key={i}
             className={styles.minimapLine}
-            style={{ opacity: i < 3 ? 0 : 1 }}
+            style={{
+              opacity: i < 3 ? 0 : 1,
+              background:
+                i === activeIdx
+                  ? "var(--color-accent)"
+                  : "var(--color-gray-9)",
+              width: i === activeIdx ? 3 : LINE_WIDTH,
+              transition: "background 150ms ease, width 150ms ease",
+            }}
           />
         ))}
       </div>
@@ -1044,7 +1064,7 @@ export default function HomePage() {
       </main>
 
       {/* Minimap */}
-      <Minimap />
+      <Minimap translateX={translateZ} />
     </>
   );
 }

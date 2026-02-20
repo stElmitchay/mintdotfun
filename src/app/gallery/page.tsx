@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Sparkles,
   Loader2,
@@ -15,7 +15,11 @@ import { useListings } from "@/hooks/useListings";
 import { shortenAddress } from "@/lib/utils";
 import Link from "next/link";
 import ListingModal from "@/components/marketplace/ListingModal";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
+
+// ============================================
+// Helpers
+// ============================================
 
 function timeAgo(dateStr: string): string {
   const seconds = Math.floor(
@@ -30,20 +34,8 @@ function timeAgo(dateStr: string): string {
   return `${days}d ago`;
 }
 
-// Varying aspect ratios for masonry effect
-const ASPECTS = [
-  "aspect-[3/4]",
-  "aspect-square",
-  "aspect-[4/5]",
-  "aspect-[3/4]",
-  "aspect-[5/6]",
-  "aspect-[4/3]",
-  "aspect-square",
-  "aspect-[3/5]",
-];
-
 // ============================================
-// Card components
+// Card components — image-forward, minimal chrome
 // ============================================
 
 function ListingCard({
@@ -61,58 +53,52 @@ function ListingCard({
   };
   index: number;
 }) {
-  const aspectClass = ASPECTS[index % ASPECTS.length];
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{
-        delay: index * 0.05,
+        delay: index * 0.04,
         duration: 0.5,
         ease: [0.2, 0.8, 0.2, 1],
       }}
-      className="break-inside-avoid mb-4"
+      className="mb-4"
     >
       <Link
         href={`/nft/${listing.mintAddress}`}
-        className="group block rounded-2xl overflow-hidden bg-gray-2 border border-gray-a3 hover:border-gray-a5 transition-all duration-300"
+        className="group block relative rounded-2xl overflow-hidden"
       >
-        {/* Header — name + date */}
-        <div className="flex items-center justify-between px-4 pt-4 pb-2">
-          <h3 className="text-sm font-medium text-gray-11 truncate group-hover:text-gray-12 transition-colors">
-            {listing.nftName}
-          </h3>
-          <span className="text-xs text-gray-8 flex-shrink-0 ml-3">
-            {timeAgo(listing.listedAt)}
+        {/* Image */}
+        {listing.nftImageUrl ? (
+          <img
+            src={listing.nftImageUrl}
+            alt={listing.nftName}
+            className="w-full aspect-[3/4] object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+          />
+        ) : (
+          <div className="w-full aspect-[3/4] bg-gray-3 flex items-center justify-center">
+            <Sparkles className="w-8 h-8 text-gray-7" />
+          </div>
+        )}
+
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+        {/* Price badge — always visible */}
+        <div className="absolute top-3 right-3 bg-accent px-2.5 py-1 rounded-full">
+          <span className="text-[11px] font-bold text-[var(--color-on-accent)]">
+            {listing.priceSol} SOL
           </span>
         </div>
 
-        {/* Image */}
-        <div className={`relative ${aspectClass} overflow-hidden mx-2`}>
-          {listing.nftImageUrl ? (
-            <img
-              src={listing.nftImageUrl}
-              alt={listing.nftName}
-              className="w-full h-full object-cover rounded-xl transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-            />
-          ) : (
-            <div className="w-full h-full bg-gray-3 rounded-xl flex items-center justify-center">
-              <Sparkles className="w-8 h-8 text-gray-7" />
-            </div>
-          )}
-
-          {/* Price badge */}
-          <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm px-2.5 py-1 rounded-lg">
-            <span className="text-xs font-semibold text-accent">
-              {listing.priceSol} SOL
-            </span>
-          </div>
-        </div>
-
-        {/* Footer CTA */}
-        <div className="flex items-center justify-center gap-2 px-4 py-3 text-xs text-gray-9 group-hover:text-accent transition-colors">
-          View NFT
+        {/* Bottom info — appears on hover */}
+        <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+          <p className="text-sm font-medium text-white truncate">
+            {listing.nftName}
+          </p>
+          <p className="text-[11px] text-white/50 mt-0.5">
+            {timeAgo(listing.listedAt)}
+          </p>
         </div>
       </Link>
     </motion.div>
@@ -137,64 +123,57 @@ function AssetCard({
   onDelist: () => void;
   delisting: boolean;
 }) {
-  const aspectClass = ASPECTS[(index + 2) % ASPECTS.length];
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{
-        delay: index * 0.05,
+        delay: index * 0.04,
         duration: 0.5,
         ease: [0.2, 0.8, 0.2, 1],
       }}
-      className="break-inside-avoid mb-4"
+      className="mb-4"
     >
-      <div className="group relative rounded-2xl overflow-hidden bg-gray-2 border border-gray-a3 hover:border-gray-a5 transition-all duration-300">
+      <div className="group relative rounded-2xl overflow-hidden">
         <Link href={`/nft/${asset.address}`}>
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 pt-4 pb-2">
-            <h3 className="text-sm font-medium text-gray-11 truncate group-hover:text-gray-12 transition-colors">
+          {asset.imageUrl ? (
+            <img
+              src={asset.imageUrl}
+              alt={asset.name}
+              className="w-full aspect-[3/4] object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+            />
+          ) : (
+            <div className="w-full aspect-[3/4] bg-gray-3 flex items-center justify-center">
+              <Sparkles className="w-8 h-8 text-gray-7" />
+            </div>
+          )}
+
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+          {/* Listed badge */}
+          {asset.isListed && (
+            <div className="absolute top-3 left-3 bg-accent/90 backdrop-blur-sm px-2 py-0.5 rounded-full">
+              <span className="text-[10px] font-medium flex items-center gap-1 text-[var(--color-on-accent)]">
+                <Tag className="w-2.5 h-2.5" />
+                Listed
+              </span>
+            </div>
+          )}
+
+          {/* Bottom info */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+            <p className="text-sm font-medium text-white truncate">
               {asset.name}
-            </h3>
-            <span className="text-xs text-gray-8 font-mono flex-shrink-0 ml-3">
+            </p>
+            <p className="text-[11px] text-white/40 font-mono mt-0.5">
               {shortenAddress(asset.address, 4)}
-            </span>
-          </div>
-
-          {/* Image */}
-          <div className={`relative ${aspectClass} overflow-hidden mx-2`}>
-            {asset.imageUrl ? (
-              <img
-                src={asset.imageUrl}
-                alt={asset.name}
-                className="w-full h-full object-cover rounded-xl transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-              />
-            ) : (
-              <div className="w-full h-full bg-gray-3 rounded-xl flex items-center justify-center">
-                <Sparkles className="w-8 h-8 text-gray-7" />
-              </div>
-            )}
-
-            {/* Listed badge */}
-            {asset.isListed && (
-              <div className="absolute top-3 left-3 bg-accent/90 backdrop-blur-sm px-2.5 py-1 rounded-md">
-                <span className="text-[10px] font-medium flex items-center gap-1 text-[var(--color-on-accent)]">
-                  <Tag className="w-2.5 h-2.5" />
-                  Listed
-                </span>
-              </div>
-            )}
-          </div>
-
-          {/* Footer */}
-          <div className="flex items-center justify-center gap-2 px-4 py-3 text-xs text-gray-9 group-hover:text-accent transition-colors">
-            {asset.isListed ? "View Listing" : "View NFT"}
+            </p>
           </div>
         </Link>
 
         {/* Action button on hover */}
-        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           {asset.isListed ? (
             <button
               onClick={(e) => {
@@ -202,7 +181,7 @@ function AssetCard({
                 onDelist();
               }}
               disabled={delisting}
-              className="px-3 py-1.5 bg-black/60 backdrop-blur-sm rounded-lg text-[11px] font-medium text-red-400 hover:text-red-300 transition-all disabled:opacity-50"
+              className="px-3 py-1.5 bg-black/60 backdrop-blur-sm rounded-full text-[11px] font-medium text-red-400 hover:text-red-300 transition-all disabled:opacity-50"
             >
               {delisting ? <Loader2 className="w-3 h-3 animate-spin" /> : "Delist"}
             </button>
@@ -212,7 +191,7 @@ function AssetCard({
                 e.preventDefault();
                 onList();
               }}
-              className="px-3 py-1.5 bg-black/60 backdrop-blur-sm rounded-lg text-[11px] font-medium text-accent hover:opacity-80 transition-all"
+              className="px-3 py-1.5 bg-accent backdrop-blur-sm rounded-full text-[11px] font-medium text-[var(--color-on-accent)] hover:opacity-80 transition-all"
             >
               List
             </button>
@@ -232,51 +211,44 @@ function MintedCard({
   index: number;
   onRemove: () => void;
 }) {
-  const aspectClass = ASPECTS[(index + 4) % ASPECTS.length];
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{
-        delay: index * 0.05,
+        delay: index * 0.04,
         duration: 0.5,
         ease: [0.2, 0.8, 0.2, 1],
       }}
-      className="break-inside-avoid mb-4"
+      className="mb-4"
     >
-      <div className="group relative rounded-2xl overflow-hidden bg-gray-2 border border-gray-a3 hover:border-gray-a5 transition-all duration-300">
+      <div className="group relative rounded-2xl overflow-hidden">
         <Link href={`/nft/${nft.mint}`}>
-          {/* Header */}
-          <div className="flex items-center justify-between px-4 pt-4 pb-2">
-            <h3 className="text-sm font-medium text-gray-11 truncate group-hover:text-gray-12 transition-colors">
+          <img
+            src={nft.imageUrl}
+            alt={nft.name}
+            className="w-full aspect-[3/4] object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+          />
+
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+          {/* Bottom info */}
+          <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+            <p className="text-sm font-medium text-white truncate">
               {nft.name}
-            </h3>
-            <span className="text-xs text-gray-8 font-mono flex-shrink-0 ml-3">
+            </p>
+            <p className="text-[11px] text-white/40 font-mono mt-0.5">
               {shortenAddress(nft.mint, 4)}
-            </span>
-          </div>
-
-          {/* Image */}
-          <div className={`relative ${aspectClass} overflow-hidden mx-2`}>
-            <img
-              src={nft.imageUrl}
-              alt={nft.name}
-              className="w-full h-full object-cover rounded-xl transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-            />
-          </div>
-
-          {/* Footer */}
-          <div className="flex items-center justify-center gap-2 px-4 py-3 text-xs text-gray-9 group-hover:text-accent transition-colors">
-            View NFT
+            </p>
           </div>
         </Link>
 
         {/* Delete button */}
-        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <button
             onClick={() => onRemove()}
-            className="p-2 bg-black/60 backdrop-blur-sm rounded-lg text-gray-400 hover:text-red-400 transition-all"
+            className="p-2 bg-black/60 backdrop-blur-sm rounded-full text-gray-400 hover:text-red-400 transition-all"
             title="Remove from gallery"
           >
             <Trash2 className="w-3.5 h-3.5" />
@@ -288,53 +260,102 @@ function MintedCard({
 }
 
 // ============================================
-// Tab switcher — minimap-style bar
+// Minimap — scroll indicator with tab rectangles
 // ============================================
 
 type GalleryTab = "listed" | "mine";
 
-function GalleryTabs({
-  active,
-  onChange,
-  listedCount,
-  mineCount,
+const MINIMAP_LINES = [
+  { type: "rect" as const, tab: "listed" as GalleryTab, label: "Listed" },
+  { type: "line" as const },
+  { type: "line" as const },
+  { type: "line" as const },
+  { type: "rect" as const, tab: "mine" as GalleryTab, label: "My NFTs" },
+  { type: "line" as const },
+  { type: "line" as const },
+];
+
+function GalleryMinimap({
+  activeTab,
+  onTabChange,
 }: {
-  active: GalleryTab;
-  onChange: (t: GalleryTab) => void;
-  listedCount: number;
-  mineCount: number;
+  activeTab: GalleryTab;
+  onTabChange: (t: GalleryTab) => void;
 }) {
-  const tabs: { id: GalleryTab; label: string; count: number }[] = [
-    { id: "listed", label: "Listed", count: listedCount },
-    { id: "mine", label: "My NFTs", count: mineCount },
-  ];
+  const [scrollPct, setScrollPct] = useState(0);
+
+  useEffect(() => {
+    function onScroll() {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      setScrollPct(max > 0 ? window.scrollY / max : 0);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // Scroll indicator position across the line elements
+  const lineIndices = MINIMAP_LINES.map((l, i) => (l.type === "line" ? i : -1)).filter((i) => i !== -1);
+  const activeLineIdx = Math.min(
+    Math.floor(scrollPct * lineIndices.length),
+    lineIndices.length - 1
+  );
+  const activeLineIndex = lineIndices[Math.max(0, activeLineIdx)];
 
   return (
     <div className="fixed top-5 left-1/2 -translate-x-1/2 z-40">
-      <div className="flex items-center gap-[1px] rounded-lg overflow-hidden" style={{ border: "1px solid var(--color-gray-7)" }}>
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => onChange(tab.id)}
-            className="relative px-5 py-1.5 text-[11px] font-medium tracking-wide transition-all duration-200"
-            style={{
-              background: active === tab.id ? "var(--color-accent)" : "transparent",
-              color: active === tab.id ? "var(--color-on-accent)" : "var(--color-gray-9)",
-            }}
-          >
-            {tab.label}
-            {tab.count > 0 && (
-              <span
-                className="ml-1.5 text-[10px] font-mono"
+      <div className="flex items-end gap-[9px]">
+        {MINIMAP_LINES.map((line, i) =>
+          line.type === "rect" ? (
+            <button
+              key={i}
+              onClick={() => line.tab && onTabChange(line.tab)}
+              className="relative group"
+              style={{ width: 50, height: 12 }}
+            >
+              <div
                 style={{
-                  opacity: active === tab.id ? 0.7 : 0.5,
+                  width: 50,
+                  height: 12,
+                  border: "1px solid",
+                  borderColor:
+                    activeTab === line.tab
+                      ? "var(--color-accent)"
+                      : "var(--color-gray-9)",
+                  background:
+                    activeTab === line.tab
+                      ? "var(--color-accent)"
+                      : "transparent",
+                  transition: "background 200ms ease, border-color 200ms ease",
+                }}
+              />
+              {/* Tooltip label */}
+              <span
+                className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-medium whitespace-nowrap transition-colors"
+                style={{
+                  color:
+                    activeTab === line.tab
+                      ? "var(--color-accent)"
+                      : "var(--color-gray-8)",
                 }}
               >
-                {tab.count}
+                {line.label}
               </span>
-            )}
-          </button>
-        ))}
+            </button>
+          ) : (
+            <div
+              key={i}
+              style={{
+                width: 1,
+                height: 12,
+                background:
+                  i === activeLineIndex
+                    ? "var(--color-accent)"
+                    : "var(--color-gray-9)",
+                transition: "background 200ms ease",
+              }}
+            />
+          )
+        )}
       </div>
     </div>
   );
@@ -351,7 +372,7 @@ function MasonryGrid({ children }: { children: React.ReactNode[] }) {
   });
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-start">
       {cols.map((col, i) => (
         <div key={i} className="flex flex-col">
           {col}
@@ -479,15 +500,10 @@ export default function GalleryPage() {
 
   return (
     <div className="min-h-screen pt-16 pb-20">
-      {/* Tab switcher */}
-      <GalleryTabs
-        active={tab}
-        onChange={setTab}
-        listedCount={listings.length}
-        mineCount={mineCount}
-      />
+      {/* Minimap with tab switching */}
+      <GalleryMinimap activeTab={tab} onTabChange={setTab} />
 
-      <div className="max-w-[1100px] mx-auto px-6 mt-10">
+      <div className="max-w-[1100px] mx-auto px-4 mt-10">
         {/* Loading */}
         {(loading || listingsLoading) && !hasAny && (
           <div className="flex items-center justify-center gap-3 py-32 text-gray-8">
@@ -503,7 +519,19 @@ export default function GalleryPage() {
         )}
 
         {/* Masonry grid */}
-        {hasAny && <MasonryGrid>{tabCards}</MasonryGrid>}
+        <AnimatePresence mode="wait">
+          {hasAny && (
+            <motion.div
+              key={tab}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+            >
+              <MasonryGrid>{tabCards}</MasonryGrid>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Empty state */}
         {!loading && !listingsLoading && !hasAny && (

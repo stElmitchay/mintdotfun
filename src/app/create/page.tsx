@@ -31,6 +31,7 @@ import type { GeneratedImage, GenerationStatus } from "@/types";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { STORAGE_KEYS, GENERATION } from "@/lib/constants";
 import MintPanel from "@/components/create/MintPanel";
+import { useWhimsicalWord } from "@/hooks/useWhimsicalWord";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ============================================
@@ -235,6 +236,7 @@ export default function CreatePage() {
   };
 
   const selectedImage = generatedImages.find((img) => img.selected) ?? null;
+  const whimsicalWord = useWhimsicalWord(status === "generating");
 
   // Total steps for the progress indicator
   const TOTAL_STEPS = 4;
@@ -488,12 +490,16 @@ export default function CreatePage() {
                     </div>
                   </div>
                   <div className="text-center">
-                    <p className="text-lg font-medium mb-1" style={{ color: "var(--color-on-accent)" }}>
-                      Creating your artwork
-                    </p>
-                    <p className="text-sm" style={{ color: "var(--color-on-accent)" }}>
-                      Generating {count} variation{count > 1 ? "s" : ""}...
-                    </p>
+                    <motion.p
+                      key={whimsicalWord}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      className="text-lg font-medium"
+                      style={{ color: "var(--color-on-accent)" }}
+                    >
+                      {whimsicalWord}...
+                    </motion.p>
                   </div>
                 </div>
               ) : error ? (
