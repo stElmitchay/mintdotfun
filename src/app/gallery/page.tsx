@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import {
   Sparkles,
   Loader2,
@@ -288,84 +288,53 @@ function MintedCard({
 }
 
 // ============================================
-// Minimap — scroll-position indicator (matches rauno.me/craft)
+// Tab switcher — minimap-style bar
 // ============================================
 
-const MINIMAP_LINES = [
-  { type: "rect" as const },
-  { type: "line" as const },
-  { type: "line" as const },
-  { type: "line" as const },
-  { type: "rect" as const },
-  { type: "line" as const },
-  { type: "line" as const },
-  { type: "rect" as const },
-  { type: "line" as const },
-  { type: "line" as const },
-];
+type GalleryTab = "listed" | "mine";
 
-function GalleryMinimap() {
-  const [scrollPct, setScrollPct] = useState(0);
-
-  useEffect(() => {
-    function onScroll() {
-      const max = document.documentElement.scrollHeight - window.innerHeight;
-      setScrollPct(max > 0 ? window.scrollY / max : 0);
-    }
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  // Map scroll % to which rect index is active (0, 1, or 2)
-  const rectIndices = MINIMAP_LINES
-    .map((l, i) => (l.type === "rect" ? i : -1))
-    .filter((i) => i !== -1);
-  const activeRectIdx =
-    scrollPct < 0.33 ? 0 : scrollPct < 0.66 ? 1 : 2;
-  const activeLineIndex = rectIndices[activeRectIdx];
+function GalleryTabs({
+  active,
+  onChange,
+  listedCount,
+  mineCount,
+}: {
+  active: GalleryTab;
+  onChange: (t: GalleryTab) => void;
+  listedCount: number;
+  mineCount: number;
+}) {
+  const tabs: { id: GalleryTab; label: string; count: number }[] = [
+    { id: "listed", label: "Listed", count: listedCount },
+    { id: "mine", label: "My NFTs", count: mineCount },
+  ];
 
   return (
-    <div
-      aria-hidden
-      className="fixed top-5 left-1/2 -translate-x-1/2 z-40"
-    >
-      <div className="flex items-end gap-[9px]">
-        {MINIMAP_LINES.map((line, i) =>
-          line.type === "rect" ? (
-            <div
-              key={i}
-              className="relative"
-              style={{ width: 30, height: 12 }}
-            >
-              <div
+    <div className="fixed top-5 left-1/2 -translate-x-1/2 z-40">
+      <div className="flex items-center gap-[1px] rounded-lg overflow-hidden" style={{ border: "1px solid var(--color-gray-7)" }}>
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => onChange(tab.id)}
+            className="relative px-5 py-1.5 text-[11px] font-medium tracking-wide transition-all duration-200"
+            style={{
+              background: active === tab.id ? "var(--color-accent)" : "transparent",
+              color: active === tab.id ? "var(--color-on-accent)" : "var(--color-gray-9)",
+            }}
+          >
+            {tab.label}
+            {tab.count > 0 && (
+              <span
+                className="ml-1.5 text-[10px] font-mono"
                 style={{
-                  width: 30,
-                  height: 12,
-                  border: "1px solid var(--color-gray-9)",
-                  background:
-                    i === activeLineIndex
-                      ? "var(--color-accent)"
-                      : "transparent",
-                  borderColor:
-                    i === activeLineIndex
-                      ? "var(--color-accent)"
-                      : "var(--color-gray-9)",
-                  transition:
-                    "background 200ms ease-in-out 200ms, border-color 200ms ease-in-out 200ms",
+                  opacity: active === tab.id ? 0.7 : 0.5,
                 }}
-              />
-            </div>
-          ) : (
-            <div
-              key={i}
-              style={{
-                width: 1,
-                height: 12,
-                background: "var(--color-gray-9)",
-              }}
-            />
-          )
-        )}
+              >
+                {tab.count}
+              </span>
+            )}
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -413,6 +382,7 @@ export default function GalleryPage() {
     sort: "newest",
   });
 
+  const [tab, setTab] = useState<GalleryTab>("listed");
   const [listingAsset, setListingAsset] = useState<{
     address: string;
     name: string;
@@ -458,56 +428,64 @@ export default function GalleryPage() {
     }
   };
 
-  const hasAny =
-    listings.length > 0 || assets.length > 0 || mintedNFTs.length > 0;
+  const mineCount = assets.length + mintedNFTs.length;
 
-  // Build all cards into one flat array for masonry
-  const allCards = useMemo(() => {
+  // Build cards based on active tab
+  const tabCards = useMemo(() => {
     const cards: React.ReactNode[] = [];
 
-    listings.forEach((listing, i) => {
-      cards.push(
-        <ListingCard key={`l-${listing.id}`} listing={listing} index={i} />
-      );
-    });
+    if (tab === "listed") {
+      listings.forEach((listing, i) => {
+        cards.push(
+          <ListingCard key={`l-${listing.id}`} listing={listing} index={i} />
+        );
+      });
+    } else {
+      assets.forEach((asset, i) => {
+        cards.push(
+          <AssetCard
+            key={`a-${asset.address}`}
+            asset={asset}
+            index={i}
+            onList={() =>
+              setListingAsset({
+                address: asset.address,
+                name: asset.name,
+                imageUrl: asset.imageUrl,
+              })
+            }
+            onDelist={() => handleDelist(asset)}
+            delisting={delisting === asset.address}
+          />
+        );
+      });
 
-    assets.forEach((asset, i) => {
-      cards.push(
-        <AssetCard
-          key={`a-${asset.address}`}
-          asset={asset}
-          index={i + listings.length}
-          onList={() =>
-            setListingAsset({
-              address: asset.address,
-              name: asset.name,
-              imageUrl: asset.imageUrl,
-            })
-          }
-          onDelist={() => handleDelist(asset)}
-          delisting={delisting === asset.address}
-        />
-      );
-    });
-
-    mintedNFTs.forEach((nft, i) => {
-      cards.push(
-        <MintedCard
-          key={`m-${nft.mint}`}
-          nft={nft}
-          index={i + listings.length + assets.length}
-          onRemove={() => removeNFT(nft.mint)}
-        />
-      );
-    });
+      mintedNFTs.forEach((nft, i) => {
+        cards.push(
+          <MintedCard
+            key={`m-${nft.mint}`}
+            nft={nft}
+            index={i + assets.length}
+            onRemove={() => removeNFT(nft.mint)}
+          />
+        );
+      });
+    }
 
     return cards;
-  }, [listings, assets, mintedNFTs, delisting]);
+  }, [tab, listings, assets, mintedNFTs, delisting]);
+
+  const hasAny = tabCards.length > 0;
 
   return (
     <div className="min-h-screen pt-16 pb-20">
-      {/* Minimap */}
-      <GalleryMinimap />
+      {/* Tab switcher */}
+      <GalleryTabs
+        active={tab}
+        onChange={setTab}
+        listedCount={listings.length}
+        mineCount={mineCount}
+      />
 
       <div className="max-w-[1100px] mx-auto px-6 mt-10">
         {/* Loading */}
@@ -524,12 +502,13 @@ export default function GalleryPage() {
           </div>
         )}
 
-        {/* Masonry grid — all cards mixed */}
-        {hasAny && <MasonryGrid>{allCards}</MasonryGrid>}
+        {/* Masonry grid */}
+        {hasAny && <MasonryGrid>{tabCards}</MasonryGrid>}
 
         {/* Empty state */}
         {!loading && !listingsLoading && !hasAny && (
           <motion.div
+            key={tab}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
@@ -539,10 +518,12 @@ export default function GalleryPage() {
               <Sparkles className="w-6 h-6 text-gray-8" />
             </div>
             <h3 className="text-lg font-medium text-gray-11 mb-2">
-              No NFTs Yet
+              {tab === "listed" ? "No Listings" : "No NFTs Yet"}
             </h3>
             <p className="text-gray-8 text-sm max-w-sm mx-auto mb-8">
-              Create your first AI-powered NFT.
+              {tab === "listed"
+                ? "Nothing listed on the marketplace yet."
+                : "Create your first AI-powered NFT."}
             </p>
             <Link
               href="/create"
