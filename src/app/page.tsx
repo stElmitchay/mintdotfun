@@ -263,11 +263,12 @@ function shortenAddr(addr: string): string {
 // ============================================
 
 function MarketplaceFrame() {
-  const { listings, loading } = useListings({ limit: 3, sort: "newest" });
+  const { listings, loading } = useListings({ limit: 5, sort: "newest" });
 
-  // Max 3: 1 featured + 2 stacked
+  // 1 featured + 2 stacked in main grid, up to 2 extra squares in the gap
   const featured = listings[0];
   const rest = listings.slice(1, 3);
+  const extra = listings.slice(3, 5);
 
   return (
     <div style={{ padding: 40, width: "100%", height: "100%", display: "flex", flexDirection: "column" }}>
@@ -299,15 +300,15 @@ function MarketplaceFrame() {
         </Link>
       </div>
 
-      {/* Content */}
-      <div style={{ flex: 1, minHeight: 0 }}>
+      {/* Content — grid + extra square cards in a flex row */}
+      <div style={{ flex: 1, minHeight: 0, display: "flex", gap: 12 }}>
         {loading ? (
           <div
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              height: "100%",
+              width: "100%",
               color: "var(--color-gray-9)",
               fontSize: 14,
             }}
@@ -315,87 +316,138 @@ function MarketplaceFrame() {
             Loading...
           </div>
         ) : listings.length > 0 ? (
-          <div className={styles.marketplaceGrid}>
-            {/* Featured card — left column, full height */}
-            {featured && (
-              <Link
-                href={`/nft/${featured.mintAddress}`}
-                className={`${styles.nftCard} ${styles.nftCardFeatured}`}
-              >
-                {featured.nftImageUrl ? (
-                  <img
-                    src={featured.nftImageUrl}
-                    alt={featured.nftName}
-                    className={styles.nftCardImage}
-                  />
-                ) : (
-                  <div className={styles.nftCardPlaceholder}>
-                    <Sparkles style={{ width: 32, height: 32, color: "var(--color-gray-7)" }} />
+          <>
+            {/* Main grid — untouched layout */}
+            <div className={styles.marketplaceGrid} style={{ flex: 1, minWidth: 0 }}>
+              {/* Featured card — left column, full height */}
+              {featured && (
+                <Link
+                  href={`/nft/${featured.mintAddress}`}
+                  className={`${styles.nftCard} ${styles.nftCardFeatured}`}
+                >
+                  {featured.nftImageUrl ? (
+                    <img
+                      src={featured.nftImageUrl}
+                      alt={featured.nftName}
+                      className={styles.nftCardImage}
+                    />
+                  ) : (
+                    <div className={styles.nftCardPlaceholder}>
+                      <Sparkles style={{ width: 32, height: 32, color: "var(--color-gray-7)" }} />
+                    </div>
+                  )}
+                  <div className={styles.nftCardOverlay} />
+                  <div className={styles.nftCardInfo}>
+                    <div className={styles.nftCardName}>{featured.nftName}</div>
+                    <div className={styles.nftCardMeta}>
+                      <span className={styles.nftCardPrice}>
+                        {featured.priceSol} SOL
+                      </span>
+                      <span className={styles.nftCardSeller}>
+                        {shortenAddr(featured.sellerWallet)} &middot; {timeAgo(featured.listedAt)}
+                      </span>
+                    </div>
                   </div>
-                )}
-                <div className={styles.nftCardOverlay} />
-                <div className={styles.nftCardInfo}>
-                  <div className={styles.nftCardName}>{featured.nftName}</div>
-                  <div className={styles.nftCardMeta}>
-                    <span className={styles.nftCardPrice}>
-                      {featured.priceSol} SOL
-                    </span>
-                    <span className={styles.nftCardSeller}>
-                      {shortenAddr(featured.sellerWallet)} &middot; {timeAgo(featured.listedAt)}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            )}
+                </Link>
+              )}
 
-            {/* Right column — 2 stacked cards */}
-            {rest.map((listing) => (
-              <Link
-                key={listing.id}
-                href={`/nft/${listing.mintAddress}`}
-                className={styles.nftCard}
-              >
-                {listing.nftImageUrl ? (
-                  <img
-                    src={listing.nftImageUrl}
-                    alt={listing.nftName}
-                    className={styles.nftCardImage}
-                  />
-                ) : (
-                  <div className={styles.nftCardPlaceholder}>
-                    <Sparkles style={{ width: 20, height: 20, color: "var(--color-gray-7)" }} />
+              {/* Right column — 2 stacked cards */}
+              {rest.map((listing) => (
+                <Link
+                  key={listing.id}
+                  href={`/nft/${listing.mintAddress}`}
+                  className={styles.nftCard}
+                >
+                  {listing.nftImageUrl ? (
+                    <img
+                      src={listing.nftImageUrl}
+                      alt={listing.nftName}
+                      className={styles.nftCardImage}
+                    />
+                  ) : (
+                    <div className={styles.nftCardPlaceholder}>
+                      <Sparkles style={{ width: 20, height: 20, color: "var(--color-gray-7)" }} />
+                    </div>
+                  )}
+                  <div className={styles.nftCardOverlay} />
+                  <div className={styles.nftCardInfoCompact}>
+                    <div className={styles.nftCardNameCompact}>{listing.nftName}</div>
+                    <div className={styles.nftCardMeta}>
+                      <span className={styles.nftCardPriceCompact}>
+                        {listing.priceSol} SOL
+                      </span>
+                      <span className={styles.nftCardSeller}>
+                        {timeAgo(listing.listedAt)}
+                      </span>
+                    </div>
                   </div>
-                )}
-                <div className={styles.nftCardOverlay} />
-                <div className={styles.nftCardInfoCompact}>
-                  <div className={styles.nftCardNameCompact}>{listing.nftName}</div>
-                  <div className={styles.nftCardMeta}>
+                </Link>
+              ))}
+
+              {/* Fill empty slot if only 1 rest item */}
+              {rest.length < 2 && (
+                <Link
+                  href="/create"
+                  className={styles.nftCard}
+                >
+                  <div className={styles.nftCardPlaceholder}>
+                    <div style={{ textAlign: "center" }}>
+                      <Sparkles style={{ width: 24, height: 24, color: "var(--color-gray-6)", marginBottom: 8 }} />
+                      <div style={{ fontSize: 12, color: "var(--color-gray-7)" }}>Mint yours</div>
+                    </div>
+                  </div>
+                </Link>
+              )}
+            </div>
+
+            {/* Extra square cards — fill the parallax gap */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, width: 290, flexShrink: 0 }}>
+              {extra.map((listing) => (
+                <Link
+                  key={listing.id}
+                  href={`/nft/${listing.mintAddress}`}
+                  className={styles.nftCard}
+                  style={{ flex: 1 }}
+                >
+                  {listing.nftImageUrl ? (
+                    <img
+                      src={listing.nftImageUrl}
+                      alt={listing.nftName}
+                      className={styles.nftCardImage}
+                    />
+                  ) : (
+                    <div className={styles.nftCardPlaceholder}>
+                      <Sparkles style={{ width: 20, height: 20, color: "var(--color-gray-7)" }} />
+                    </div>
+                  )}
+                  <div className={styles.nftCardOverlay} />
+                  <div className={styles.nftCardInfoCompact}>
+                    <div className={styles.nftCardNameCompact}>{listing.nftName}</div>
                     <span className={styles.nftCardPriceCompact}>
                       {listing.priceSol} SOL
                     </span>
-                    <span className={styles.nftCardSeller}>
-                      {timeAgo(listing.listedAt)}
-                    </span>
                   </div>
-                </div>
-              </Link>
-            ))}
-
-            {/* Fill empty slot if only 1 rest item */}
-            {rest.length < 2 && (
-              <Link
-                href="/create"
-                className={styles.nftCard}
-              >
-                <div className={styles.nftCardPlaceholder}>
-                  <div style={{ textAlign: "center" }}>
-                    <Sparkles style={{ width: 24, height: 24, color: "var(--color-gray-6)", marginBottom: 8 }} />
-                    <div style={{ fontSize: 12, color: "var(--color-gray-7)" }}>Mint yours</div>
-                  </div>
-                </div>
-              </Link>
-            )}
-          </div>
+                </Link>
+              ))}
+              {/* Fill empty extra slots */}
+              {extra.length < 2 &&
+                Array.from({ length: 2 - extra.length }).map((_, i) => (
+                  <Link
+                    key={`extra-empty-${i}`}
+                    href="/create"
+                    className={styles.nftCard}
+                    style={{ flex: 1 }}
+                  >
+                    <div className={styles.nftCardPlaceholder}>
+                      <div style={{ textAlign: "center" }}>
+                        <Sparkles style={{ width: 20, height: 20, color: "var(--color-gray-6)", marginBottom: 6 }} />
+                        <div style={{ fontSize: 11, color: "var(--color-gray-7)" }}>Mint yours</div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+            </div>
+          </>
         ) : (
           /* Empty state — full frame invitation */
           <div
