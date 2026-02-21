@@ -31,11 +31,13 @@ function timeAgo(dateStr: string): string {
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  if (days < 30) return `${days}d ago`;
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 }
 
 // ============================================
-// Card components — image-forward, minimal chrome
+// Card components — rauno.me/craft style
 // ============================================
 
 function ListingCard({
@@ -62,39 +64,45 @@ function ListingCard({
         duration: 0.5,
         ease: [0.2, 0.8, 0.2, 1],
       }}
-      className="mb-4"
     >
       <Link
         href={`/nft/${listing.mintAddress}`}
-        className="group block relative rounded-2xl overflow-hidden"
+        className="group block bg-gray-2 rounded-2xl overflow-hidden transition-colors hover:bg-gray-3"
       >
-        {listing.nftImageUrl ? (
-          <img
-            src={listing.nftImageUrl}
-            alt={listing.nftName}
-            className="w-full aspect-[3/4] object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
-          />
-        ) : (
-          <div className="w-full aspect-[3/4] bg-gray-3 flex items-center justify-center">
-            <Sparkles className="w-8 h-8 text-gray-7" />
-          </div>
-        )}
-
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-        <div className="absolute top-3 right-3 bg-accent px-2.5 py-1 rounded-full">
-          <span className="text-[11px] font-bold text-[var(--color-on-accent)]">
-            {listing.priceSol} SOL
+        {/* Header */}
+        <div className="flex items-start justify-between px-4 pt-4 pb-3">
+          <span className="text-sm font-medium text-gray-12 truncate pr-3">
+            {listing.nftName}
+          </span>
+          <span className="text-xs text-gray-9 whitespace-nowrap flex-shrink-0">
+            {timeAgo(listing.listedAt)}
           </span>
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-          <p className="text-sm font-medium text-white truncate">
-            {listing.nftName}
-          </p>
-          <p className="text-[11px] text-white/50 mt-0.5">
-            {timeAgo(listing.listedAt)}
-          </p>
+        {/* Image */}
+        <div className="px-3">
+          {listing.nftImageUrl ? (
+            <img
+              src={listing.nftImageUrl}
+              alt={listing.nftName}
+              className="w-full rounded-xl object-cover"
+            />
+          ) : (
+            <div className="w-full aspect-square bg-gray-3 rounded-xl flex items-center justify-center">
+              <Sparkles className="w-8 h-8 text-gray-7" />
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between px-4 pt-3 pb-4">
+          <span className="text-xs font-semibold text-accent">
+            {listing.priceSol} SOL
+          </span>
+          <span className="text-xs text-gray-9 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+            View NFT
+            <ArrowRight className="w-3 h-3" />
+          </span>
         </div>
       </Link>
     </motion.div>
@@ -128,65 +136,65 @@ function AssetCard({
         duration: 0.5,
         ease: [0.2, 0.8, 0.2, 1],
       }}
-      className="mb-4"
     >
-      <div className="group relative rounded-2xl overflow-hidden">
-        <Link href={`/nft/${asset.address}`}>
+      <div className="group bg-gray-2 rounded-2xl overflow-hidden transition-colors hover:bg-gray-3">
+        {/* Header */}
+        <div className="flex items-start justify-between px-4 pt-4 pb-3">
+          <span className="text-sm font-medium text-gray-12 truncate pr-3">
+            {asset.name}
+          </span>
+          <span className="text-xs text-gray-9 font-mono whitespace-nowrap flex-shrink-0">
+            {shortenAddress(asset.address, 4)}
+          </span>
+        </div>
+
+        {/* Image */}
+        <Link href={`/nft/${asset.address}`} className="block px-3">
           {asset.imageUrl ? (
             <img
               src={asset.imageUrl}
               alt={asset.name}
-              className="w-full aspect-[3/4] object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+              className="w-full rounded-xl object-cover"
             />
           ) : (
-            <div className="w-full aspect-[3/4] bg-gray-3 flex items-center justify-center">
+            <div className="w-full aspect-square bg-gray-3 rounded-xl flex items-center justify-center">
               <Sparkles className="w-8 h-8 text-gray-7" />
             </div>
           )}
-
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-          {asset.isListed && (
-            <div className="absolute top-3 left-3 bg-accent/90 backdrop-blur-sm px-2 py-0.5 rounded-full">
-              <span className="text-[10px] font-medium flex items-center gap-1 text-[var(--color-on-accent)]">
-                <Tag className="w-2.5 h-2.5" />
-                Listed
-              </span>
-            </div>
-          )}
-
-          <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-            <p className="text-sm font-medium text-white truncate">
-              {asset.name}
-            </p>
-            <p className="text-[11px] text-white/40 font-mono mt-0.5">
-              {shortenAddress(asset.address, 4)}
-            </p>
-          </div>
         </Link>
 
-        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        {/* Footer */}
+        <div className="flex items-center justify-between px-4 pt-3 pb-4">
           {asset.isListed ? (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                onDelist();
-              }}
-              disabled={delisting}
-              className="px-3 py-1.5 bg-black/60 backdrop-blur-sm rounded-full text-[11px] font-medium text-red-400 hover:text-red-300 transition-all disabled:opacity-50"
-            >
-              {delisting ? <Loader2 className="w-3 h-3 animate-spin" /> : "Delist"}
-            </button>
+            <>
+              <span className="text-[11px] font-medium flex items-center gap-1 text-accent">
+                <Tag className="w-3 h-3" />
+                Listed
+              </span>
+              <button
+                onClick={onDelist}
+                disabled={delisting}
+                className="text-xs text-gray-9 hover:text-red-400 transition-colors disabled:opacity-50"
+              >
+                {delisting ? <Loader2 className="w-3 h-3 animate-spin" /> : "Delist"}
+              </button>
+            </>
           ) : (
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                onList();
-              }}
-              className="px-3 py-1.5 bg-accent backdrop-blur-sm rounded-full text-[11px] font-medium text-[var(--color-on-accent)] hover:opacity-80 transition-all"
-            >
-              List
-            </button>
+            <>
+              <button
+                onClick={onList}
+                className="text-xs text-gray-9 hover:text-accent transition-colors"
+              >
+                List for sale
+              </button>
+              <Link
+                href={`/nft/${asset.address}`}
+                className="text-xs text-gray-9 hover:text-gray-11 transition-colors flex items-center gap-1"
+              >
+                View NFT
+                <ArrowRight className="w-3 h-3" />
+              </Link>
+            </>
           )}
         </div>
       </div>
@@ -212,36 +220,43 @@ function MintedCard({
         duration: 0.5,
         ease: [0.2, 0.8, 0.2, 1],
       }}
-      className="mb-4"
     >
-      <div className="group relative rounded-2xl overflow-hidden">
-        <Link href={`/nft/${nft.mint}`}>
+      <div className="group bg-gray-2 rounded-2xl overflow-hidden transition-colors hover:bg-gray-3">
+        {/* Header */}
+        <div className="flex items-start justify-between px-4 pt-4 pb-3">
+          <span className="text-sm font-medium text-gray-12 truncate pr-3">
+            {nft.name}
+          </span>
+          <span className="text-xs text-gray-9 font-mono whitespace-nowrap flex-shrink-0">
+            {shortenAddress(nft.mint, 4)}
+          </span>
+        </div>
+
+        {/* Image */}
+        <Link href={`/nft/${nft.mint}`} className="block px-3">
           <img
             src={nft.imageUrl}
             alt={nft.name}
-            className="w-full aspect-[3/4] object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+            className="w-full rounded-xl object-cover"
           />
-
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-          <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-            <p className="text-sm font-medium text-white truncate">
-              {nft.name}
-            </p>
-            <p className="text-[11px] text-white/40 font-mono mt-0.5">
-              {shortenAddress(nft.mint, 4)}
-            </p>
-          </div>
         </Link>
 
-        <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        {/* Footer */}
+        <div className="flex items-center justify-between px-4 pt-3 pb-4">
           <button
-            onClick={() => onRemove()}
-            className="p-2 bg-black/60 backdrop-blur-sm rounded-full text-gray-400 hover:text-red-400 transition-all"
-            title="Remove from gallery"
+            onClick={onRemove}
+            className="text-xs text-gray-9 hover:text-red-400 transition-colors flex items-center gap-1"
           >
-            <Trash2 className="w-3.5 h-3.5" />
+            <Trash2 className="w-3 h-3" />
+            Remove
           </button>
+          <Link
+            href={`/nft/${nft.mint}`}
+            className="text-xs text-gray-9 hover:text-gray-11 transition-colors flex items-center gap-1"
+          >
+            View NFT
+            <ArrowRight className="w-3 h-3" />
+          </Link>
         </div>
       </div>
     </motion.div>
@@ -342,27 +357,6 @@ function GalleryMinimap({ activeSection }: { activeSection: Section }) {
 }
 
 // ============================================
-// Masonry helper — distribute items across 3 columns
-// ============================================
-
-function MasonryGrid({ children }: { children: React.ReactNode[] }) {
-  const cols: React.ReactNode[][] = [[], [], []];
-  children.forEach((child, i) => {
-    cols[i % 3].push(child);
-  });
-
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-start">
-      {cols.map((col, i) => (
-        <div key={i} className="flex flex-col">
-          {col}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ============================================
 // Page
 // ============================================
 
@@ -399,7 +393,6 @@ export default function GalleryPage() {
     function onScroll() {
       if (!mySectionRef.current) return;
       const rect = mySectionRef.current.getBoundingClientRect();
-      // When the "My NFTs" section top reaches the upper third of the viewport
       setActiveSection(rect.top < window.innerHeight * 0.5 ? "mine" : "listed");
     }
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -509,13 +502,17 @@ export default function GalleryPage() {
 
         {/* Listed section */}
         {listedCards.length > 0 && (
-          <MasonryGrid>{listedCards}</MasonryGrid>
+          <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 [&>*]:mb-4">
+            {listedCards}
+          </div>
         )}
 
         {/* My NFTs section — ref for scroll tracking */}
         <div ref={mySectionRef}>
           {myCards.length > 0 && (
-            <MasonryGrid>{myCards}</MasonryGrid>
+            <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 [&>*]:mb-4">
+              {myCards}
+            </div>
           )}
         </div>
 
