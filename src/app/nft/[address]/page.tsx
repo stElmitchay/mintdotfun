@@ -12,12 +12,13 @@ import {
   Wallet,
   CheckCircle2,
   XCircle,
+  Copy,
+  Check,
 } from "lucide-react";
 import Link from "next/link";
 import type { Listing } from "@/types";
 import ListingModal from "@/components/marketplace/ListingModal";
 import { motion } from "framer-motion";
-import { FadeUp } from "@/components/ui/motion";
 
 export default function NFTDetailPage({
   params,
@@ -43,6 +44,7 @@ export default function NFTDetailPage({
     type: "success" | "error";
     message: string;
   } | null>(null);
+  const [copiedMint, setCopiedMint] = useState(false);
 
   const listing: Listing | undefined = listings[0];
   const isOwner = walletAddress && asset?.owner === walletAddress;
@@ -146,10 +148,16 @@ export default function NFTDetailPage({
     }
   };
 
+  const copyMint = () => {
+    navigator.clipboard.writeText(address);
+    setCopiedMint(true);
+    setTimeout(() => setCopiedMint(false), 2000);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen pt-24 flex items-center justify-center">
-        <Loader2 className="w-6 h-6 animate-spin text-gray-600" />
+        <Loader2 className="w-6 h-6 animate-spin text-gray-8" />
       </div>
     );
   }
@@ -158,16 +166,16 @@ export default function NFTDetailPage({
     return (
       <div className="min-h-screen pt-24 px-6">
         <div className="max-w-4xl mx-auto text-center py-32">
-          <h1 className="text-xl font-bold mb-4">NFT Not Found</h1>
-          <p className="text-gray-500 text-sm mb-6">
+          <h1 className="text-xl font-bold text-gray-12 mb-4">NFT Not Found</h1>
+          <p className="text-gray-8 text-sm mb-6">
             Could not find an NFT with address {shortenAddress(address, 8)}
           </p>
           <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary-light transition-colors"
+            href="/gallery"
+            className="inline-flex items-center gap-2 text-sm text-gray-9 hover:text-gray-12 transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            Back to Home
+            Back to Gallery
           </Link>
         </div>
       </div>
@@ -175,141 +183,137 @@ export default function NFTDetailPage({
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-12 px-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Back Link */}
+    <div className="min-h-screen pt-20 pb-16 px-4 sm:px-6">
+      <div className="max-w-[1200px] mx-auto">
+        {/* Back link */}
         <motion.div
           initial={{ opacity: 0, x: -10 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
+          className="mb-6"
         >
           <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-gray-500 hover:text-white transition-colors duration-300 mb-8 text-sm"
+            href="/gallery"
+            className="inline-flex items-center gap-2 text-gray-9 hover:text-gray-12 transition-colors text-sm"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             Back
           </Link>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          {/* Image */}
-          <FadeUp>
-            <div className="relative rounded-2xl overflow-hidden bg-surface-2">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_420px] gap-8 lg:gap-12">
+          {/* ── Left: Image ── */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
+            className="lg:sticky lg:top-24 lg:self-start"
+          >
+            <div className="rounded-2xl overflow-hidden bg-gray-2">
               {asset.imageUrl ? (
                 <img
                   src={asset.imageUrl}
                   alt={asset.name}
-                  className="w-full aspect-square object-cover"
+                  className="w-full object-cover"
                 />
               ) : (
-                <div className="w-full aspect-square bg-surface-3 flex items-center justify-center">
-                  <div className="w-12 h-12 rounded-full bg-primary/10" />
-                </div>
-              )}
-              {isListed && (
-                <div className="absolute top-4 left-4 bg-primary/90 backdrop-blur-sm px-3 py-1.5 rounded-lg">
-                  <span className="text-xs font-medium text-white">For Sale</span>
+                <div className="w-full aspect-square bg-gray-3 flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-full bg-gray-5" />
                 </div>
               )}
             </div>
-          </FadeUp>
+          </motion.div>
 
-          {/* Details */}
+          {/* ── Right: Details ── */}
           <div className="space-y-6">
-            <FadeUp delay={0.1}>
-              <div>
-                <h1 className="text-3xl font-bold tracking-tight mb-2">
-                  {asset.name}
-                </h1>
-                {asset.description && (
-                  <p className="text-gray-500">{asset.description}</p>
-                )}
-              </div>
-            </FadeUp>
+            {/* Title */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1, ease: [0.2, 0.8, 0.2, 1] }}
+            >
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-12 tracking-tight">
+                {asset.name}
+              </h1>
+              {asset.description && (
+                <p className="text-gray-9 text-sm mt-3 leading-relaxed">
+                  {asset.description}
+                </p>
+              )}
+            </motion.div>
 
-            {/* Owner */}
-            <FadeUp delay={0.2}>
-              <div className="bg-surface-2 rounded-xl p-4 border border-white/[0.04]">
-                <div className="text-xs text-gray-600 mb-1.5">Owner</div>
-                <div className="flex items-center gap-2">
-                  <Wallet className="w-3.5 h-3.5 text-gray-500" />
-                  <span className="font-mono text-sm text-gray-300">
-                    {shortenAddress(asset.owner, 6)}
-                  </span>
-                  {isOwner && (
-                    <span className="text-[10px] font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
-                      You
-                    </span>
-                  )}
-                </div>
-              </div>
-            </FadeUp>
-
-            {/* Price & Actions */}
+            {/* Price & Buy section */}
             {isListed && listing && (
-              <FadeUp delay={0.3}>
-                <div className="bg-surface-2 rounded-xl p-6 border border-white/[0.04] space-y-4">
-                  <div>
-                    <div className="text-xs text-gray-600 mb-1">Price</div>
-                    <div className="text-3xl font-bold text-white">
-                      {listing.priceSol} <span className="text-lg text-gray-500">SOL</span>
-                    </div>
-                  </div>
-
-                  {isOwner ? (
-                    <button
-                      onClick={handleDelist}
-                      disabled={delisting}
-                      className="w-full py-3 rounded-xl text-sm font-medium border border-red-500/30 text-red-400 hover:bg-red-500/5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                    >
-                      {delisting ? (
-                        <>
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          Delisting...
-                        </>
-                      ) : (
-                        "Cancel Listing"
-                      )}
-                    </button>
-                  ) : connected ? (
-                    <motion.button
-                      onClick={handleBuy}
-                      disabled={buying}
-                      className="w-full bg-primary py-3 rounded-xl text-sm font-semibold text-black hover:opacity-90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-                      whileHover={{ scale: 1.01 }}
-                      whileTap={{ scale: 0.99 }}
-                    >
-                      {buying ? (
-                        <>
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          Purchasing...
-                        </>
-                      ) : (
-                        `Buy for ${listing.priceSol} SOL`
-                      )}
-                    </motion.button>
-                  ) : (
-                    <p className="text-sm text-gray-500 text-center py-2">
-                      Connect your wallet to purchase
-                    </p>
-                  )}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.15, ease: [0.2, 0.8, 0.2, 1] }}
+                className="bg-gray-2 rounded-2xl p-5"
+              >
+                <div className="text-[11px] uppercase tracking-wider text-gray-8 mb-2">
+                  Price
                 </div>
-              </FadeUp>
+                <div className="text-3xl font-bold text-gray-12 mb-5">
+                  {listing.priceSol}{" "}
+                  <span className="text-lg text-gray-8">SOL</span>
+                </div>
+
+                {isOwner ? (
+                  <button
+                    onClick={handleDelist}
+                    disabled={delisting}
+                    className="w-full py-3.5 rounded-xl text-sm font-medium border border-red-500/20 text-red-400 hover:bg-red-500/5 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {delisting ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        Delisting...
+                      </>
+                    ) : (
+                      "Cancel Listing"
+                    )}
+                  </button>
+                ) : connected ? (
+                  <motion.button
+                    onClick={handleBuy}
+                    disabled={buying}
+                    className="w-full bg-accent py-3.5 rounded-xl text-sm font-semibold text-[var(--color-on-accent)] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                  >
+                    {buying ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        Purchasing...
+                      </>
+                    ) : (
+                      `Buy for ${listing.priceSol} SOL`
+                    )}
+                  </motion.button>
+                ) : (
+                  <p className="text-sm text-gray-8 text-center py-2">
+                    Connect your wallet to purchase
+                  </p>
+                )}
+              </motion.div>
             )}
 
-            {/* List for Sale */}
+            {/* List for Sale (owner, not listed) */}
             {isOwner && !isListed && (
-              <FadeUp delay={0.3}>
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.15, ease: [0.2, 0.8, 0.2, 1] }}
+              >
                 <motion.button
                   onClick={() => setShowListModal(true)}
-                  className="w-full bg-primary py-3 rounded-xl text-sm font-semibold text-black hover:opacity-90 transition-colors"
+                  className="w-full bg-accent py-3.5 rounded-xl text-sm font-semibold text-[var(--color-on-accent)] hover:opacity-90 transition-opacity"
                   whileHover={{ scale: 1.01 }}
                   whileTap={{ scale: 0.99 }}
                 >
                   List for Sale
                 </motion.button>
-              </FadeUp>
+              </motion.div>
             )}
 
             {/* Transaction Result */}
@@ -338,18 +342,78 @@ export default function NFTDetailPage({
               </motion.div>
             )}
 
-            {/* Explorer Link */}
-            <FadeUp delay={0.4}>
+            {/* Details section */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
+              className="bg-gray-2 rounded-2xl divide-y divide-gray-a3"
+            >
+              {/* Owner */}
+              <div className="flex items-center justify-between px-5 py-4">
+                <span className="text-xs text-gray-8">Owner</span>
+                <div className="flex items-center gap-2">
+                  <Wallet className="w-3 h-3 text-gray-8" />
+                  <span className="font-mono text-xs text-gray-11">
+                    {shortenAddress(asset.owner, 6)}
+                  </span>
+                  {isOwner && (
+                    <span className="text-[10px] font-medium text-accent bg-accent/10 px-1.5 py-0.5 rounded">
+                      You
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Mint address */}
+              <div className="flex items-center justify-between px-5 py-4">
+                <span className="text-xs text-gray-8">Mint</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-mono text-xs text-gray-11">
+                    {shortenAddress(address, 6)}
+                  </span>
+                  <button
+                    onClick={copyMint}
+                    className="p-1 rounded text-gray-8 hover:text-gray-11 transition-colors"
+                  >
+                    {copiedMint ? (
+                      <Check className="w-3 h-3 text-green-400" />
+                    ) : (
+                      <Copy className="w-3 h-3" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Token standard */}
+              <div className="flex items-center justify-between px-5 py-4">
+                <span className="text-xs text-gray-8">Standard</span>
+                <span className="text-xs text-gray-11">Metaplex Core</span>
+              </div>
+
+              {/* Network */}
+              <div className="flex items-center justify-between px-5 py-4">
+                <span className="text-xs text-gray-8">Network</span>
+                <span className="text-xs text-gray-11">Solana Devnet</span>
+              </div>
+            </motion.div>
+
+            {/* Explorer link */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.25, ease: [0.2, 0.8, 0.2, 1] }}
+            >
               <a
                 href={getCoreAssetUrl(address)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-white transition-colors duration-300"
+                className="flex items-center justify-center gap-2 text-xs text-gray-8 hover:text-gray-11 transition-colors py-3"
               >
-                <ExternalLink className="w-3.5 h-3.5" />
+                <ExternalLink className="w-3 h-3" />
                 View on Metaplex Explorer
               </a>
-            </FadeUp>
+            </motion.div>
           </div>
         </div>
       </div>
