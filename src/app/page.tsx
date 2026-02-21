@@ -802,6 +802,8 @@ export default function HomePage() {
       translateZ.set(-1 * val);
       handleScroll(val);
     }
+    // Persist scroll position for touch devices
+    try { sessionStorage.setItem("home-scrollX", String(Math.round(val))); } catch {}
   });
 
   // Track scrollY
@@ -814,6 +816,8 @@ export default function HomePage() {
       translateZ.set(-1 * val);
       handleScroll(val);
     }
+    // Persist scroll position so back-navigation can restore it
+    try { sessionStorage.setItem("home-scrollY", String(Math.round(val))); } catch {}
   });
 
   // Initialize scale and ghost size
@@ -841,8 +845,24 @@ export default function HomePage() {
     }
 
     window.history.scrollRestoration = "manual";
-    document.documentElement.scrollTo(0, 0);
-    updateSize();
+
+    // Restore scroll position on back-navigation, otherwise start at top
+    const savedY = sessionStorage.getItem("home-scrollY");
+    const savedX = sessionStorage.getItem("home-scrollX");
+    if (savedY || savedX) {
+      const sy = savedY ? parseInt(savedY, 10) : 0;
+      const sx = savedX ? parseInt(savedX, 10) : 0;
+      sessionStorage.removeItem("home-scrollY");
+      sessionStorage.removeItem("home-scrollX");
+      updateSize();
+      // Restore after layout so ghost element is sized
+      requestAnimationFrame(() => {
+        document.documentElement.scrollTo(sx, sy);
+      });
+    } else {
+      document.documentElement.scrollTo(0, 0);
+      updateSize();
+    }
     window.addEventListener("resize", updateSize);
     return () => window.removeEventListener("resize", updateSize);
   }, [scaleSpring]);

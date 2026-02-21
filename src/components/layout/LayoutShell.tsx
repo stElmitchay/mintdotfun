@@ -113,6 +113,13 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
     document.documentElement.style.setProperty("--statue-hue-rotate", hueRotate);
   }, []);
 
+  // Reset scroll restoration for non-home pages so browser back-button works naturally
+  useEffect(() => {
+    if (!isHome) {
+      window.history.scrollRestoration = "auto";
+    }
+  }, [isHome]);
+
   const isCreate = pathname === "/create";
 
   const content = (
