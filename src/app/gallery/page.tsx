@@ -64,6 +64,7 @@ function ListingCard({
         duration: 0.5,
         ease: [0.2, 0.8, 0.2, 1],
       }}
+      className="break-inside-avoid"
     >
       <Link
         href={`/nft/${listing.mintAddress}`}
@@ -136,6 +137,7 @@ function AssetCard({
         duration: 0.5,
         ease: [0.2, 0.8, 0.2, 1],
       }}
+      className="break-inside-avoid"
     >
       <div className="group bg-gray-2 rounded-2xl overflow-hidden transition-colors hover:bg-gray-3">
         {/* Header */}
@@ -220,6 +222,7 @@ function MintedCard({
         duration: 0.5,
         ease: [0.2, 0.8, 0.2, 1],
       }}
+      className="break-inside-avoid"
     >
       <div className="group bg-gray-2 rounded-2xl overflow-hidden transition-colors hover:bg-gray-3">
         {/* Header */}
