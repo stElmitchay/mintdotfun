@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import {
   Sparkles,
   Loader2,
@@ -15,7 +15,7 @@ import { useListings } from "@/hooks/useListings";
 import { shortenAddress } from "@/lib/utils";
 import Link from "next/link";
 import ListingModal from "@/components/marketplace/ListingModal";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 // ============================================
 // Helpers
@@ -68,7 +68,6 @@ function ListingCard({
         href={`/nft/${listing.mintAddress}`}
         className="group block relative rounded-2xl overflow-hidden"
       >
-        {/* Image */}
         {listing.nftImageUrl ? (
           <img
             src={listing.nftImageUrl}
@@ -81,17 +80,14 @@ function ListingCard({
           </div>
         )}
 
-        {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-        {/* Price badge — always visible */}
         <div className="absolute top-3 right-3 bg-accent px-2.5 py-1 rounded-full">
           <span className="text-[11px] font-bold text-[var(--color-on-accent)]">
             {listing.priceSol} SOL
           </span>
         </div>
 
-        {/* Bottom info — appears on hover */}
         <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
           <p className="text-sm font-medium text-white truncate">
             {listing.nftName}
@@ -148,10 +144,8 @@ function AssetCard({
             </div>
           )}
 
-          {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-          {/* Listed badge */}
           {asset.isListed && (
             <div className="absolute top-3 left-3 bg-accent/90 backdrop-blur-sm px-2 py-0.5 rounded-full">
               <span className="text-[10px] font-medium flex items-center gap-1 text-[var(--color-on-accent)]">
@@ -161,7 +155,6 @@ function AssetCard({
             </div>
           )}
 
-          {/* Bottom info */}
           <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
             <p className="text-sm font-medium text-white truncate">
               {asset.name}
@@ -172,7 +165,6 @@ function AssetCard({
           </div>
         </Link>
 
-        {/* Action button on hover */}
         <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           {asset.isListed ? (
             <button
@@ -230,10 +222,8 @@ function MintedCard({
             className="w-full aspect-[3/4] object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
           />
 
-          {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-          {/* Bottom info */}
           <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
             <p className="text-sm font-medium text-white truncate">
               {nft.name}
@@ -244,7 +234,6 @@ function MintedCard({
           </div>
         </Link>
 
-        {/* Delete button */}
         <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <button
             onClick={() => onRemove()}
@@ -260,28 +249,22 @@ function MintedCard({
 }
 
 // ============================================
-// Minimap — scroll indicator with tab rectangles
+// Minimap — scroll-tracking, auto-highlights section
 // ============================================
 
-type GalleryTab = "listed" | "mine";
+type Section = "listed" | "mine";
 
 const MINIMAP_LINES = [
-  { type: "rect" as const, tab: "listed" as GalleryTab, label: "Listed" },
+  { type: "rect" as const, section: "listed" as Section, label: "Listed" },
   { type: "line" as const },
   { type: "line" as const },
   { type: "line" as const },
-  { type: "rect" as const, tab: "mine" as GalleryTab, label: "My NFTs" },
+  { type: "rect" as const, section: "mine" as Section, label: "My NFTs" },
   { type: "line" as const },
   { type: "line" as const },
 ];
 
-function GalleryMinimap({
-  activeTab,
-  onTabChange,
-}: {
-  activeTab: GalleryTab;
-  onTabChange: (t: GalleryTab) => void;
-}) {
+function GalleryMinimap({ activeSection }: { activeSection: Section }) {
   const [scrollPct, setScrollPct] = useState(0);
 
   useEffect(() => {
@@ -293,7 +276,6 @@ function GalleryMinimap({
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Scroll indicator position across the line elements
   const lineIndices = MINIMAP_LINES.map((l, i) => (l.type === "line" ? i : -1)).filter((i) => i !== -1);
   const activeLineIdx = Math.min(
     Math.floor(scrollPct * lineIndices.length),
@@ -306,10 +288,9 @@ function GalleryMinimap({
       <div className="flex items-end gap-[9px]">
         {MINIMAP_LINES.map((line, i) =>
           line.type === "rect" ? (
-            <button
+            <div
               key={i}
-              onClick={() => line.tab && onTabChange(line.tab)}
-              className="relative group"
+              className="relative"
               style={{ width: 50, height: 12 }}
             >
               <div
@@ -318,29 +299,28 @@ function GalleryMinimap({
                   height: 12,
                   border: "1px solid",
                   borderColor:
-                    activeTab === line.tab
+                    activeSection === line.section
                       ? "var(--color-accent)"
                       : "var(--color-gray-9)",
                   background:
-                    activeTab === line.tab
+                    activeSection === line.section
                       ? "var(--color-accent)"
                       : "transparent",
                   transition: "background 200ms ease, border-color 200ms ease",
                 }}
               />
-              {/* Tooltip label */}
               <span
                 className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-medium whitespace-nowrap transition-colors"
                 style={{
                   color:
-                    activeTab === line.tab
+                    activeSection === line.section
                       ? "var(--color-accent)"
                       : "var(--color-gray-8)",
                 }}
               >
                 {line.label}
               </span>
-            </button>
+            </div>
           ) : (
             <div
               key={i}
@@ -403,15 +383,28 @@ export default function GalleryPage() {
     sort: "newest",
   });
 
-  const [tab, setTab] = useState<GalleryTab>("listed");
   const [listingAsset, setListingAsset] = useState<{
     address: string;
     name: string;
     imageUrl: string;
   } | null>(null);
   const [delisting, setDelisting] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<Section>("listed");
+  const mySectionRef = useRef<HTMLDivElement>(null);
 
   const loading = chainLoading || dbLoading;
+
+  // Track which section is in view
+  useEffect(() => {
+    function onScroll() {
+      if (!mySectionRef.current) return;
+      const rect = mySectionRef.current.getBoundingClientRect();
+      // When the "My NFTs" section top reaches the upper third of the viewport
+      setActiveSection(rect.top < window.innerHeight * 0.5 ? "mine" : "listed");
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const handleDelist = async (asset: { address: string }) => {
     if (!walletAddress) return;
@@ -449,59 +442,55 @@ export default function GalleryPage() {
     }
   };
 
-  const mineCount = assets.length + mintedNFTs.length;
+  // Listed cards
+  const listedCards = useMemo(() => {
+    return listings.map((listing, i) => (
+      <ListingCard key={`l-${listing.id}`} listing={listing} index={i} />
+    ));
+  }, [listings]);
 
-  // Build cards based on active tab
-  const tabCards = useMemo(() => {
+  // My NFTs cards (on-chain assets + locally minted)
+  const myCards = useMemo(() => {
     const cards: React.ReactNode[] = [];
 
-    if (tab === "listed") {
-      listings.forEach((listing, i) => {
-        cards.push(
-          <ListingCard key={`l-${listing.id}`} listing={listing} index={i} />
-        );
-      });
-    } else {
-      assets.forEach((asset, i) => {
-        cards.push(
-          <AssetCard
-            key={`a-${asset.address}`}
-            asset={asset}
-            index={i}
-            onList={() =>
-              setListingAsset({
-                address: asset.address,
-                name: asset.name,
-                imageUrl: asset.imageUrl,
-              })
-            }
-            onDelist={() => handleDelist(asset)}
-            delisting={delisting === asset.address}
-          />
-        );
-      });
+    assets.forEach((asset, i) => {
+      cards.push(
+        <AssetCard
+          key={`a-${asset.address}`}
+          asset={asset}
+          index={i}
+          onList={() =>
+            setListingAsset({
+              address: asset.address,
+              name: asset.name,
+              imageUrl: asset.imageUrl,
+            })
+          }
+          onDelist={() => handleDelist(asset)}
+          delisting={delisting === asset.address}
+        />
+      );
+    });
 
-      mintedNFTs.forEach((nft, i) => {
-        cards.push(
-          <MintedCard
-            key={`m-${nft.mint}`}
-            nft={nft}
-            index={i + assets.length}
-            onRemove={() => removeNFT(nft.mint)}
-          />
-        );
-      });
-    }
+    mintedNFTs.forEach((nft, i) => {
+      cards.push(
+        <MintedCard
+          key={`m-${nft.mint}`}
+          nft={nft}
+          index={i + assets.length}
+          onRemove={() => removeNFT(nft.mint)}
+        />
+      );
+    });
 
     return cards;
-  }, [tab, listings, assets, mintedNFTs, delisting]);
+  }, [assets, mintedNFTs, delisting]);
 
-  const hasAny = tabCards.length > 0;
+  const hasAny = listedCards.length > 0 || myCards.length > 0;
 
   return (
     <div className="min-h-screen pt-16 pb-20">
-      {/* Minimap with tab switching */}
-      <GalleryMinimap activeTab={tab} onTabChange={setTab} />
+      <GalleryMinimap activeSection={activeSection} />
 
       <div className="max-w-[1100px] mx-auto px-4 mt-10">
         {/* Loading */}
@@ -518,25 +507,21 @@ export default function GalleryPage() {
           </div>
         )}
 
-        {/* Masonry grid */}
-        <AnimatePresence mode="wait">
-          {hasAny && (
-            <motion.div
-              key={tab}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-            >
-              <MasonryGrid>{tabCards}</MasonryGrid>
-            </motion.div>
+        {/* Listed section */}
+        {listedCards.length > 0 && (
+          <MasonryGrid>{listedCards}</MasonryGrid>
+        )}
+
+        {/* My NFTs section — ref for scroll tracking */}
+        <div ref={mySectionRef}>
+          {myCards.length > 0 && (
+            <MasonryGrid>{myCards}</MasonryGrid>
           )}
-        </AnimatePresence>
+        </div>
 
         {/* Empty state */}
         {!loading && !listingsLoading && !hasAny && (
           <motion.div
-            key={tab}
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
@@ -546,12 +531,10 @@ export default function GalleryPage() {
               <Sparkles className="w-6 h-6 text-gray-8" />
             </div>
             <h3 className="text-lg font-medium text-gray-11 mb-2">
-              {tab === "listed" ? "No Listings" : "No NFTs Yet"}
+              No NFTs Yet
             </h3>
             <p className="text-gray-8 text-sm max-w-sm mx-auto mb-8">
-              {tab === "listed"
-                ? "Nothing listed on the marketplace yet."
-                : "Create your first AI-powered NFT."}
+              Create your first AI-powered NFT.
             </p>
             <Link
               href="/create"
