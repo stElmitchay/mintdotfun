@@ -138,7 +138,7 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 16 }}
           transition={{ type: "spring", stiffness: 400, damping: 35 }}
-          className="relative max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl p-6"
+          className="relative max-h-[90vh] w-full sm:max-w-md overflow-y-auto rounded-2xl p-6"
           style={{
             background: onAccent,
             color: accent,
@@ -147,7 +147,7 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
           {/* Close */}
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 p-2 rounded-lg transition-opacity hover:opacity-60"
+            className="absolute right-4 top-4 p-3 min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg transition-opacity hover:opacity-60"
             style={{ color: accent }}
           >
             <X className="h-4 w-4" />
@@ -270,7 +270,7 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
                     setConfig((c) => ({ ...c, name: e.target.value }))
                   }
                   placeholder="e.g., Cosmic Dreamer #1"
-                  className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all"
+                  className="w-full rounded-xl px-4 py-3 text-base sm:text-sm outline-none transition-all"
                   style={{
                     background: subtle(6),
                     border: `1.5px solid ${subtle(25)}`,
@@ -292,7 +292,7 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
                     setConfig((c) => ({ ...c, description: e.target.value }))
                   }
                   placeholder="Describe your NFT..."
-                  className="h-20 w-full resize-none rounded-xl px-4 py-3 text-sm outline-none transition-all"
+                  className="h-20 w-full resize-none rounded-xl px-4 py-3 text-base sm:text-sm outline-none transition-all"
                   style={{
                     background: subtle(6),
                     border: `1.5px solid ${subtle(25)}`,

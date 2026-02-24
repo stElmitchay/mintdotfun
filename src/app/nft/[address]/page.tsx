@@ -200,7 +200,7 @@ export default function NFTDetailPage({
 
   return (
     <>
-      <div className="min-h-screen pt-20 pb-16 px-4 sm:px-6">
+      <div className="min-h-screen pt-20 pb-24 md:pb-16 px-4 sm:px-6">
         <div className="max-w-[1100px] mx-auto">
           {/* Back link */}
           <motion.div
@@ -211,7 +211,7 @@ export default function NFTDetailPage({
           >
             <Link
               href="/gallery"
-              className="inline-flex items-center gap-2 text-gray-9 hover:text-gray-12 transition-colors text-sm"
+              className="inline-flex items-center gap-2 text-gray-9 hover:text-gray-12 transition-colors text-sm py-2"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               Back
@@ -225,7 +225,7 @@ export default function NFTDetailPage({
             transition={{ duration: 0.5, ease: [0.2, 0.8, 0.2, 1] }}
             className="flex justify-center mb-10"
           >
-            <div className="rounded-2xl overflow-hidden bg-gray-2 max-w-[720px] w-full">
+            <div className="rounded-2xl overflow-hidden bg-gray-2 max-w-[720px] w-full max-h-[70vh]">
               {asset.imageUrl ? (
                 <img
                   src={asset.imageUrl}
@@ -241,7 +241,7 @@ export default function NFTDetailPage({
           </motion.div>
 
           {/* ── Two Column: Info + Price ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 lg:gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_340px] lg:grid-cols-[1fr_380px] gap-8 lg:gap-12">
             {/* ── Left: Title, Description, Details ── */}
             <div>
               {/* Title */}
@@ -316,7 +316,7 @@ export default function NFTDetailPage({
                       </span>
                       <button
                         onClick={copyMint}
-                        className="p-1 rounded text-gray-8 hover:text-gray-11 transition-colors"
+                        className="p-2 rounded text-gray-8 hover:text-gray-11 transition-colors"
                       >
                         {copiedMint ? (
                           <Check className="w-3.5 h-3.5 text-green-400" />
@@ -364,7 +364,7 @@ export default function NFTDetailPage({
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.15, ease: [0.2, 0.8, 0.2, 1] }}
-                className="lg:sticky lg:top-24"
+                className="md:sticky md:top-24"
               >
                 {/* Price card */}
                 {isListed && listing && (
@@ -465,6 +465,38 @@ export default function NFTDetailPage({
         </div>
       </div>
 
+      {/* ── Mobile Sticky Buy Bar ── */}
+      {isListed && listing && !isOwner && connected && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gray-1/90 backdrop-blur-xl border-t border-gray-a3 md:hidden z-40">
+          <motion.button
+            onClick={handleBuy}
+            disabled={buying}
+            className="w-full bg-accent py-3.5 rounded-xl text-sm font-semibold text-[var(--color-on-accent)] hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
+            whileTap={{ scale: 0.99 }}
+          >
+            {buying ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Purchasing...
+              </>
+            ) : (
+              `Buy now \u2014 ${listing.priceSol} SOL`
+            )}
+          </motion.button>
+        </div>
+      )}
+      {isOwner && !isListed && (
+        <div className="fixed bottom-0 left-0 right-0 p-4 bg-gray-1/90 backdrop-blur-xl border-t border-gray-a3 md:hidden z-40">
+          <motion.button
+            onClick={() => setShowListModal(true)}
+            className="w-full bg-accent py-3.5 rounded-xl text-sm font-semibold text-[var(--color-on-accent)] hover:opacity-90 transition-opacity"
+            whileTap={{ scale: 0.99 }}
+          >
+            List for Sale
+          </motion.button>
+        </div>
+      )}
+
       {/* ── More from Marketplace ── */}
       {relatedListings.length > 0 && (
         <div className="bg-gray-2 py-16 px-4 sm:px-6">
@@ -482,7 +514,7 @@ export default function NFTDetailPage({
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {relatedListings.map((item) => (
                 <Link
                   key={item.id}
@@ -516,7 +548,7 @@ export default function NFTDetailPage({
                     </div>
                     <div className="flex items-center justify-between pt-3 border-t border-gray-a3">
                       <div>
-                        <div className="text-[10px] text-gray-8">Price</div>
+                        <div className="text-xs text-gray-8">Price</div>
                         <div className="text-sm font-semibold text-gray-12">
                           {item.priceSol} SOL
                         </div>

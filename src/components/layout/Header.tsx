@@ -39,7 +39,7 @@ export default function Header() {
           : "bg-transparent"
       }`}
     >
-      <div className="max-w-[1200px] mx-auto px-6 py-4">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="text-xl font-medium text-gray-12 tracking-tight">
@@ -47,17 +47,17 @@ export default function Header() {
           </Link>
 
           {/* Right actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {authenticated ? (
               <>
                 {solanaWallet && (
                   <button
                     onClick={copyAddress}
                     title={solanaWallet.address}
-                    className="flex items-center gap-2 text-sm text-gray-9 hover:text-gray-12 transition-colors duration-300"
+                    className="flex items-center gap-2 text-sm text-gray-9 hover:text-gray-12 transition-colors duration-300 min-h-[44px] px-2"
                   >
                     <Wallet className="w-3.5 h-3.5" />
-                    <span className="font-mono text-xs">
+                    <span className="font-mono text-xs hidden sm:inline">
                       {shortenAddress(solanaWallet.address)}
                     </span>
                     {copied ? (
@@ -69,7 +69,7 @@ export default function Header() {
                 )}
                 <button
                   onClick={logout}
-                  className="flex items-center gap-2 text-sm text-gray-9 hover:text-gray-12 transition-colors duration-300 px-3 py-2"
+                  className="flex items-center gap-2 text-sm text-gray-9 hover:text-gray-12 transition-colors duration-300 px-3 py-2 min-h-[44px] min-w-[44px] justify-center"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                 </button>
@@ -77,7 +77,7 @@ export default function Header() {
             ) : (
               <button
                 onClick={login}
-                className="flex items-center gap-2 bg-accent text-[var(--color-on-accent)] px-5 py-2 rounded-full text-sm font-medium font-semibold hover:opacity-90 transition-all duration-300"
+                className="flex items-center gap-2 bg-accent text-[var(--color-on-accent)] px-4 py-2.5 sm:px-5 rounded-full text-xs sm:text-sm font-semibold hover:opacity-90 transition-all duration-300 min-h-[44px]"
               >
                 <Wallet className="w-3.5 h-3.5" />
                 Connect

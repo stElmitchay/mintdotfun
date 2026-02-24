@@ -330,7 +330,7 @@ function MarketplaceFrame() {
   const extra = listings.slice(3, 5);
 
   return (
-    <div style={{ padding: 40, width: "100%", height: "100%", display: "flex", flexDirection: "column", position: "relative" }}>
+    <div className={styles.marketplaceFrameRoot} style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", position: "relative" }}>
       <FrameTexture />
       {/* Header */}
       <div
@@ -342,7 +342,7 @@ function MarketplaceFrame() {
           flexShrink: 0,
         }}
       >
-        <p style={{ fontSize: 72, fontWeight: 600, color: "var(--color-accent)", lineHeight: 1, letterSpacing: "-0.03em", fontFamily: "var(--font-mono)" }}>
+        <p className={styles.marketplaceTitle} style={{ fontWeight: 600, color: "var(--color-accent)", lineHeight: 1, letterSpacing: "-0.03em", fontFamily: "var(--font-mono)" }}>
           {listings.length > 0 ? "Trending" : "Marketplace"}
         </p>
         <Link
@@ -460,8 +460,9 @@ function MarketplaceFrame() {
               )}
             </div>
 
-            {/* Extra cards — positioned in the parallax gap, outside the grid */}
+            {/* Extra cards — positioned in the parallax gap, outside the grid (hidden on small viewports) */}
             <div
+              className={styles.marketplaceExtra}
               style={{
                 position: "absolute",
                 right: -370,
@@ -600,8 +601,8 @@ function QuoteFrame() {
             }}
           >
             <p
+              className={styles.quoteLine}
               style={{
-                fontSize: 95,
                 fontWeight: 400,
                 color: "var(--color-gray-1)",
                 lineHeight: 1.05,
@@ -658,23 +659,11 @@ function ContactFrame() {
       </div>
 
       {/* Center logo */}
-      <div style={{ textAlign: "center" }}>
-        <span
-          style={{
-            fontSize: 85,
-            fontWeight: 400,
-            color: "var(--color-gray-12)",
-          }}
-        >
+      <div className={styles.contactLogo} style={{ textAlign: "center" }}>
+        <span style={{ fontWeight: 400, color: "var(--color-gray-12)" }}>
           mint
         </span>
-        <span
-          style={{
-            fontSize: 85,
-            fontWeight: 400,
-            color: "var(--color-accent)",
-          }}
-        >
+        <span style={{ fontWeight: 400, color: "var(--color-accent)" }}>
           IT
         </span>
       </div>
@@ -696,8 +685,267 @@ const CONTENT_FRAMES = [
 // Main page component
 // ============================================
 
+// ============================================
+// Mobile Home — vertical scroll layout
+// ============================================
+
+function MobileHome() {
+  const { login, authenticated } = usePrivy();
+  const router = useRouter();
+
+  const handleGetStarted = useCallback(() => {
+    if (authenticated) {
+      router.push("/create");
+    } else {
+      login();
+    }
+  }, [authenticated, router, login]);
+
+  return (
+    <main className={styles.mobileRoot}>
+      {/* ── Hero ── */}
+      <section className={styles.mobileHero}>
+        {/* Texture icons */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            overflow: "hidden",
+            pointerEvents: "none",
+            zIndex: 0,
+          }}
+          aria-hidden
+        >
+          {TEXTURE_POSITIONS.slice(0, 12).map((pos, i) => {
+            const Icon = TEXTURE_ICONS[i % TEXTURE_ICONS.length];
+            return (
+              <Icon
+                key={i}
+                style={{
+                  position: "absolute",
+                  left: `${pos.x}%`,
+                  top: `${pos.y}%`,
+                  width: pos.size,
+                  height: pos.size,
+                  opacity: pos.opacity,
+                  transform: `rotate(${pos.rotate}deg)`,
+                  color: "var(--color-accent)",
+                }}
+              />
+            );
+          })}
+        </div>
+
+        <div className={styles.mobileHeroInner}>
+          <div className={styles.mobileHeroText}>
+            <ClipReveal>Create</ClipReveal>
+            <div className={styles.mobileHeroTextOffset}>
+              <ClipReveal delay={0.1}>Unique</ClipReveal>
+            </div>
+            <ClipReveal delay={0.2}>AI Art</ClipReveal>
+            <div className={styles.mobileHeroTextOffset}>
+              <ClipReveal delay={0.3}>As NFTs</ClipReveal>
+            </div>
+
+            <motion.button
+              onClick={handleGetStarted}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 10,
+                background: "var(--color-accent)",
+                color: "var(--color-on-accent)",
+                padding: "14px 32px",
+                borderRadius: 999,
+                fontSize: 16,
+                fontWeight: 600,
+                border: "none",
+                cursor: "pointer",
+                marginTop: 32,
+              }}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 200, damping: 30, delay: 1.0 }}
+            >
+              Start Creating
+              <ArrowRight style={{ width: 16, height: 16 }} />
+            </motion.button>
+          </div>
+
+          {/* Statue */}
+          <motion.div
+            className={styles.mobileStatueWrap}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 200, damping: 30, delay: 0.8 }}
+          >
+            <div className={styles.mobileStatueCircle} />
+            <img
+              src="/images/hero-statue.webp"
+              alt="NFT Statue"
+              className={styles.mobileStatue}
+            />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ── Marketplace ── */}
+      <section className={styles.mobileMarketplace}>
+        <MobileMarketplaceSection />
+      </section>
+
+      {/* ── Quote ── */}
+      <section className={styles.mobileQuote}>
+        <FrameTexture color="var(--color-gray-1)" />
+        <div style={{ position: "relative", zIndex: 1 }}>
+          {[
+            { text: "Turn ideas", mono: false },
+            { text: "into art.", mono: true },
+            { text: "Mint it.", mono: false },
+            { text: "Own it.", mono: true },
+          ].map((line, i) => (
+            <motion.div
+              key={i}
+              className={i % 2 === 1 ? styles.mobileQuoteLineOffset : undefined}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <p
+                className={styles.mobileQuoteLine}
+                style={line.mono ? { fontFamily: "var(--font-mono)", fontStyle: "italic" } : undefined}
+              >
+                {line.text}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── Contact ── */}
+      <section className={styles.mobileContact}>
+        <FrameTexture />
+        <div style={{ position: "relative", zIndex: 1 }}>
+          <div className={styles.mobileContactNav}>
+            <a href="/create">Create</a>
+            <a href="/gallery">Gallery</a>
+          </div>
+
+          <div className={styles.mobileContactLogo}>
+            <span style={{ fontWeight: 400, color: "var(--color-gray-12)" }}>mint</span>
+            <span style={{ fontWeight: 400, color: "var(--color-accent)" }}>IT</span>
+          </div>
+
+          <div className={styles.mobileContactSocial}>
+            <a href="https://x.com/el_saintt" target="_blank" rel="noopener noreferrer" aria-label="X">
+              <Twitter style={{ width: 24, height: 24 }} />
+            </a>
+            <a href="#" aria-label="Telegram">
+              <Send style={{ width: 24, height: 24 }} />
+            </a>
+            <a href="https://github.com/stElmitchay/mintdotfun" target="_blank" rel="noopener noreferrer" aria-label="GitHub">
+              <Github style={{ width: 24, height: 24 }} />
+            </a>
+          </div>
+
+          <p className={styles.mobileContactCopyright}>
+            &copy; {new Date().getFullYear()} mintIT
+          </p>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+// ============================================
+// Mobile Marketplace Section
+// ============================================
+
+function MobileMarketplaceSection() {
+  const { listings, loading } = useListings({ limit: 4, sort: "newest" });
+
+  return (
+    <>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <p className={styles.mobileMarketplaceTitle}>
+          {listings.length > 0 ? "Trending" : "Marketplace"}
+        </p>
+        <Link
+          href="/gallery"
+          style={{ fontSize: 14, color: "var(--color-accent)", textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}
+        >
+          View all <ArrowRight style={{ width: 14, height: 14 }} />
+        </Link>
+      </div>
+
+      {loading ? (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "60px 0", color: "var(--color-gray-9)", fontSize: 14 }}>
+          Loading...
+        </div>
+      ) : listings.length > 0 ? (
+        <div className={styles.mobileMarketplaceGrid}>
+          {listings.map((listing) => (
+            <Link
+              key={listing.id}
+              href={`/nft/${listing.mintAddress}`}
+              className={styles.nftCard}
+              style={{ display: "block" }}
+            >
+              {listing.nftImageUrl ? (
+                <img src={listing.nftImageUrl} alt={listing.nftName} className={styles.nftCardImage} />
+              ) : (
+                <div className={styles.nftCardPlaceholder}>
+                  <Sparkles style={{ width: 24, height: 24, color: "var(--color-gray-7)" }} />
+                </div>
+              )}
+              <div className={styles.nftCardOverlay} />
+              <div className={styles.nftCardInfo}>
+                <div className={styles.nftCardName}>{listing.nftName}</div>
+                <div className={styles.nftCardMeta}>
+                  <span className={styles.nftCardPrice}>{listing.priceSol} SOL</span>
+                  <span className={styles.nftCardSeller}>
+                    {shortenAddr(listing.sellerWallet)} &middot; {timeAgo(listing.listedAt)}
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "40px 0" }}>
+          <Sparkles style={{ width: 40, height: 40, color: "var(--color-gray-6)" }} />
+          <p style={{ fontSize: 16, color: "var(--color-gray-9)", fontWeight: 500 }}>No listings yet</p>
+          <Link
+            href="/create"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              background: "var(--color-accent)",
+              color: "var(--color-on-accent)",
+              padding: "12px 24px",
+              borderRadius: 999,
+              fontSize: 14,
+              fontWeight: 600,
+              textDecoration: "none",
+            }}
+          >
+            Start Creating <ArrowRight style={{ width: 14, height: 14 }} />
+          </Link>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ============================================
+// Desktop Home — horizontal scroll
+// ============================================
+
 export default function HomePage() {
   const isTouch = useMediaQuery("(pointer: coarse)");
+  const isMobile = useMediaQuery("(max-width: 1024px)");
   const step = 1240 / (isTouch ? 5 : 3);
 
   const { login, authenticated } = usePrivy();
@@ -731,10 +979,11 @@ export default function HomePage() {
       if (isWheeling.current) scrollY.stop();
       if (!cancelAnimation) setCancelAnimation(true);
 
+      const minScale = Math.min(0.6, maxScaleRef.current);
       let newScale = maxScaleRef.current;
       if (scrollAmount > 0) {
         newScale = clamp(scaleSpring.get() + -(0.01 * scrollAmount * 0.01), [
-          0.6,
+          minScale,
           maxScaleRef.current,
         ]);
       }
@@ -825,9 +1074,11 @@ export default function HomePage() {
     function updateSize() {
       if (!mainRef.current) return;
 
+      const isNarrow = window.innerWidth < 640;
+      const minScaleClamp = isNarrow ? 0.42 : 0.2;
       const computedScale = clamp(
         Math.min(window.innerWidth / 1300, window.innerHeight / 1020),
-        [0.2, 1]
+        [minScaleClamp, 1]
       );
 
       if (scaleSpring.get() !== 0.6) {
@@ -835,12 +1086,12 @@ export default function HomePage() {
       }
       maxScaleRef.current = computedScale;
 
-      const minScale = computedScale < 0.6 ? computedScale : 0.6;
-      const clientWidth = mainRef.current.clientWidth * minScale;
+      const effectiveScale = computedScale < 0.6 ? computedScale : 0.6;
+      const clientWidth = mainRef.current.clientWidth * effectiveScale;
       const extra =
-        TOTAL_WIDTH * minScale -
+        TOTAL_WIDTH * effectiveScale -
         clientWidth +
-        2 * ((window.innerWidth - FRAME_WIDTH) / 2) * minScale;
+        2 * ((window.innerWidth - FRAME_WIDTH) / 2) * effectiveScale;
       setGhostExtra(extra);
     }
 
@@ -880,6 +1131,9 @@ export default function HomePage() {
         return null;
     }
   }
+
+  // Mobile: render vertical layout instead of frame system
+  if (isMobile) return <MobileHome />;
 
   return (
     <>
@@ -979,6 +1233,7 @@ export default function HomePage() {
                     {/* CTA */}
                     <motion.button
                       onClick={handleGetStarted}
+                      className={styles.ctaButton}
                       style={{
                         display: "inline-flex",
                         alignItems: "center",

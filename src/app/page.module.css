@@ -338,6 +338,31 @@
   /* Handled by framer-motion */
 }
 
+/* Marketplace frame root — padding and title (overridden in media queries) */
+.marketplaceFrameRoot {
+  padding: 40px;
+}
+
+.marketplaceTitle {
+  font-size: 72px;
+}
+
+.marketplaceExtra {
+  /* Shown by default; hidden on small viewports via media query */
+}
+
+.quoteLine {
+  font-size: 95px;
+}
+
+.contactLogo {
+  font-size: 85px;
+}
+
+.contactLogo span {
+  font-size: inherit;
+}
+
 /* ============================================
    Minimap
    ============================================ */
@@ -396,5 +421,465 @@
 
   .mainContainer {
     position: absolute;
+  }
+}
+
+/* ============================================
+   Responsive — Mobile viewport
+   ============================================ */
+
+/* Tablet and small desktop */
+@media (max-width: 900px) {
+  .main {
+    padding: 40px 32px;
+    gap: 40px;
+  }
+
+  .clipRevealOffset {
+    margin-left: 32px;
+  }
+
+  .contact {
+    --padding: 32px;
+  }
+
+  .contact a {
+    font-size: 56px;
+  }
+
+  .contactLogo {
+    font-size: 56px !important;
+  }
+
+  .marketplaceFrameRoot {
+    padding: 24px !important;
+  }
+
+  .marketplaceTitle {
+    font-size: 48px !important;
+  }
+
+  .quoteLine {
+    font-size: 64px !important;
+  }
+
+  .marketplaceGrid {
+    gap: 8px;
+  }
+
+  .nftCardInfo {
+    padding: 14px;
+  }
+
+  .nftCardInfoCompact {
+    padding: 10px;
+  }
+
+  .nftCardName {
+    font-size: 15px;
+  }
+
+  .nftCardNameCompact {
+    font-size: 12px;
+  }
+
+  .minimapLine {
+    height: 14px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .main {
+    padding: 28px 20px;
+    gap: 24px;
+  }
+
+  .clipRevealOffset {
+    margin-left: 20px;
+  }
+
+  .frame a,
+  .frame p {
+    font-size: clamp(72px, 18vw, 95px);
+  }
+
+  .contact {
+    --padding: 20px;
+  }
+
+  .contact a {
+    font-size: 36px;
+  }
+
+  .contactLogo {
+    font-size: 40px !important;
+  }
+
+  .marketplaceFrameRoot {
+    padding: 20px !important;
+  }
+
+  .marketplaceTitle {
+    font-size: 36px !important;
+  }
+
+  .quoteLine {
+    font-size: 44px !important;
+  }
+
+  .marketplaceExtra {
+    display: none !important;
+  }
+
+  .marketplaceGrid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr 1fr;
+    gap: 8px;
+  }
+
+  .nftCardFeatured {
+    grid-row: 1;
+    min-height: 180px;
+  }
+
+  .nftCardName {
+    font-size: 14px;
+  }
+
+  .nftCardNameCompact {
+    font-size: 11px;
+  }
+
+  .nftCardPrice,
+  .nftCardPriceCompact {
+    font-size: 11px;
+  }
+
+  .statue {
+    height: 75%;
+  }
+
+  .minimap {
+    top: 12px;
+  }
+
+  .minimapLine {
+    height: 16px;
+  }
+
+  .ctaButton {
+    min-height: 48px;
+    padding: 14px 28px !important;
+  }
+}
+
+/* Small mobile — ensure tap targets and readability */
+@media (max-width: 400px) {
+  .main {
+    padding: 20px 16px;
+    gap: 20px;
+  }
+
+  .clipRevealOffset {
+    margin-left: 16px;
+  }
+
+  .contact a {
+    font-size: 28px;
+  }
+
+  .contactLogo {
+    font-size: 32px !important;
+  }
+
+  .marketplaceTitle {
+    font-size: 28px !important;
+  }
+
+  .quoteLine {
+    font-size: 36px !important;
+  }
+}
+
+/* ============================================
+   Vertical Layout (Mobile + Tablet ≤1024px)
+   ============================================ */
+
+.mobileRoot {
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Hero — phone: stacked, tablet: side-by-side */
+.mobileHero {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 80px 24px 40px;
+  position: relative;
+  overflow: hidden;
+}
+
+.mobileHeroInner {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+}
+
+.mobileHeroText p {
+  font-size: clamp(48px, 12vw, 72px);
+  font-weight: 400;
+  line-height: 1.05;
+  color: var(--color-gray-12);
+}
+
+.mobileHeroTextOffset {
+  overflow: hidden;
+  margin-left: 24px;
+}
+
+.mobileHeroTextOffset span {
+  display: inline-block;
+}
+
+.mobileStatueWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 40px;
+  position: relative;
+}
+
+.mobileStatue {
+  height: 260px;
+  width: auto;
+  position: relative;
+  z-index: 1;
+  filter:
+    hue-rotate(var(--statue-hue-rotate, 0deg))
+    saturate(1.4)
+    drop-shadow(0 0 40px color-mix(in srgb, var(--color-accent) 35%, transparent));
+}
+
+.mobileStatueCircle {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 9999px;
+  background: var(--color-accent);
+}
+
+/* ── 480px+ (large phone) ── */
+@media (min-width: 480px) {
+  .mobileStatue {
+    height: 320px;
+  }
+
+  .mobileStatueCircle {
+    width: 240px;
+    height: 240px;
+  }
+}
+
+/* ── 768px+ (tablet) — hero becomes side-by-side ── */
+@media (min-width: 768px) {
+  .mobileHero {
+    padding: 100px 48px 60px;
+  }
+
+  .mobileHeroInner {
+    flex-direction: row;
+    align-items: center;
+    gap: 40px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .mobileHeroText {
+    flex: 1;
+  }
+
+  .mobileHeroText p {
+    font-size: clamp(56px, 8vw, 80px);
+  }
+
+  .mobileHeroTextOffset {
+    margin-left: 32px;
+  }
+
+  .mobileStatueWrap {
+    margin-top: 0;
+    flex-shrink: 0;
+  }
+
+  .mobileStatue {
+    height: 400px;
+  }
+
+  .mobileStatueCircle {
+    width: 300px;
+    height: 300px;
+  }
+}
+
+/* Marketplace */
+.mobileMarketplace {
+  padding: 60px 20px;
+}
+
+.mobileMarketplaceTitle {
+  font-size: clamp(28px, 7vw, 40px);
+  font-weight: 600;
+  color: var(--color-accent);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-family: var(--font-mono);
+  margin-bottom: 20px;
+}
+
+.mobileMarketplaceGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.mobileMarketplaceGrid .nftCard {
+  aspect-ratio: 4 / 3;
+}
+
+@media (min-width: 480px) {
+  .mobileMarketplaceGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .mobileMarketplaceGrid .nftCard {
+    aspect-ratio: 1 / 1;
+  }
+}
+
+/* ── 768px+ (tablet) — marketplace gets more room ── */
+@media (min-width: 768px) {
+  .mobileMarketplace {
+    padding: 80px 48px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .mobileMarketplaceTitle {
+    font-size: 48px;
+  }
+
+  .mobileMarketplaceGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .mobileMarketplaceGrid .nftCard {
+    aspect-ratio: 4 / 3;
+  }
+}
+
+/* Quote */
+.mobileQuote {
+  padding: 80px 24px;
+  background: var(--color-accent);
+  position: relative;
+  overflow: hidden;
+}
+
+.mobileQuoteLine {
+  font-size: clamp(32px, 9vw, 48px);
+  font-weight: 400;
+  color: var(--color-gray-1);
+  line-height: 1.1;
+}
+
+.mobileQuoteLineOffset {
+  margin-left: 24px;
+}
+
+/* ── 768px+ (tablet) — larger quote ── */
+@media (min-width: 768px) {
+  .mobileQuote {
+    padding: 120px 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobileQuoteLine {
+    font-size: clamp(48px, 7vw, 72px);
+  }
+
+  .mobileQuoteLineOffset {
+    margin-left: 40px;
+  }
+}
+
+/* Contact */
+.mobileContact {
+  padding: 60px 24px;
+  position: relative;
+}
+
+.mobileContactNav {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 60px;
+}
+
+.mobileContactNav a {
+  font-size: clamp(28px, 7vw, 40px);
+  font-weight: 400;
+  color: var(--color-gray-12);
+  text-decoration: none;
+}
+
+.mobileContactLogo {
+  text-align: center;
+  font-size: clamp(40px, 10vw, 56px);
+  margin-bottom: 40px;
+}
+
+.mobileContactSocial {
+  display: flex;
+  justify-content: center;
+  gap: 32px;
+}
+
+.mobileContactSocial a {
+  color: var(--color-accent);
+  padding: 8px;
+}
+
+.mobileContactCopyright {
+  text-align: center;
+  margin-top: 40px;
+  font-size: 14px;
+  color: var(--color-accent);
+}
+
+/* ── 768px+ (tablet) — contact gets spacious ── */
+@media (min-width: 768px) {
+  .mobileContact {
+    padding: 80px 48px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .mobileContactNav {
+    margin-bottom: 80px;
+  }
+
+  .mobileContactNav a {
+    font-size: clamp(40px, 6vw, 56px);
+  }
+
+  .mobileContactLogo {
+    font-size: 64px;
+    margin-bottom: 48px;
   }
 }

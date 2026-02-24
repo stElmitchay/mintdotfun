@@ -349,7 +349,7 @@ export default function CreatePage() {
             <StepShell key="style" direction={direction}>
               <StepLabel number={2} text="Pick an art style" />
               <div className="w-full max-w-3xl">
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
                   {STYLE_PRESETS.map((preset) => (
                     <motion.button
                       key={preset.id}
@@ -552,7 +552,7 @@ export default function CreatePage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
                     {generatedImages.map((img, i) => (
                       <motion.button
                         key={img.id}
@@ -623,7 +623,7 @@ export default function CreatePage() {
 
       {/* Bottom navigation — prev / next */}
       {status !== "generating" && (
-        <div className="relative z-20 flex items-center justify-between px-8 py-6">
+        <div className="relative z-20 flex items-center justify-between px-4 sm:px-8 py-6">
           {/* Previous */}
           {step > 0 && step < 3 ? (
             <motion.button

@@ -20,7 +20,7 @@ export default function Sheet({
       ? "sheet-yellow text-gray-1"
       : "sheet";
 
-  const padding = noPadding ? "" : "p-6 md:p-10 lg:p-16";
+  const padding = noPadding ? "" : "p-4 sm:p-6 md:p-10 lg:p-16";
 
   return (
     <section className={`${base} ${padding} ${className}`}>

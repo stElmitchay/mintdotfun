@@ -100,7 +100,7 @@ function ListingCard({
           <span className="text-xs font-semibold text-accent">
             {listing.priceSol} SOL
           </span>
-          <span className="text-xs text-gray-9 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+          <span className="text-xs text-gray-9 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity flex items-center gap-1">
             View NFT
             <ArrowRight className="w-3 h-3" />
           </span>
@@ -166,17 +166,17 @@ function AssetCard({
         </Link>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-4 pt-3 pb-4">
+        <div className="flex items-center justify-between px-4 pt-1 pb-2">
           {asset.isListed ? (
             <>
-              <span className="text-[11px] font-medium flex items-center gap-1 text-accent">
+              <span className="text-[11px] font-medium flex items-center gap-1 text-accent py-2">
                 <Tag className="w-3 h-3" />
                 Listed
               </span>
               <button
                 onClick={onDelist}
                 disabled={delisting}
-                className="text-xs text-gray-9 hover:text-red-400 transition-colors disabled:opacity-50"
+                className="text-xs text-gray-9 hover:text-red-400 transition-colors disabled:opacity-50 py-2"
               >
                 {delisting ? <Loader2 className="w-3 h-3 animate-spin" /> : "Delist"}
               </button>
@@ -185,13 +185,13 @@ function AssetCard({
             <>
               <button
                 onClick={onList}
-                className="text-xs text-gray-9 hover:text-accent transition-colors"
+                className="text-xs text-gray-9 hover:text-accent transition-colors py-2"
               >
                 List for sale
               </button>
               <Link
                 href={`/nft/${asset.address}`}
-                className="text-xs text-gray-9 hover:text-gray-11 transition-colors flex items-center gap-1"
+                className="text-xs text-gray-9 hover:text-gray-11 transition-colors flex items-center gap-1 py-2"
               >
                 View NFT
                 <ArrowRight className="w-3 h-3" />
@@ -245,17 +245,17 @@ function MintedCard({
         </Link>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-4 pt-3 pb-4">
+        <div className="flex items-center justify-between px-4 pt-1 pb-2">
           <button
             onClick={onRemove}
-            className="text-xs text-gray-9 hover:text-red-400 transition-colors flex items-center gap-1"
+            className="text-xs text-gray-9 hover:text-red-400 transition-colors flex items-center gap-1 py-2"
           >
             <Trash2 className="w-3 h-3" />
             Remove
           </button>
           <Link
             href={`/nft/${nft.mint}`}
-            className="text-xs text-gray-9 hover:text-gray-11 transition-colors flex items-center gap-1"
+            className="text-xs text-gray-9 hover:text-gray-11 transition-colors flex items-center gap-1 py-2"
           >
             View NFT
             <ArrowRight className="w-3 h-3" />
@@ -486,9 +486,11 @@ export default function GalleryPage() {
 
   return (
     <div className="min-h-screen pt-16 pb-20">
-      <GalleryMinimap activeSection={activeSection} />
+      <div className="hidden sm:block">
+        <GalleryMinimap activeSection={activeSection} />
+      </div>
 
-      <div className="max-w-[1100px] mx-auto px-4 mt-10">
+      <div className="max-w-[1100px] mx-auto px-4 mt-6 sm:mt-10">
         {/* Loading */}
         {(loading || listingsLoading) && !hasAny && (
           <div className="flex items-center justify-center gap-3 py-32 text-gray-8">
@@ -505,7 +507,7 @@ export default function GalleryPage() {
 
         {/* Listed section */}
         {listedCards.length > 0 && (
-          <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 [&>*]:mb-4">
+          <div className="columns-1 sm:columns-2 md:columns-3 gap-4 [&>*]:mb-4">
             {listedCards}
           </div>
         )}
@@ -513,7 +515,7 @@ export default function GalleryPage() {
         {/* My NFTs section — ref for scroll tracking */}
         <div ref={mySectionRef}>
           {myCards.length > 0 && (
-            <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 [&>*]:mb-4">
+            <div className="columns-1 sm:columns-2 md:columns-3 gap-4 [&>*]:mb-4">
               {myCards}
             </div>
           )}

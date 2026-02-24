@@ -68,11 +68,11 @@ export default function ListingModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.97, y: 10 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          className="relative bg-surface-1 rounded-2xl border border-white/[0.06] p-6 max-w-md w-full"
+          className="relative bg-surface-1 rounded-2xl border border-white/[0.06] p-6 w-full sm:max-w-md max-h-[90vh] overflow-y-auto"
         >
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-gray-600 hover:text-white transition-colors"
+            className="absolute top-4 right-4 p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-600 hover:text-white transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -114,7 +114,7 @@ export default function ListingModal({
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 disabled={listing}
-                className="w-full bg-surface-2 border border-white/[0.06] rounded-xl px-4 py-3 pr-16 text-white text-sm placeholder-gray-600 focus:outline-none focus:border-primary/40 transition-all disabled:opacity-50"
+                className="w-full bg-surface-2 border border-white/[0.06] rounded-xl px-4 py-3 pr-16 text-white text-base placeholder-gray-600 focus:outline-none focus:border-primary/40 transition-all disabled:opacity-50"
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-gray-500 font-medium">
                 SOL

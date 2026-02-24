@@ -157,8 +157,10 @@ h3 {
 .hover-lift {
   transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.hover-lift:hover {
-  transform: translateY(-4px);
+@media (hover: hover) {
+  .hover-lift:hover {
+    transform: translateY(-4px);
+  }
 }
 
 .scrollbar-hide {
@@ -187,6 +189,18 @@ h3 {
   cursor: pointer;
   border: none;
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 15%, transparent);
+}
+
+/* Larger slider thumb on touch devices */
+@media (pointer: coarse) {
+  .slider::-webkit-slider-thumb {
+    height: 28px;
+    width: 28px;
+  }
+  .slider::-moz-range-thumb {
+    height: 28px;
+    width: 28px;
+  }
 }
 
 /* Collection slider fade mask */

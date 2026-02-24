@@ -46,7 +46,7 @@ export default function Footer() {
           </div>
 
           {/* Bottom-right */}
-          <div className="absolute bottom-0 right-0 flex items-center gap-4">
+          <div className="absolute bottom-0 right-0 flex items-center gap-2">
             {[
               { icon: Twitter, href: "https://x.com/el_saintt", label: "X" },
               { icon: Send, href: "#", label: "Telegram" },
@@ -55,7 +55,7 @@ export default function Footer() {
               <a
                 key={label}
                 href={href}
-                className="text-accent hover:opacity-70 transition-opacity duration-300"
+                className="text-accent hover:opacity-70 transition-opacity duration-300 p-2"
                 aria-label={label}
               >
                 <Icon className="w-4 h-4" />
