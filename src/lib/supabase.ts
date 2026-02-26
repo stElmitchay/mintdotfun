@@ -98,3 +98,37 @@ export interface ActiveMirrorRow {
   minted_at: string;
   last_updated_at: string | null;
 }
+
+// ============================================================
+// Agent-as-NFT
+// ============================================================
+
+/** Row shape for agents table. */
+export interface AgentRow {
+  id: string;
+  mint_address: string;
+  owner_wallet: string;
+  name: string;
+  archetype: string;
+  personality: Record<string, unknown>;
+  personality_hash: string;
+  personality_arweave_uri: string | null;
+  level: number;
+  reputation_score: number;
+  total_interactions: number;
+  total_creations: number;
+  total_sales: number;
+  total_revenue_lamports: number;
+  collaborations: number;
+  autonomy_mode: string;
+  auto_mint_enabled: boolean;
+  auto_list_enabled: boolean;
+  min_list_price_lamports: number | null;
+  max_list_price_lamports: number | null;
+  creation_schedule: string;
+  quality_threshold: number;
+  connected_feeds: string[];
+  avatar_url: string | null;
+  created_at: string;
+  updated_at: string;
+}

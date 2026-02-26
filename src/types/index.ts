@@ -52,3 +52,11 @@ export type {
   ActiveMirror,
   MirrorMintStatus,
 } from "@/lib/mirrors/types";
+
+// Agents
+export type {
+  AgentPersonality,
+  AgentArchetype,
+  AgentMintResult,
+  CreateAgentRequest,
+} from "./agent";

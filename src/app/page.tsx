@@ -33,9 +33,11 @@ import {
   Twitter,
   Send,
   Github,
+  Brain,
 } from "lucide-react";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
 import { useListings } from "@/hooks/useListings";
+import { useAgents } from "@/hooks/useAgents";
 import { clamp } from "@/lib/clamp";
 import {
   FRAME_WIDTH,
@@ -563,6 +565,188 @@ function MarketplaceFrame() {
 }
 
 // ============================================
+// Frame content: AgentsFrame
+// ============================================
+
+const ARCHETYPE_COLORS: Record<string, string> = {
+  visionary: "#a78bfa",
+  chronicler: "#60a5fa",
+  provocateur: "#f87171",
+  harmonist: "#34d399",
+  mystic: "#c084fc",
+  technologist: "#38bdf8",
+  naturalist: "#4ade80",
+  urbanist: "#fb923c",
+};
+
+function AgentsFrame() {
+  const { agents, loading } = useAgents({ limit: 5, sort: "reputation" });
+
+  const featured = agents[0];
+  const rest = agents.slice(1, 3);
+  const extra = agents.slice(3, 5);
+
+  return (
+    <div className={styles.marketplaceFrameRoot} style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", position: "relative" }}>
+      <FrameTexture />
+      {/* Header */}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 20,
+          flexShrink: 0,
+        }}
+      >
+        <p className={styles.marketplaceTitle} style={{ fontWeight: 600, color: "var(--color-accent)", lineHeight: 1, letterSpacing: "-0.03em", fontFamily: "var(--font-mono)" }}>
+          Creative Agents
+        </p>
+        <Link
+          href="/agents"
+          style={{
+            fontSize: 14,
+            color: "var(--color-accent)",
+            textDecoration: "none",
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+          }}
+        >
+          View all <ArrowRight style={{ width: 14, height: 14 }} />
+        </Link>
+      </div>
+
+      {/* Content */}
+      <div style={{ flex: 1, minHeight: 0, position: "relative" }}>
+        {loading ? (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "var(--color-gray-9)", fontSize: 14 }}>
+            Loading...
+          </div>
+        ) : agents.length > 0 ? (
+          <>
+            <div className={styles.marketplaceGrid}>
+              {/* Featured agent — left column, full height */}
+              {featured && (
+                <Link
+                  href={`/agent/${featured.id}`}
+                  className={`${styles.nftCard} ${styles.nftCardFeatured}`}
+                >
+                  {featured.avatar_url ? (
+                    <img src={featured.avatar_url} alt={featured.name} className={styles.nftCardImage} />
+                  ) : (
+                    <div className={styles.nftCardPlaceholder}>
+                      <Brain style={{ width: 32, height: 32, color: "var(--color-gray-7)" }} />
+                    </div>
+                  )}
+                  <div className={styles.nftCardOverlay} />
+                  <div className={styles.nftCardInfo}>
+                    <div className={styles.nftCardName}>{featured.name}</div>
+                    <div className={styles.nftCardMeta}>
+                      <span className={styles.nftCardPrice} style={{ color: ARCHETYPE_COLORS[featured.archetype] ?? "var(--color-accent)" }}>
+                        {featured.archetype}
+                      </span>
+                      <span className={styles.nftCardSeller}>Lv.{featured.level}</span>
+                    </div>
+                  </div>
+                </Link>
+              )}
+
+              {/* Right column — 2 stacked cards */}
+              {rest.map((agent) => (
+                <Link key={agent.id} href={`/agent/${agent.id}`} className={styles.nftCard}>
+                  {agent.avatar_url ? (
+                    <img src={agent.avatar_url} alt={agent.name} className={styles.nftCardImage} />
+                  ) : (
+                    <div className={styles.nftCardPlaceholder}>
+                      <Brain style={{ width: 20, height: 20, color: "var(--color-gray-7)" }} />
+                    </div>
+                  )}
+                  <div className={styles.nftCardOverlay} />
+                  <div className={styles.nftCardInfoCompact}>
+                    <div className={styles.nftCardNameCompact}>{agent.name}</div>
+                    <div className={styles.nftCardMeta}>
+                      <span className={styles.nftCardPriceCompact} style={{ color: ARCHETYPE_COLORS[agent.archetype] ?? "var(--color-accent)" }}>
+                        {agent.archetype}
+                      </span>
+                      <span className={styles.nftCardSeller}>Lv.{agent.level}</span>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+
+              {rest.length < 2 && (
+                <Link href="/agents" className={styles.nftCard}>
+                  <div className={styles.nftCardPlaceholder}>
+                    <div style={{ textAlign: "center" }}>
+                      <Brain style={{ width: 24, height: 24, color: "var(--color-gray-6)", marginBottom: 8 }} />
+                      <div style={{ fontSize: 12, color: "var(--color-gray-7)" }}>Explore</div>
+                    </div>
+                  </div>
+                </Link>
+              )}
+            </div>
+
+            {/* Extra cards in parallax gap */}
+            <div
+              className={styles.marketplaceExtra}
+              style={{
+                position: "absolute",
+                right: -370,
+                top: 0,
+                bottom: 0,
+                width: 330,
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+              }}
+            >
+              {extra.map((agent) => (
+                <Link key={agent.id} href={`/agent/${agent.id}`} className={styles.nftCard} style={{ flex: 1 }}>
+                  {agent.avatar_url ? (
+                    <img src={agent.avatar_url} alt={agent.name} className={styles.nftCardImage} />
+                  ) : (
+                    <div className={styles.nftCardPlaceholder}>
+                      <Brain style={{ width: 20, height: 20, color: "var(--color-gray-7)" }} />
+                    </div>
+                  )}
+                  <div className={styles.nftCardOverlay} />
+                  <div className={styles.nftCardInfoCompact}>
+                    <div className={styles.nftCardNameCompact}>{agent.name}</div>
+                    <span className={styles.nftCardPriceCompact} style={{ color: ARCHETYPE_COLORS[agent.archetype] ?? "var(--color-accent)" }}>
+                      {agent.archetype}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+              {extra.length < 2 &&
+                Array.from({ length: 2 - extra.length }).map((_, i) => (
+                  <Link key={`agent-extra-empty-${i}`} href="/agents" className={styles.nftCard} style={{ flex: 1 }}>
+                    <div className={styles.nftCardPlaceholder}>
+                      <div style={{ textAlign: "center" }}>
+                        <Brain style={{ width: 20, height: 20, color: "var(--color-gray-6)", marginBottom: 6 }} />
+                        <div style={{ fontSize: 11, color: "var(--color-gray-7)" }}>Explore</div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+            </div>
+          </>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", gap: 20 }}>
+            <Brain style={{ width: 48, height: 48, color: "var(--color-gray-6)" }} />
+            <p style={{ fontSize: 20, color: "var(--color-gray-9)", fontWeight: 500 }}>No agents yet</p>
+            <p style={{ fontSize: 14, color: "var(--color-gray-7)", maxWidth: 300, textAlign: "center", lineHeight: 1.5 }}>
+              Creative AI agents that evolve, learn, and create art on-chain.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================
 // Frame content: QuoteFrame
 // ============================================
 
@@ -677,6 +861,7 @@ function ContactFrame() {
 
 const CONTENT_FRAMES = [
   { id: "marketplace", variant: "slide" as const },
+  { id: "agents", variant: "slide" as const },
   { id: "quote", variant: "default" as const, color: "var(--color-accent)" },
   { id: "contact", variant: "default" as const },
 ];
@@ -792,6 +977,11 @@ function MobileHome() {
       {/* ── Marketplace ── */}
       <section className={styles.mobileMarketplace}>
         <MobileMarketplaceSection />
+      </section>
+
+      {/* ── Agents ── */}
+      <section className={styles.mobileAgents}>
+        <MobileAgentsSection />
       </section>
 
       {/* ── Quote ── */}
@@ -933,6 +1123,70 @@ function MobileMarketplaceSection() {
           >
             Start Creating <ArrowRight style={{ width: 14, height: 14 }} />
           </Link>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ============================================
+// Mobile Agents Section
+// ============================================
+
+function MobileAgentsSection() {
+  const { agents, loading } = useAgents({ limit: 4, sort: "reputation" });
+
+  return (
+    <>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+        <p className={styles.mobileAgentsTitle}>
+          Creative Agents
+        </p>
+        <Link
+          href="/agents"
+          style={{ fontSize: 14, color: "var(--color-accent)", textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}
+        >
+          View all <ArrowRight style={{ width: 14, height: 14 }} />
+        </Link>
+      </div>
+
+      {loading ? (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "60px 0", color: "var(--color-gray-9)", fontSize: 14 }}>
+          Loading...
+        </div>
+      ) : agents.length > 0 ? (
+        <div className={styles.mobileAgentsGrid}>
+          {agents.map((agent) => (
+            <Link
+              key={agent.id}
+              href={`/agent/${agent.id}`}
+              className={styles.nftCard}
+              style={{ display: "block" }}
+            >
+              {agent.avatar_url ? (
+                <img src={agent.avatar_url} alt={agent.name} className={styles.nftCardImage} />
+              ) : (
+                <div className={styles.nftCardPlaceholder}>
+                  <Brain style={{ width: 24, height: 24, color: "var(--color-gray-7)" }} />
+                </div>
+              )}
+              <div className={styles.nftCardOverlay} />
+              <div className={styles.nftCardInfo}>
+                <div className={styles.nftCardName}>{agent.name}</div>
+                <div className={styles.nftCardMeta}>
+                  <span className={styles.nftCardPrice} style={{ color: ARCHETYPE_COLORS[agent.archetype] ?? "var(--color-accent)" }}>
+                    {agent.archetype}
+                  </span>
+                  <span className={styles.nftCardSeller}>Lv.{agent.level}</span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "40px 0" }}>
+          <Brain style={{ width: 40, height: 40, color: "var(--color-gray-6)" }} />
+          <p style={{ fontSize: 16, color: "var(--color-gray-9)", fontWeight: 500 }}>No agents yet</p>
         </div>
       )}
     </>
@@ -1123,6 +1377,8 @@ export default function HomePage() {
     switch (id) {
       case "marketplace":
         return <MarketplaceFrame />;
+      case "agents":
+        return <AgentsFrame />;
       case "quote":
         return <QuoteFrame />;
       case "contact":

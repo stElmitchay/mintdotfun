@@ -52,6 +52,12 @@ export default function Header() {
             >
               Mirrors
             </Link>
+            <Link
+              href="/agents"
+              className="text-sm text-gray-9 hover:text-gray-12 transition-colors duration-300"
+            >
+              Agents
+            </Link>
           </div>
 
           {/* Right actions */}

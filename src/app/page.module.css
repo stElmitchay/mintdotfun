@@ -883,3 +883,44 @@
     margin-bottom: 48px;
   }
 }
+
+/* ── Mobile Agents Section ── */
+.mobileAgents {
+  padding: 60px 20px;
+}
+
+.mobileAgentsTitle {
+  font-size: clamp(28px, 7vw, 40px);
+  font-weight: 600;
+  color: var(--color-accent);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  font-family: var(--font-mono);
+  margin-bottom: 20px;
+}
+
+.mobileAgentsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.mobileAgentsGrid .nftCard {
+  aspect-ratio: 1 / 1;
+}
+
+@media (min-width: 768px) {
+  .mobileAgents {
+    padding: 80px 48px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .mobileAgentsTitle {
+    font-size: 48px;
+  }
+
+  .mobileAgentsGrid {
+    gap: 16px;
+  }
+}

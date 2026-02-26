@@ -121,6 +121,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   }, [isHome]);
 
   const isCreate = pathname === "/create";
+  const isAgentChat = pathname?.startsWith("/agent/");
 
   const content = (
     <div
@@ -130,7 +131,7 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
       <div className="relative z-10">
         {!isCreate && <Header />}
         <main>{children}</main>
-        {!isHome && !isCreate && <Footer />}
+        {!isHome && !isCreate && !isAgentChat && <Footer />}
       </div>
     </div>
   );
