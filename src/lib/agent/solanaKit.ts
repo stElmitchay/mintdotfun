@@ -1,5 +1,4 @@
 import { SolanaAgentKit, createVercelAITools } from "solana-agent-kit";
-import NFTPlugin from "@solana-agent-kit/plugin-nft";
 import TokenPlugin from "@solana-agent-kit/plugin-token";
 import {
   Keypair,
@@ -13,12 +12,26 @@ import type { Tool } from "ai";
 // Solana Agent Kit — singleton with NFT + Token plugins
 // ============================================================
 
-type AnyTool = Tool<any, any>;
+type AnyTool = Tool;
 
 const rpcUrl =
   process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://api.devnet.solana.com";
 
 let cachedTools: Record<string, AnyTool> | null = null;
+
+function loadOptionalNftPlugin(): unknown {
+  try {
+    // Keep NFT plugin optional to avoid hard build/runtime coupling
+    // to Aptos client deps required by that plugin.
+    const dynamicRequire = eval("require") as (id: string) => unknown;
+    const mod = dynamicRequire("@solana-agent-kit/plugin-nft") as {
+      default?: unknown;
+    };
+    return mod.default ?? mod;
+  } catch {
+    return null;
+  }
+}
 
 /** Build a BaseWallet adapter from a Keypair for server-side use. */
 function keypairToWallet(keypair: Keypair) {
@@ -143,7 +156,13 @@ export function getSolanaTools(): Record<string, AnyTool> {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const agent = new SolanaAgentKit(wallet as any, rpcUrl, {});
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const agentWithPlugins = (agent as any).use(NFTPlugin).use(TokenPlugin);
+  let agentWithPlugins = (agent as any).use(TokenPlugin);
+
+  const nftPlugin = loadOptionalNftPlugin();
+  if (nftPlugin) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    agentWithPlugins = (agentWithPlugins as any).use(nftPlugin);
+  }
 
   const rawTools = createVercelAITools(
     agentWithPlugins,

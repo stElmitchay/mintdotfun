@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Replicate from "replicate";
 import { GENERATION, STYLE_PROMPTS } from "@/lib/constants";
+import { requirePrivyAuth } from "@/lib/auth/privy";
 
 if (!process.env.REPLICATE_API_TOKEN) {
   throw new Error(
@@ -29,11 +30,8 @@ function isRateLimited(ip: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
-  // Require Privy auth — the SDK sets this cookie on login.
-  // This prevents unauthenticated users from burning Replicate credits.
-  // For full JWT verification, add @privy-io/server-auth + PRIVY_APP_SECRET.
-  const privyToken = req.cookies.get("privy-token")?.value;
-  if (!privyToken) {
+  const auth = await requirePrivyAuth(req);
+  if (!auth.ok) {
     return NextResponse.json(
       { error: "Authentication required. Please sign in." },
       { status: 401 }

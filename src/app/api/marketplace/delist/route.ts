@@ -10,6 +10,7 @@ import {
   updatePlugin,
   revokePluginAuthority,
 } from "@metaplex-foundation/mpl-core";
+import { requireAuthorizedWallet, requirePrivyAuth } from "@/lib/auth/privy";
 
 /**
  * POST /api/marketplace/delist
@@ -23,13 +24,8 @@ import {
  * Body: { listingId, sellerWallet }
  */
 export async function POST(req: NextRequest) {
-  const privyToken = req.cookies.get("privy-token")?.value;
-  if (!privyToken) {
-    return NextResponse.json(
-      { error: "Authentication required" },
-      { status: 401 }
-    );
-  }
+  const auth = await requirePrivyAuth(req);
+  if (!auth.ok) return auth.response;
 
   if (!supabase) {
     return NextResponse.json(
@@ -52,6 +48,13 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
+
+  const walletAuthError = requireAuthorizedWallet(
+    auth,
+    sellerWallet,
+    "sellerWallet"
+  );
+  if (walletAuthError) return walletAuthError;
 
   // Fetch listing and verify ownership
   const { data: listing, error: listingErr } = await supabase

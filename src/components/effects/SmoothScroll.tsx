@@ -5,14 +5,13 @@ import Lenis from "lenis";
 
 export default function SmoothScroll({ children }: { children: React.ReactNode }) {
   const lenisRef = useRef<Lenis | null>(null);
-  const [isTouch, setIsTouch] = useState(false);
+  const [isTouch] = useState(
+    () => typeof window !== "undefined" && ("ontouchstart" in window || navigator.maxTouchPoints > 0)
+  );
 
   useEffect(() => {
     // Disable Lenis on touch devices — native scroll is smoother on mobile
-    const touch =
-      "ontouchstart" in window || navigator.maxTouchPoints > 0;
-    setIsTouch(touch);
-    if (touch) return;
+    if (isTouch) return;
 
     const lenis = new Lenis({
       duration: 1.2,
@@ -31,7 +30,7 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
       lenis.destroy();
       lenisRef.current = null;
     };
-  }, []);
+  }, [isTouch]);
 
   return <>{children}</>;
 }

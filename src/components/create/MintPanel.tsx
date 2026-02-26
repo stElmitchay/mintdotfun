@@ -15,6 +15,10 @@ interface MintPanelProps {
   onClose: () => void;
 }
 
+function getTimestampMs(): number {
+  return Date.now();
+}
+
 export default function MintPanel({ image, onClose }: MintPanelProps) {
   const { umi, connected, walletAddress } = useUmi();
 
@@ -52,7 +56,7 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
       const nft: MintedNFT = {
         ...result,
         description: config.description,
-        mintedAt: Date.now(),
+        mintedAt: getTimestampMs(),
         walletAddress: walletAddress || "",
       };
 
@@ -325,7 +329,7 @@ export default function MintPanel({ image, onClose }: MintPanelProps) {
                 {formDisabled ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    {whimsicalWord}...
+                    {(progress || whimsicalWord) + "..."}
                   </>
                 ) : (
                   <>

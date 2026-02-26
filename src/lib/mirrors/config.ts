@@ -472,6 +472,47 @@ export const MIRROR_CONFIGS: Record<string, MirrorTypeConfig> = {
   newyork: NEWYORK_MIRROR,
 };
 
+function hasFullMirrorConfigShape(
+  config: Partial<MirrorTypeConfig> | null | undefined
+): config is MirrorTypeConfig {
+  if (!config) return false;
+  return (
+    typeof config.id === "string" &&
+    !!config.dataFeedConfig &&
+    !!config.style &&
+    Array.isArray(config.architecturalAnchors) &&
+    Array.isArray(config.culturalMotifs) &&
+    typeof config.updateTimeUtc === "string" &&
+    typeof config.colorPaletteGuidelines === "string"
+  );
+}
+
+function mergeWithHardcodedDefaults(
+  type: string,
+  dbConfig: Partial<MirrorTypeConfig>
+): MirrorTypeConfig {
+  const hardcoded = MIRROR_CONFIGS[type];
+  if (!hardcoded) {
+    throw new Error(
+      `Mirror "${type}" has an incomplete config in DB and no hardcoded fallback.`
+    );
+  }
+
+  return {
+    ...hardcoded,
+    ...dbConfig,
+    id: dbConfig.id ?? hardcoded.id ?? type,
+    dataFeedConfig: dbConfig.dataFeedConfig ?? hardcoded.dataFeedConfig,
+    style: dbConfig.style ?? hardcoded.style,
+    architecturalAnchors:
+      dbConfig.architecturalAnchors ?? hardcoded.architecturalAnchors,
+    culturalMotifs: dbConfig.culturalMotifs ?? hardcoded.culturalMotifs,
+    colorPaletteGuidelines:
+      dbConfig.colorPaletteGuidelines ?? hardcoded.colorPaletteGuidelines,
+    updateTimeUtc: dbConfig.updateTimeUtc ?? hardcoded.updateTimeUtc,
+  };
+}
+
 /**
  * Get mirror config — DB first, hardcoded fallback.
  * Supports both the original 5 mirrors and user-created mirrors stored in DB.
@@ -479,8 +520,16 @@ export const MIRROR_CONFIGS: Record<string, MirrorTypeConfig> = {
 export async function getMirrorConfig(type: string): Promise<MirrorTypeConfig> {
   // Try DB first (works for user-created mirrors AND original 5 if seeded)
   try {
-    const dbConfig = await getMirrorConfigFromDB(type);
-    if (dbConfig) return dbConfig;
+    const dbConfig = (await getMirrorConfigFromDB(type)) as
+      | Partial<MirrorTypeConfig>
+      | null;
+    if (dbConfig) {
+      if (hasFullMirrorConfigShape(dbConfig)) {
+        return dbConfig;
+      }
+      // Backward compatibility for legacy rows that stored only summary fields.
+      return mergeWithHardcodedDefaults(type, dbConfig);
+    }
   } catch {
     // DB unavailable — fall through to hardcoded
   }

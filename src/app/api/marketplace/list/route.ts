@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { requireAuthorizedWallet, requirePrivyAuth } from "@/lib/auth/privy";
 
 /**
  * POST /api/marketplace/list
@@ -10,13 +11,8 @@ import { supabase } from "@/lib/supabase";
  * Body: { mintAddress, sellerWallet, priceLamports, txSignature, nftName, nftImageUrl, nftDescription }
  */
 export async function POST(req: NextRequest) {
-  const privyToken = req.cookies.get("privy-token")?.value;
-  if (!privyToken) {
-    return NextResponse.json(
-      { error: "Authentication required" },
-      { status: 401 }
-    );
-  }
+  const auth = await requirePrivyAuth(req);
+  if (!auth.ok) return auth.response;
 
   if (!supabase) {
     return NextResponse.json(
@@ -49,6 +45,13 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
+
+  const walletAuthError = requireAuthorizedWallet(
+    auth,
+    sellerWallet,
+    "sellerWallet"
+  );
+  if (walletAuthError) return walletAuthError;
 
   if (priceLamports <= 0) {
     return NextResponse.json(

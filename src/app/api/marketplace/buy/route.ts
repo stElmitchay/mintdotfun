@@ -16,6 +16,7 @@ import {
 } from "@metaplex-foundation/mpl-core";
 import { transferSol } from "@metaplex-foundation/mpl-toolbox";
 import { sol } from "@metaplex-foundation/umi";
+import { requireAuthorizedWallet, requirePrivyAuth } from "@/lib/auth/privy";
 
 /**
  * POST /api/marketplace/buy
@@ -28,13 +29,8 @@ import { sol } from "@metaplex-foundation/umi";
  * Response: { transaction: base64, blockhash }
  */
 export async function POST(req: NextRequest) {
-  const privyToken = req.cookies.get("privy-token")?.value;
-  if (!privyToken) {
-    return NextResponse.json(
-      { error: "Authentication required" },
-      { status: 401 }
-    );
-  }
+  const auth = await requirePrivyAuth(req);
+  if (!auth.ok) return auth.response;
 
   if (!supabase) {
     return NextResponse.json(
@@ -57,6 +53,13 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
+
+  const walletAuthError = requireAuthorizedWallet(
+    auth,
+    buyerWallet,
+    "buyerWallet"
+  );
+  if (walletAuthError) return walletAuthError;
 
   // 1. Fetch listing
   const { data: listing, error: listingErr } = await supabase

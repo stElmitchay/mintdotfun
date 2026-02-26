@@ -10,24 +10,23 @@ import { useState, useEffect, useCallback, useRef } from "react";
  * the race condition where `initialValue` overwrites stored data.
  */
 export function useLocalStorage<T>(key: string, initialValue: T) {
-  const [value, setValue] = useState<T>(initialValue);
-  const [loaded, setLoaded] = useState(false);
-  const hydrated = useRef(false);
-
-  // Load from localStorage once on mount
-  useEffect(() => {
+  const [value, setValue] = useState<T>(() => {
+    if (typeof window === "undefined") return initialValue;
     try {
       const stored = localStorage.getItem(key);
       if (stored !== null) {
-        const parsed = JSON.parse(stored) as T;
-        setValue(parsed);
+        return JSON.parse(stored) as T;
       }
     } catch (err) {
       console.warn(`[useLocalStorage] Failed to read "${key}":`, err);
     }
+    return initialValue;
+  });
+  const hydrated = useRef(false);
+
+  useEffect(() => {
     hydrated.current = true;
-    setLoaded(true);
-  }, [key]);
+  }, []);
 
   // Persist to localStorage only after hydration completes
   useEffect(() => {
@@ -48,5 +47,5 @@ export function useLocalStorage<T>(key: string, initialValue: T) {
     }
   }, [key, initialValue]);
 
-  return [value, setValue, { loaded, clear }] as const;
+  return [value, setValue, { loaded: true, clear }] as const;
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { updateMirrorType } from "@/lib/mirrors/updater";
+import { updateMirrorTypeWithLock } from "@/lib/mirrors/updater";
 import { getMirrorConfig } from "@/lib/mirrors/config";
 
 // Allow up to 60 seconds for the full pipeline (Vercel Pro)
@@ -60,10 +60,11 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const result = await updateMirrorType(mirrorType);
+    const { result, deduped } = await updateMirrorTypeWithLock(mirrorType);
 
     return NextResponse.json({
       success: true,
+      deduped,
       ...result,
     });
   } catch (err) {

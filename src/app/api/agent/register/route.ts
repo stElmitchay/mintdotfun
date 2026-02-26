@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAgentRecord, createEvolutionSnapshot } from "@/lib/agent/db";
 import type { AgentPersonality } from "@/types/agent";
+import { requireAuthorizedWallet, requirePrivyAuth } from "@/lib/auth/privy";
 
 /**
  * POST /api/agent/register
@@ -9,13 +10,8 @@ import type { AgentPersonality } from "@/types/agent";
  * agent record in Supabase and saves the genesis evolution snapshot.
  */
 export async function POST(req: NextRequest) {
-  const privyToken = req.cookies.get("privy-token")?.value;
-  if (!privyToken) {
-    return NextResponse.json(
-      { error: "Authentication required" },
-      { status: 401 }
-    );
-  }
+  const auth = await requirePrivyAuth(req);
+  if (!auth.ok) return auth.response;
 
   let body: {
     mintAddress: string;
@@ -38,6 +34,13 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
+
+  const walletAuthError = requireAuthorizedWallet(
+    auth,
+    body.ownerWallet,
+    "ownerWallet"
+  );
+  if (walletAuthError) return walletAuthError;
 
   try {
     const agentId = await createAgentRecord({

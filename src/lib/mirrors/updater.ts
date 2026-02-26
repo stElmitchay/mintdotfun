@@ -28,6 +28,19 @@ export interface UpdateResult {
   durationMs: number;
 }
 
+declare global {
+  var __mirrorUpdateInFlight:
+    | Map<string, Promise<UpdateResult>>
+    | undefined;
+}
+
+function getInFlightUpdateMap(): Map<string, Promise<UpdateResult>> {
+  if (!globalThis.__mirrorUpdateInFlight) {
+    globalThis.__mirrorUpdateInFlight = new Map<string, Promise<UpdateResult>>();
+  }
+  return globalThis.__mirrorUpdateInFlight;
+}
+
 /**
  * Run the full update pipeline for a mirror type.
  *
@@ -158,4 +171,30 @@ export async function updateMirrorType(
     activeMirrorsFailed: failed,
     durationMs,
   };
+}
+
+/**
+ * In-process lock + idempotency guard.
+ *
+ * If an update for the same mirror type is already running in this server
+ * instance, callers await the same promise instead of starting a duplicate run.
+ */
+export async function updateMirrorTypeWithLock(
+  mirrorTypeId: string
+): Promise<{ result: UpdateResult; deduped: boolean }> {
+  const inFlight = getInFlightUpdateMap();
+  const existing = inFlight.get(mirrorTypeId);
+
+  if (existing) {
+    const result = await existing;
+    return { result, deduped: true };
+  }
+
+  const run = updateMirrorType(mirrorTypeId).finally(() => {
+    inFlight.delete(mirrorTypeId);
+  });
+
+  inFlight.set(mirrorTypeId, run);
+  const result = await run;
+  return { result, deduped: false };
 }

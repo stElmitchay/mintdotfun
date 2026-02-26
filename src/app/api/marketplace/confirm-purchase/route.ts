@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { requireAuthorizedWallet, requirePrivyAuth } from "@/lib/auth/privy";
 
 /**
  * POST /api/marketplace/confirm-purchase
@@ -10,13 +11,8 @@ import { supabase } from "@/lib/supabase";
  * Body: { listingId, buyerWallet, txSignature }
  */
 export async function POST(req: NextRequest) {
-  const privyToken = req.cookies.get("privy-token")?.value;
-  if (!privyToken) {
-    return NextResponse.json(
-      { error: "Authentication required" },
-      { status: 401 }
-    );
-  }
+  const auth = await requirePrivyAuth(req);
+  if (!auth.ok) return auth.response;
 
   if (!supabase) {
     return NextResponse.json(
@@ -39,6 +35,13 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
+
+  const walletAuthError = requireAuthorizedWallet(
+    auth,
+    buyerWallet,
+    "buyerWallet"
+  );
+  if (walletAuthError) return walletAuthError;
 
   const { data, error } = await supabase
     .from("listings")

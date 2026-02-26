@@ -3,10 +3,18 @@ import { supabase } from "@/lib/supabase";
 import { validateMirrorConfig } from "@/lib/mirrors/configValidator";
 import { verifyCreationPayment } from "@/lib/mirrors/paymentVerifier";
 import type { MirrorTypeConfig } from "@/lib/mirrors/types";
+import { requireAuthorizedWallet, requirePrivyAuth } from "@/lib/auth/privy";
+import { getLatestFrame } from "@/lib/mirrors/db";
+import { updateMirrorTypeWithLock } from "@/lib/mirrors/updater";
 
 const CREATION_FEE_SOL = parseFloat(
   process.env.MIRROR_CREATION_FEE_SOL ?? "0"
 );
+const GENERATE_FIRST_FRAME_ON_CREATE =
+  process.env.MIRROR_GENERATE_FIRST_FRAME_ON_CREATE !== "false";
+
+// Allow first-frame generation to complete in this request.
+export const maxDuration = 120;
 
 /**
  * POST /api/mirrors/create
@@ -17,14 +25,8 @@ const CREATION_FEE_SOL = parseFloat(
  * Body: { config: MirrorTypeConfig, creatorWallet: string, paymentTxSignature: string }
  */
 export async function POST(req: NextRequest) {
-  // Privy auth check
-  const privyToken = req.cookies.get("privy-token")?.value;
-  if (!privyToken) {
-    return NextResponse.json(
-      { error: "Authentication required" },
-      { status: 401 }
-    );
-  }
+  const auth = await requirePrivyAuth(req);
+  if (!auth.ok) return auth.response;
 
   if (!supabase) {
     return NextResponse.json(
@@ -50,6 +52,17 @@ export async function POST(req: NextRequest) {
       { error: "Missing required fields: config, creatorWallet" },
       { status: 400 }
     );
+  }
+
+  // Privy access tokens may not always include linked wallet addresses in claims.
+  // Enforce wallet ownership only when wallet claims are present.
+  if (auth.wallets.size > 0) {
+    const walletAuthError = requireAuthorizedWallet(
+      auth,
+      body.creatorWallet,
+      "creatorWallet"
+    );
+    if (walletAuthError) return walletAuthError;
   }
 
   // Validate config
@@ -113,10 +126,39 @@ export async function POST(req: NextRequest) {
 
     if (error) throw error;
 
+    let firstFrameTriggered = false;
+    let firstFrameGenerated = false;
+    let firstFrameError: string | null = null;
+
+    if (GENERATE_FIRST_FRAME_ON_CREATE) {
+      firstFrameTriggered = true;
+      try {
+        const existingFrame = await getLatestFrame(body.config.id);
+        if (!existingFrame) {
+          await updateMirrorTypeWithLock(body.config.id);
+          firstFrameGenerated = true;
+        } else {
+          firstFrameGenerated = true;
+        }
+      } catch (frameErr) {
+        firstFrameError =
+          frameErr instanceof Error ? frameErr.message : String(frameErr);
+        console.error(
+          `[api/mirrors/create] First-frame generation failed for ${body.config.id}:`,
+          frameErr
+        );
+      }
+    }
+
     return NextResponse.json({
       success: true,
       mirrorTypeId: body.config.id,
       message: `Mirror "${body.config.name}" created successfully!`,
+      firstFrame: {
+        triggered: firstFrameTriggered,
+        generated: firstFrameGenerated,
+        error: firstFrameError,
+      },
     });
   } catch (err) {
     console.error("[api/mirrors/create] Failed:", err);

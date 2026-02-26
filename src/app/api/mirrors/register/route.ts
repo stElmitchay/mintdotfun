@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { requireAuthorizedWallet, requirePrivyAuth } from "@/lib/auth/privy";
 
 /**
  * POST /api/mirrors/register
@@ -10,14 +11,8 @@ import { supabase } from "@/lib/supabase";
  * Body: { mintAddress, mirrorType, ownerWallet, frameNumber, metadataUri }
  */
 export async function POST(req: NextRequest) {
-  // Privy auth check
-  const privyToken = req.cookies.get("privy-token")?.value;
-  if (!privyToken) {
-    return NextResponse.json(
-      { error: "Authentication required" },
-      { status: 401 }
-    );
-  }
+  const auth = await requirePrivyAuth(req);
+  if (!auth.ok) return auth.response;
 
   if (!supabase) {
     return NextResponse.json(
@@ -53,6 +48,17 @@ export async function POST(req: NextRequest) {
       },
       { status: 400 }
     );
+  }
+
+  // Privy access tokens may not always include linked wallet addresses in claims.
+  // Enforce wallet ownership only when wallet claims are present.
+  if (auth.wallets.size > 0) {
+    const walletAuthError = requireAuthorizedWallet(
+      auth,
+      body.ownerWallet,
+      "ownerWallet"
+    );
+    if (walletAuthError) return walletAuthError;
   }
 
   try {

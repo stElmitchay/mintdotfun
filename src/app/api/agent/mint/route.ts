@@ -9,6 +9,7 @@ import {
   uploadAgentMetadataToArweave,
 } from "@/lib/agent/storage";
 import { generateAgentAvatar } from "@/lib/agent/avatarGenerator";
+import { requireAuthorizedWallet, requirePrivyAuth } from "@/lib/auth/privy";
 
 /**
  * POST /api/agent/mint
@@ -18,14 +19,8 @@ import { generateAgentAvatar } from "@/lib/agent/avatarGenerator";
  * for the client-side Solana transaction.
  */
 export async function POST(req: NextRequest) {
-  // Auth
-  const privyToken = req.cookies.get("privy-token")?.value;
-  if (!privyToken) {
-    return NextResponse.json(
-      { error: "Authentication required" },
-      { status: 401 }
-    );
-  }
+  const auth = await requirePrivyAuth(req);
+  if (!auth.ok) return auth.response;
 
   // Parse + validate
   let body: unknown;
@@ -46,6 +41,13 @@ export async function POST(req: NextRequest) {
   }
 
   const request = parsed.data;
+
+  const walletAuthError = requireAuthorizedWallet(
+    auth,
+    request.ownerAddress,
+    "ownerAddress"
+  );
+  if (walletAuthError) return walletAuthError;
 
   try {
     // Name uniqueness

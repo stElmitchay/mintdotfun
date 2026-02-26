@@ -3,6 +3,7 @@ import { getMirrorConfig } from "@/lib/mirrors/config";
 import { getMirrorAuthorityPubkey } from "@/lib/mirrors/mirrorAuthority";
 import { getLatestFrame, getMirrorHoldersCount } from "@/lib/mirrors/db";
 import { uploadMirrorFrame } from "@/lib/mirrors/storage";
+import { requireAuthorizedWallet, requirePrivyAuth } from "@/lib/auth/privy";
 
 /**
  * POST /api/mirrors/mint
@@ -15,14 +16,8 @@ import { uploadMirrorFrame } from "@/lib/mirrors/storage";
  * Response: { metadataUri, imageUri, mirrorAuthorityPubkey, name, frameNumber }
  */
 export async function POST(req: NextRequest) {
-  // Privy auth check
-  const privyToken = req.cookies.get("privy-token")?.value;
-  if (!privyToken) {
-    return NextResponse.json(
-      { error: "Authentication required" },
-      { status: 401 }
-    );
-  }
+  const auth = await requirePrivyAuth(req);
+  if (!auth.ok) return auth.response;
 
   let body: { mirrorType: string; ownerAddress: string };
 
@@ -37,6 +32,17 @@ export async function POST(req: NextRequest) {
       { error: "Missing required fields: mirrorType, ownerAddress" },
       { status: 400 }
     );
+  }
+
+  // Privy access tokens may not always include linked wallet addresses in claims.
+  // Enforce wallet ownership only when wallet claims are present.
+  if (auth.wallets.size > 0) {
+    const walletAuthError = requireAuthorizedWallet(
+      auth,
+      body.ownerAddress,
+      "ownerAddress"
+    );
+    if (walletAuthError) return walletAuthError;
   }
 
   // Validate mirror type

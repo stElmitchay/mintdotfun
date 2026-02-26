@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateMirrorConfig } from "@/lib/mirrors/configGenerator";
 import { validateMirrorConfig } from "@/lib/mirrors/configValidator";
+import { requirePrivyAuth } from "@/lib/auth/privy";
 
 /**
  * POST /api/mirrors/generate-config
@@ -11,14 +12,8 @@ import { validateMirrorConfig } from "@/lib/mirrors/configValidator";
  * Body: { cityName: string, country?: string, theme?: string }
  */
 export async function POST(req: NextRequest) {
-  // Privy auth check
-  const privyToken = req.cookies.get("privy-token")?.value;
-  if (!privyToken) {
-    return NextResponse.json(
-      { error: "Authentication required" },
-      { status: 401 }
-    );
-  }
+  const auth = await requirePrivyAuth(req);
+  if (!auth.ok) return auth.response;
 
   let body: { cityName: string; country?: string; theme?: string };
 

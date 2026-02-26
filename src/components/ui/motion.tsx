@@ -161,6 +161,15 @@ export const raunoSpring = {
   section: { type: "spring" as const, stiffness: 300, damping: 40, mass: 0.15 },
 };
 
+const clipRevealTags = {
+  p: motion.p,
+  h1: motion.h1,
+  h2: motion.h2,
+  h3: motion.h3,
+  span: motion.span,
+  div: motion.div,
+} as const;
+
 // ── ClipReveal — text slides up from below ───────────────────
 export function ClipReveal({
   children,
@@ -177,7 +186,7 @@ export function ClipReveal({
   as?: "p" | "h1" | "h2" | "h3" | "span" | "div";
   triggerOnScroll?: boolean;
 }) {
-  const MotionTag = motion.create(Tag);
+  const MotionTag = clipRevealTags[Tag];
 
   const animateProps = triggerOnScroll
     ? {

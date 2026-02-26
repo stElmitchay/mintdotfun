@@ -7,6 +7,7 @@ import {
   createGenericFile,
 } from "@metaplex-foundation/umi";
 import type { Umi } from "@metaplex-foundation/umi";
+import { requireAuthorizedWallet, requirePrivyAuth } from "@/lib/auth/privy";
 
 const rpcUrl =
   process.env.NEXT_PUBLIC_SOLANA_RPC_URL || "https://api.devnet.solana.com";
@@ -69,13 +70,8 @@ function getServerUmi(): Umi {
  * Response: { imageUri, metadataUri }
  */
 export async function POST(req: NextRequest) {
-  const privyToken = req.cookies.get("privy-token")?.value;
-  if (!privyToken) {
-    return NextResponse.json(
-      { error: "Authentication required" },
-      { status: 401 }
-    );
-  }
+  const auth = await requirePrivyAuth(req);
+  if (!auth.ok) return auth.response;
 
   let body: {
     imageUrl: string;
@@ -96,6 +92,13 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
+
+  const walletAuthError = requireAuthorizedWallet(
+    auth,
+    body.creatorAddress,
+    "creatorAddress"
+  );
+  if (walletAuthError) return walletAuthError;
 
   try {
     const umi = getServerUmi();

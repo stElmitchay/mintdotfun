@@ -13,13 +13,15 @@ export function useMintedNFTs(walletAddress: string | null) {
   const [loading, setLoading] = useState(true);
   const [source, setSource] = useState<"db" | "local" | null>(null);
 
-  const fetchNFTs = useCallback(async () => {
+  const fetchNFTs = useCallback(async (cancelled = { value: false }) => {
     if (!walletAddress) {
+      if (cancelled.value) return;
       setNFTs([]);
       setLoading(false);
       return;
     }
 
+    if (cancelled.value) return;
     setLoading(true);
 
     // Try Supabase first
@@ -28,6 +30,7 @@ export function useMintedNFTs(walletAddress: string | null) {
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data.nfts)) {
+          if (cancelled.value) return;
           setNFTs(data.nfts);
           setSource("db");
           setLoading(false);
@@ -47,6 +50,7 @@ export function useMintedNFTs(walletAddress: string | null) {
           const filtered = parsed.filter(
             (n: MintedNFT) => n.walletAddress === walletAddress
           );
+          if (cancelled.value) return;
           setNFTs(filtered);
           setSource("local");
           setLoading(false);
@@ -57,13 +61,19 @@ export function useMintedNFTs(walletAddress: string | null) {
       // localStorage parse error
     }
 
+    if (cancelled.value) return;
     setNFTs([]);
     setSource(null);
     setLoading(false);
   }, [walletAddress]);
 
   useEffect(() => {
-    fetchNFTs();
+    const cancelled = { value: false };
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchNFTs(cancelled);
+    return () => {
+      cancelled.value = true;
+    };
   }, [fetchNFTs]);
 
   const removeNFT = useCallback(
@@ -89,5 +99,11 @@ export function useMintedNFTs(walletAddress: string | null) {
     []
   );
 
-  return { nfts, loading, source, removeNFT, refetch: fetchNFTs };
+  return {
+    nfts,
+    loading,
+    source,
+    removeNFT,
+    refetch: () => fetchNFTs({ value: false }),
+  };
 }

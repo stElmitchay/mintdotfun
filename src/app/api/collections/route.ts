@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
+import { requireAuthorizedWallet, requirePrivyAuth } from "@/lib/auth/privy";
 
 /**
  * GET /api/collections?wallet=<address>
@@ -60,14 +61,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Auth check
-  const privyToken = req.cookies.get("privy-token")?.value;
-  if (!privyToken) {
-    return NextResponse.json(
-      { error: "Authentication required" },
-      { status: 401 }
-    );
-  }
+  const auth = await requirePrivyAuth(req);
+  if (!auth.ok) return auth.response;
 
   let body: {
     walletAddress: string;
@@ -90,6 +85,13 @@ export async function POST(req: NextRequest) {
       { status: 400 }
     );
   }
+
+  const walletAuthError = requireAuthorizedWallet(
+    auth,
+    body.walletAddress,
+    "walletAddress"
+  );
+  if (walletAuthError) return walletAuthError;
 
   const { error: nftError } = await supabase.from("nfts").insert({
     wallet_address: body.walletAddress,

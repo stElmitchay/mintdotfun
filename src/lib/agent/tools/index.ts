@@ -8,7 +8,7 @@ import { getSolanaTools } from "../solanaKit";
 // Tool Aggregator — combines custom + Solana Kit tools
 // ============================================================
 
-type AnyTool = Tool<any, any>;
+type AnyTool = Tool;
 
 export function createAgentTools(
   agent: AgentRow

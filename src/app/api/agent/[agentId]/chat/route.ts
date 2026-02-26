@@ -11,6 +11,7 @@ import { searchMemories, storeMemory } from "@/lib/agent/memory";
 import { buildSystemPrompt } from "@/lib/agent/systemPrompt";
 import { createAgentTools } from "@/lib/agent/tools";
 import { checkAndApplyEvolution } from "@/lib/agent/evolution";
+import { requirePrivyAuth } from "@/lib/auth/privy";
 
 // ============================================================
 // POST /api/agent/[agentId]/chat — Streaming agent chat
@@ -28,14 +29,8 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ agentId: string }> }
 ) {
-  // Auth check
-  const privyToken = req.cookies.get("privy-token")?.value;
-  if (!privyToken) {
-    return NextResponse.json(
-      { error: "Authentication required" },
-      { status: 401 }
-    );
-  }
+  const auth = await requirePrivyAuth(req);
+  if (!auth.ok) return auth.response;
 
   const { agentId } = await params;
 
