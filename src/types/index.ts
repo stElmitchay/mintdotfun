@@ -44,3 +44,11 @@ export interface Listing {
   nftImageUrl: string;
   nftDescription: string;
 }
+
+// Cultural Mirrors
+export type {
+  MirrorTypeInfo,
+  MirrorFrame,
+  ActiveMirror,
+  MirrorMintStatus,
+} from "@/lib/mirrors/types";

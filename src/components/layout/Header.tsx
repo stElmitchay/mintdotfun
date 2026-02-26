@@ -41,10 +41,18 @@ export default function Header() {
     >
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 py-4">
         <div className="flex items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="text-xl font-medium text-gray-12 tracking-tight">
-            mint<span className="text-accent">IT</span>
-          </Link>
+          {/* Logo + Nav */}
+          <div className="flex items-center gap-6">
+            <Link href="/" className="text-xl font-medium text-gray-12 tracking-tight">
+              mint<span className="text-accent">IT</span>
+            </Link>
+            <Link
+              href="/mirrors"
+              className="text-sm text-gray-9 hover:text-gray-12 transition-colors duration-300"
+            >
+              Mirrors
+            </Link>
+          </div>
 
           {/* Right actions */}
           <div className="flex items-center gap-2 sm:gap-3">

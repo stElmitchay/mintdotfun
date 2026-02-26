@@ -49,3 +49,52 @@ export interface ListingRow {
   nft_image_url: string;
   nft_description: string;
 }
+
+// ============================================================
+// Cultural Mirrors
+// ============================================================
+
+/** Row shape for mirror_types table. */
+export interface MirrorTypeRow {
+  id: string;
+  name: string;
+  tagline: string | null;
+  description: string | null;
+  config: Record<string, unknown>;
+  current_frame_number: number;
+  current_frame_image_uri: string | null;
+  current_frame_metadata_uri: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+/** Row shape for mirror_frames table. */
+export interface MirrorFrameRow {
+  id: string;
+  mirror_type: string;
+  frame_number: number;
+  image_uri: string;
+  metadata_uri: string;
+  scene_description: string | null;
+  mood: string | null;
+  dominant_colors: string[] | null;
+  key_elements: string[] | null;
+  data_signals: string[] | null;
+  data_snapshot: Record<string, unknown> | null;
+  generated_at: string;
+  previous_frame_id: string | null;
+  created_at: string;
+}
+
+/** Row shape for active_mirrors table. */
+export interface ActiveMirrorRow {
+  id: string;
+  mint_address: string;
+  mirror_type: string;
+  owner_wallet: string;
+  current_frame_number: number;
+  current_metadata_uri: string | null;
+  is_active: boolean;
+  minted_at: string;
+  last_updated_at: string | null;
+}
