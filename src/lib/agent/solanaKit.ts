@@ -89,6 +89,41 @@ function adaptTool(oldTool: Record<string, unknown>): AnyTool {
   } as AnyTool;
 }
 
+// Curated allowlist — read-only + useful transactional tools.
+// Excludes dangerous ops like BURN, CLOSE_ACCOUNTS, LAUNCH_PUMPFUN, etc.
+const ALLOWED_TOOLS = new Set([
+  // Read-only: wallet & balance
+  "BALANCE_ACTION",
+  "TOKEN_BALANCE_ACTION",
+  "WALLET_ADDRESS",
+  // Read-only: market data
+  "FETCH_PRICE",
+  "PYTH_FETCH_PRICE",
+  "GET_TOKEN_DATA",
+  "GET_TOKEN_DATA_OR_INFO_BY_TICKER_OR_SYMBOL",
+  "GET_TPS",
+  "RUGCHECK",
+  // Read-only: NFT / asset queries
+  "GET_ASSET",
+  "GET_ASSETS_BY_CREATOR",
+  "SEARCH_ASSETS",
+  // Read-only: marketplace
+  "GET_MAGICEDEN_COLLECTION_STATS",
+  "GET_POPULAR_MAGICEDEN_COLLECTIONS",
+  "GET_MAGICEDEN_COLLECTION_LISTINGS",
+  // Transactional: trading & staking
+  "TRADE",
+  "TRANSFER",
+  "STAKE_WITH_JUPITER",
+  // Transactional: NFT operations
+  "MINT_NFT",
+  "DEPLOY_COLLECTION",
+  "LIST_NFT_FOR_SALE",
+  "CANCEL_NFT_LISTING",
+  // Devnet utility
+  "REQUEST_FUNDS",
+]);
+
 /** Get LLM-callable Solana tools (NFT + Token actions). Cached singleton. */
 export function getSolanaTools(): Record<string, AnyTool> {
   if (cachedTools) return cachedTools;
@@ -115,9 +150,11 @@ export function getSolanaTools(): Record<string, AnyTool> {
     agentWithPlugins.actions
   ) as Record<string, Record<string, unknown>>;
 
-  // Adapt tools if they use the old v4 `parameters` format
+  // Adapt tools if they use the old v4 `parameters` format, then filter
   const adapted: Record<string, AnyTool> = {};
   for (const [name, t] of Object.entries(rawTools)) {
+    if (!ALLOWED_TOOLS.has(name)) continue;
+
     if ("inputSchema" in t) {
       adapted[name] = t as unknown as AnyTool;
     } else if ("parameters" in t) {

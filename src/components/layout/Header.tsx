@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import { useWallets } from "@privy-io/react-auth/solana";
-import { LogOut, Wallet, Copy, Check } from "lucide-react";
+import { LogOut, Wallet, Copy, Check, Plus } from "lucide-react";
 import Link from "next/link";
 import { shortenAddress } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -62,6 +62,13 @@ export default function Header() {
 
           {/* Right actions */}
           <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/create-agent"
+              className="hidden sm:flex items-center gap-1.5 text-xs font-medium text-accent hover:opacity-80 transition-opacity duration-300 px-3 py-1.5 rounded-full border border-accent/30"
+            >
+              <Plus className="w-3 h-3" />
+              Agent
+            </Link>
             {authenticated ? (
               <>
                 {solanaWallet && (
