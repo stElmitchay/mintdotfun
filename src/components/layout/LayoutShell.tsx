@@ -121,6 +121,8 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
   }, [isHome]);
 
   const isCreate = pathname === "/create";
+  const isCreateAgent = pathname === "/create-agent";
+  const isMintStyleFlow = isCreate || isCreateAgent;
   const isAgentChat = pathname?.startsWith("/agent/");
 
   const content = (
@@ -129,13 +131,13 @@ export default function LayoutShell({ children }: { children: React.ReactNode })
       data-page={isHome ? "home" : undefined}
     >
       <div className="relative z-10">
-        {!isCreate && <Header />}
+        {!isMintStyleFlow && <Header />}
         <main>{children}</main>
-        {!isHome && !isCreate && !isAgentChat && <Footer />}
+        {!isHome && !isMintStyleFlow && !isAgentChat && <Footer />}
       </div>
     </div>
   );
 
-  if (isHome) return content;
+  if (isHome || isAgentChat) return content;
   return <SmoothScroll>{content}</SmoothScroll>;
 }

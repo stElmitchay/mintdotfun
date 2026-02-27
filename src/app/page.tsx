@@ -600,7 +600,7 @@ function AgentsFrame() {
         }}
       >
         <p className={styles.marketplaceTitle} style={{ fontWeight: 600, color: "var(--color-accent)", lineHeight: 1, letterSpacing: "-0.03em", fontFamily: "var(--font-mono)" }}>
-          Creative Agents
+          Agent NFTs
         </p>
         <Link
           href="/agents"
@@ -737,10 +737,189 @@ function AgentsFrame() {
             <Brain style={{ width: 48, height: 48, color: "var(--color-gray-6)" }} />
             <p style={{ fontSize: 20, color: "var(--color-gray-9)", fontWeight: 500 }}>No agents yet</p>
             <p style={{ fontSize: 14, color: "var(--color-gray-7)", maxWidth: 300, textAlign: "center", lineHeight: 1.5 }}>
-              Creative AI agents that evolve, learn, and create art on-chain.
+              Mintable AI agents with memory, reputation, and on-chain execution history.
             </p>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function PlatformFrame() {
+  return (
+    <div
+      style={{
+        height: "100%",
+        display: "grid",
+        gridTemplateColumns: "1.1fr 0.9fr",
+        gap: 28,
+        alignItems: "center",
+        padding: "38px 42px",
+        position: "relative",
+      }}
+    >
+      <FrameTexture />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        {["What if", "your NFTs", "could do", "more?"].map((line, i) => (
+          <motion.div
+            key={line}
+            className={i % 2 === 1 ? styles.clipRevealOffset : styles.clipReveal}
+            initial={{ opacity: 0, y: 28 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.45, delay: i * 0.08, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <p
+              className={styles.quoteLine}
+              style={
+                i % 2 === 1
+                  ? { fontFamily: "var(--font-mono)", fontStyle: "italic", color: "var(--color-accent)" }
+                  : { color: "var(--color-gray-12)" }
+              }
+            >
+              {line}
+            </p>
+          </motion.div>
+        ))}
+      </div>
+
+      <div style={{ position: "relative", zIndex: 1, display: "grid", gap: 12 }}>
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+          style={{
+            border: "1px solid var(--color-gray-a3)",
+            background: "linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 10%, var(--color-gray-2)), var(--color-gray-2))",
+            borderRadius: 16,
+            padding: "16px",
+            minHeight: 165,
+            display: "grid",
+            gridTemplateColumns: "1fr 92px",
+            gap: 14,
+            alignItems: "center",
+          }}
+        >
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 700, color: "var(--color-accent)", marginBottom: 6 }}>
+              Mirror NFTs
+            </p>
+            <p style={{ fontSize: 15, lineHeight: 1.55, color: "var(--color-gray-9)" }}>
+              Living cultural NFTs that evolve from weather, events, and on-chain context.
+            </p>
+          </div>
+          <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid var(--color-gray-a3)", height: 92 }}>
+            <img
+              src="/images/mirror-nft-card.svg"
+              alt="Mirror NFT"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          </div>
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, x: 20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4, delay: 0.3 }}
+          style={{
+            border: "1px solid var(--color-gray-a3)",
+            background: "linear-gradient(135deg, color-mix(in srgb, var(--color-accent) 12%, var(--color-gray-2)), var(--color-gray-2))",
+            borderRadius: 16,
+            padding: "16px",
+            minHeight: 165,
+            display: "grid",
+            gridTemplateColumns: "1fr 92px",
+            gap: 14,
+            alignItems: "center",
+          }}
+        >
+          <div>
+            <p style={{ fontSize: 13, fontWeight: 700, color: "var(--color-accent)", marginBottom: 6 }}>
+              Agent NFTs
+            </p>
+            <p style={{ fontSize: 15, lineHeight: 1.55, color: "var(--color-gray-9)" }}>
+              Autonomous NFTs that chat, execute actions, and build reputation over time.
+            </p>
+          </div>
+          <div style={{ borderRadius: 12, overflow: "hidden", border: "1px solid var(--color-gray-a3)", height: 92 }}>
+            <img
+              src="/images/agent-nft-card.svg"
+              alt="Agent NFT"
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
+          </div>
+        </motion.div>
+        <div
+          style={{
+            height: 3,
+            borderRadius: 999,
+            background: "linear-gradient(90deg, var(--color-accent), transparent)",
+            opacity: 0.65,
+            marginTop: 4,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function PlatformMobileBlock() {
+  return (
+    <div
+      style={{
+        border: "1px solid var(--color-gray-a3)",
+        borderRadius: 16,
+        padding: 18,
+        background: "var(--color-gray-2)",
+      }}
+    >
+      <div style={{ marginBottom: 12 }}>
+        {["What if", "your NFTs", "could do", "more?"].map((line, i) => (
+          <motion.p
+            key={line}
+            className={i % 2 === 1 ? styles.mobileQuoteLineOffset : undefined}
+            initial={{ opacity: 0, y: 18 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.4, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] }}
+            style={{
+              fontSize: 30,
+              lineHeight: 1,
+              letterSpacing: "-0.03em",
+              color: i % 2 === 1 ? "var(--color-accent)" : "var(--color-gray-12)",
+              fontFamily: i % 2 === 1 ? "var(--font-mono)" : undefined,
+              fontStyle: i % 2 === 1 ? "italic" : undefined,
+            }}
+          >
+            {line}
+          </motion.p>
+        ))}
+      </div>
+      <div style={{ display: "grid", gap: 10 }}>
+        <div style={{ border: "1px solid var(--color-gray-a3)", borderRadius: 12, padding: 12, background: "var(--color-gray-3)", display: "grid", gridTemplateColumns: "1fr 74px", gap: 10, alignItems: "center" }}>
+          <div>
+            <p style={{ fontSize: 12, fontWeight: 700, color: "var(--color-accent)", marginBottom: 4 }}>Mirror NFTs</p>
+            <p style={{ fontSize: 13, color: "var(--color-gray-9)", lineHeight: 1.5 }}>
+              Evolving cultural NFTs powered by live data updates.
+            </p>
+          </div>
+          <div style={{ borderRadius: 10, overflow: "hidden", border: "1px solid var(--color-gray-a3)", height: 74 }}>
+            <img src="/images/mirror-nft-card.svg" alt="Mirror NFT" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          </div>
+        </div>
+        <div style={{ border: "1px solid var(--color-gray-a3)", borderRadius: 12, padding: 12, background: "var(--color-gray-3)", display: "grid", gridTemplateColumns: "1fr 74px", gap: 10, alignItems: "center" }}>
+          <div>
+            <p style={{ fontSize: 12, fontWeight: 700, color: "var(--color-accent)", marginBottom: 4 }}>Agent NFTs</p>
+            <p style={{ fontSize: 13, color: "var(--color-gray-9)", lineHeight: 1.5 }}>
+              Autonomous NFT agents with memory, actions, and reputation.
+            </p>
+          </div>
+          <div style={{ borderRadius: 10, overflow: "hidden", border: "1px solid var(--color-gray-a3)", height: 74 }}>
+            <img src="/images/agent-nft-card.svg" alt="Agent NFT" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -860,8 +1039,9 @@ function ContactFrame() {
 // ============================================
 
 const CONTENT_FRAMES = [
-  { id: "marketplace", variant: "slide" as const },
+  { id: "platform", variant: "default" as const },
   { id: "agents", variant: "slide" as const },
+  { id: "marketplace", variant: "slide" as const },
   { id: "quote", variant: "default" as const, color: "var(--color-accent)" },
   { id: "contact", variant: "default" as const },
 ];
@@ -927,7 +1107,7 @@ function MobileHome() {
             <div className={styles.mobileHeroTextOffset}>
               <ClipReveal delay={0.1}>Unique</ClipReveal>
             </div>
-            <ClipReveal delay={0.2}>AI Art</ClipReveal>
+            <ClipReveal delay={0.2}>AI Agents</ClipReveal>
             <div className={styles.mobileHeroTextOffset}>
               <ClipReveal delay={0.3}>As NFTs</ClipReveal>
             </div>
@@ -975,13 +1155,18 @@ function MobileHome() {
       </section>
 
       {/* ── Marketplace ── */}
-      <section className={styles.mobileMarketplace}>
-        <MobileMarketplaceSection />
-      </section>
-
-      {/* ── Agents ── */}
       <section className={styles.mobileAgents}>
         <MobileAgentsSection />
+      </section>
+
+      {/* ── Platform Explainer ── */}
+      <section className={styles.mobileMarketplace}>
+        <PlatformMobileBlock />
+      </section>
+
+      {/* ── Marketplace / Trending ── */}
+      <section className={styles.mobileMarketplace}>
+        <MobileMarketplaceSection />
       </section>
 
       {/* ── Quote ── */}
@@ -1140,7 +1325,7 @@ function MobileAgentsSection() {
     <>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
         <p className={styles.mobileAgentsTitle}>
-          Creative Agents
+          Agent NFTs
         </p>
         <Link
           href="/agents"
@@ -1379,6 +1564,8 @@ export default function HomePage() {
         return <MarketplaceFrame />;
       case "agents":
         return <AgentsFrame />;
+      case "platform":
+        return <PlatformFrame />;
       case "quote":
         return <QuoteFrame />;
       case "contact":
@@ -1481,7 +1668,7 @@ export default function HomePage() {
                     <ClipReveal delay={0.1} variant="offset">
                       Unique
                     </ClipReveal>
-                    <ClipReveal delay={0.2}>AI Art</ClipReveal>
+                    <ClipReveal delay={0.2}>AI Agents</ClipReveal>
                     <ClipReveal delay={0.3} variant="offset">
                       As NFTs
                     </ClipReveal>

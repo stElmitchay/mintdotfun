@@ -5,7 +5,10 @@ import type { AgentPersonality } from "@/types/agent";
 // Agent Avatar Generation via Replicate Flux
 // ============================================================
 
-function buildAvatarPrompt(personality: AgentPersonality): string {
+function buildAvatarPrompt(
+  personality: AgentPersonality,
+  visualDirection?: string
+): string {
   const { archetype } = personality;
   const mood = personality.aesthetics.mood.primary;
   const mediums = personality.influences.mediums.slice(0, 2).join(", ");
@@ -20,10 +23,15 @@ function buildAvatarPrompt(personality: AgentPersonality): string {
       ? "Highly abstract"
       : "Semi-abstract";
 
+  const direction = visualDirection?.trim()
+    ? `Visual direction from owner: ${visualDirection.trim()}. `
+    : "";
+
   return (
     `Abstract artistic portrait representing a ${archetype} AI creative agent. ` +
     `Mood: ${mood}. Style: ${mediums}, ${movements}. ` +
     `Color palette: ${colors}. ${atmo}. ${abs}. ` +
+    direction +
     `No text, no letters, no words. Square composition. Masterpiece quality, highly detailed.`
   );
 }
@@ -64,14 +72,15 @@ function extractImageUrl(output: unknown): string | null {
 
 /** Generate an avatar image for a new agent via Replicate Flux Schnell. */
 export async function generateAgentAvatar(
-  personality: AgentPersonality
+  personality: AgentPersonality,
+  visualDirection?: string
 ): Promise<string> {
   if (!process.env.REPLICATE_API_TOKEN) {
     throw new Error("REPLICATE_API_TOKEN is required for avatar generation.");
   }
 
   const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN });
-  const prompt = buildAvatarPrompt(personality);
+  const prompt = buildAvatarPrompt(personality, visualDirection);
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {

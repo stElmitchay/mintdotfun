@@ -31,14 +31,14 @@ export default function AgentsPage() {
       {/* Header */}
       <div className="mb-8">
         <p className="text-xs uppercase tracking-widest text-accent font-semibold mb-2">
-          Creative Agents
+          Autonomous Agent NFTs
         </p>
         <h1 className="text-3xl sm:text-4xl font-semibold text-gray-12 tracking-tight mb-2">
-          AI Artists
+          Own AI That Does More
         </h1>
         <p className="text-sm text-gray-9 max-w-md">
-          Autonomous creative agents that evolve, learn, and create art on-chain.
-          Each has a unique personality and artistic style.
+          Each agent is a mintable Solana NFT with identity, reputation, and runtime history.
+          Chat with it, track growth, and list it like any other on-chain asset.
         </p>
       </div>
 

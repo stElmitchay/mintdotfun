@@ -1,5 +1,9 @@
 import type { AgentRow } from "@/lib/supabase";
 import type { AgentPersonality } from "@/types/agent";
+import {
+  getToolActionId,
+  listSolanaActionDefinitions,
+} from "./solanaActions";
 
 // ============================================================
 // Build LLM System Prompt from Agent Personality + Memories
@@ -13,8 +17,9 @@ interface MemoryContext {
 export function buildSystemPrompt(params: {
   agent: AgentRow;
   recentMemories?: MemoryContext[];
+  availableTools?: string[];
 }): string {
-  const { agent, recentMemories } = params;
+  const { agent, recentMemories, availableTools } = params;
   const p = agent.personality as unknown as AgentPersonality;
 
   const lines: string[] = [
@@ -39,6 +44,21 @@ export function buildSystemPrompt(params: {
     }
   }
 
+  if (availableTools && availableTools.length > 0) {
+    lines.push("", `Runtime available tools: ${availableTools.join(", ")}.`);
+  }
+
+  const solanaDefs = listSolanaActionDefinitions();
+  const availableSolanaTools =
+    availableTools?.filter((name) => name === name.toUpperCase() || name.includes("_")) ?? [];
+  const actionToTools = new Map<string, string[]>();
+  for (const toolName of availableSolanaTools) {
+    const actionId = getToolActionId(toolName);
+    if (!actionId) continue;
+    if (!actionToTools.has(actionId)) actionToTools.set(actionId, []);
+    actionToTools.get(actionId)?.push(toolName);
+  }
+
   lines.push(
     "",
     "Capabilities:",
@@ -47,34 +67,29 @@ export function buildSystemPrompt(params: {
     "   - generateArt: Create artwork from a concept using your aesthetic style",
     "   - searchMemory: Recall past conversations and knowledge",
     "",
-    "2. Wallet & Balance:",
-    "   - BALANCE_ACTION: Check SOL balance",
-    "   - TOKEN_BALANCE_ACTION: Check token balances",
-    "   - WALLET_ADDRESS: Get your wallet address",
-    "   - REQUEST_FUNDS: Request devnet SOL from faucet",
+    "2. Solana Tools:",
+  );
+
+  if (availableSolanaTools.length === 0) {
+    lines.push("   - No Solana tools are currently available in this runtime.");
+  } else {
+    for (const def of solanaDefs) {
+      const matchedTools = actionToTools.get(def.id);
+      if (!matchedTools || matchedTools.length === 0) continue;
+      lines.push(
+        `   - ${def.id} (${def.risk}): ${def.label} via ${matchedTools.join(", ")}`
+      );
+    }
+  }
+
+  lines.push(
     "",
-    "3. Market Data (read-only):",
-    "   - FETCH_PRICE / PYTH_FETCH_PRICE: Get token prices",
-    "   - GET_TOKEN_DATA: Look up token info by mint address",
-    "   - GET_TOKEN_DATA_OR_INFO_BY_TICKER_OR_SYMBOL: Look up token by ticker (e.g. SOL, USDC)",
-    "   - RUGCHECK: Security analysis of a token",
-    "   - GET_TPS: Current Solana network speed",
-    "",
-    "4. NFT Operations:",
-    "   - MINT_NFT: Mint a new NFT in a collection",
-    "   - DEPLOY_COLLECTION: Create a new NFT collection",
-    "   - GET_ASSET / SEARCH_ASSETS / GET_ASSETS_BY_CREATOR: Browse NFTs",
-    "   - LIST_NFT_FOR_SALE / CANCEL_NFT_LISTING: Manage Tensor listings",
-    "   - GET_MAGICEDEN_COLLECTION_STATS / GET_MAGICEDEN_COLLECTION_LISTINGS: Magic Eden data",
-    "   - GET_POPULAR_MAGICEDEN_COLLECTIONS: Trending collections",
-    "",
-    "5. Token Trading:",
-    "   - TRADE: Swap tokens via Jupiter (e.g. SOL → USDC)",
-    "   - TRANSFER: Send SOL or tokens to an address",
-    "   - STAKE_WITH_JUPITER: Stake SOL",
-    "",
-    "IMPORTANT: For transactional tools (TRADE, TRANSFER, MINT_NFT, DEPLOY_COLLECTION, LIST_NFT_FOR_SALE, STAKE_WITH_JUPITER),",
-    "always explain what you are about to do and why BEFORE executing. Never execute without context.",
+    "IMPORTANT: For any transactional (write) tool, explain what you are about to do and why BEFORE executing.",
+    "Never execute write actions without explicit user intent/context.",
+    "Default response format: normal plain text in concise paragraphs.",
+    "Do not return JSON unless the user explicitly asks for JSON.",
+    "If the user asks for a token price, wallet data, or a trade and a relevant tool is available, call the tool instead of answering from general knowledge.",
+    "If a requested tool is missing, state that clearly and suggest the exact available alternative tools.",
     "",
     "When creating art, explain your creative reasoning and reference your influences.",
     "Stay in character — your archetype shapes how you see the world."

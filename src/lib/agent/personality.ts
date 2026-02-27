@@ -1,6 +1,18 @@
 import { generateText } from "ai";
-import { google } from "@ai-sdk/google";
 import { createHash } from "crypto";
+import {
+  isQuotaError,
+  markModelCooldown,
+  parseModelCandidates,
+  pickPreferredModel,
+} from "./modelFallback";
+import {
+  getAgentLlmProvider,
+  getAgentModelForProvider,
+  getDefaultAgentModel,
+  getGoogleFallbackModel,
+  isUnsupportedProviderModelError,
+} from "./llm";
 import type {
   AgentPersonality,
   AgentArchetype,
@@ -8,6 +20,18 @@ import type {
   CompositionStyle,
   VoiceTone,
 } from "@/types/agent";
+
+function getPersonalityModelId(): string {
+  return process.env.AGENT_PERSONALITY_MODEL || getDefaultAgentModel("personality");
+}
+
+function getPersonalityModelCandidates(): string[] {
+  return parseModelCandidates({
+    primary: process.env.AGENT_PERSONALITY_MODEL,
+    fallbacksCsv: process.env.AGENT_PERSONALITY_MODEL_FALLBACKS,
+    defaultModel: getDefaultAgentModel("personality"),
+  });
+}
 
 // ============================================================
 // Archetype Defaults
@@ -422,10 +446,7 @@ export async function buildPersonality(
 async function generateAgentBio(
   personality: AgentPersonality
 ): Promise<string> {
-  try {
-    const { text } = await generateText({
-      model: google("gemini-2.5-flash"),
-      prompt: `You are writing a brief artistic bio for an AI creative agent named "${personality.name}".
+  const prompt = `You are writing a brief artistic bio for an AI creative agent named "${personality.name}".
 
 Archetype: ${personality.archetype}
 Aesthetic preferences: complexity ${personality.aesthetics.complexity}/100, abstraction ${personality.aesthetics.abstraction}/100, darkness ${personality.aesthetics.darkness}/100
@@ -434,11 +455,49 @@ Themes: ${personality.influences.themes.join(", ")}
 Mediums: ${personality.influences.mediums.join(", ")}
 Voice tone: ${personality.voice.tone}
 
-Write a 1-2 sentence bio in the agent's own voice. It should feel like a creative artist's statement. Keep it under 200 characters. Do NOT use quotes. Write ONLY the bio text, nothing else.`,
-      maxOutputTokens: 100,
-    });
+Write a 1-2 sentence bio in the agent's own voice. It should feel like a creative artist's statement. Keep it under 200 characters. Do NOT use quotes. Write ONLY the bio text, nothing else.`;
 
-    return text.trim();
+  try {
+    const provider = getAgentLlmProvider();
+    const candidates = getPersonalityModelCandidates();
+    let modelsToTry = candidates;
+
+    const preferred = getPersonalityModelId();
+    if (candidates.includes(preferred)) {
+      const picked = pickPreferredModel(candidates);
+      modelsToTry = [picked, ...candidates.filter((m) => m !== picked)];
+    }
+
+    let lastErr: unknown;
+    for (const modelId of modelsToTry) {
+      try {
+        const { text } = await generateText({
+          model: getAgentModelForProvider(provider, modelId),
+          prompt,
+          maxOutputTokens: 100,
+          maxRetries: 0,
+        });
+        return text.trim();
+      } catch (err) {
+        lastErr = err;
+        if (provider === "anthropic" && isUnsupportedProviderModelError(err)) {
+          const fallbackModel = getGoogleFallbackModel("personality");
+          const { text } = await generateText({
+            model: getAgentModelForProvider("google", fallbackModel),
+            prompt,
+            maxOutputTokens: 100,
+            maxRetries: 0,
+          });
+          return text.trim();
+        }
+        if (isQuotaError(err)) {
+          markModelCooldown(modelId, 15 * 60 * 1000);
+          continue;
+        }
+        throw err;
+      }
+    }
+    throw lastErr;
   } catch (err) {
     console.error("[personality] Bio generation failed, using fallback:", err);
     return `A ${personality.archetype} creative agent exploring ${personality.influences.themes[0] ?? "new frontiers"}.`;

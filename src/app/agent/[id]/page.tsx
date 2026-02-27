@@ -1,19 +1,31 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useRef } from "react";
 import { useChat } from "@ai-sdk/react";
 import type { AgentRow } from "@/lib/supabase";
 import ChatArea from "@/components/agent/ChatArea";
-import AgentProfileSidebar from "@/components/agent/AgentProfileSidebar";
-import { Loader2, User, X } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import type { UIMessage, Attachment } from "@ai-sdk/ui-utils";
+
+interface SessionSummary {
+  sessionId: string;
+  lastMessageAt: string;
+  preview: string;
+  messageCount: number;
+}
 
 export default function AgentPage({ params }: { params: Promise<{ id: string }> }) {
   const { id: agentId } = use(params);
   const [agent, setAgent] = useState<AgentRow | null>(null);
   const [loadingAgent, setLoadingAgent] = useState(true);
-  const [showProfile, setShowProfile] = useState(false);
-  const [sessionId] = useState(() => crypto.randomUUID());
-
+  const [sessions, setSessions] = useState<SessionSummary[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string>("");
+  const [capabilities, setCapabilities] = useState<{
+    totalTools: number;
+    solanaToolsCount: number;
+    tools: string[];
+    solanaDiagnostics?: { selected: string[]; raw: string[] };
+  } | null>(null);
   // Fetch agent details
   useEffect(() => {
     fetch(`/api/agent/${agentId}`)
@@ -23,10 +35,111 @@ export default function AgentPage({ params }: { params: Promise<{ id: string }> 
       .finally(() => setLoadingAgent(false));
   }, [agentId]);
 
+  useEffect(() => {
+    fetch(`/api/agent/${agentId}/capabilities`)
+      .then((r) => (r.ok ? r.json() : Promise.reject("No capabilities")))
+      .then((data) =>
+        setCapabilities({
+          totalTools: Number(data.totalTools ?? 0),
+          solanaToolsCount: Number(data.solanaToolsCount ?? 0),
+          tools: Array.isArray(data.tools) ? data.tools : [],
+          solanaDiagnostics:
+            data && typeof data === "object" && "solanaDiagnostics" in data
+              ? (data.solanaDiagnostics as { selected: string[]; raw: string[] })
+              : undefined,
+        })
+      )
+      .catch(() => setCapabilities(null));
+  }, [agentId]);
+
+  useEffect(() => {
+    fetch(`/api/agent/${agentId}/sessions`)
+      .then((r) => (r.ok ? r.json() : Promise.reject("No sessions")))
+      .then((data) => {
+        const items = Array.isArray(data.sessions) ? (data.sessions as SessionSummary[]) : [];
+        setSessions(items);
+        setActiveSessionId((prev) => {
+          if (prev) return prev;
+          return items[0]?.sessionId ?? crypto.randomUUID();
+        });
+      })
+      .catch(() => {
+        setSessions([]);
+        setActiveSessionId((prev) => prev || crypto.randomUUID());
+      });
+  }, [agentId]);
+
   const chat = useChat({
     api: `/api/agent/${agentId}/chat`,
-    body: { sessionId },
+    body: { sessionId: activeSessionId },
+    streamProtocol: "text",
+    fetch: (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const res = await fetch(input, { ...init, credentials: "include" });
+      const contentType = res.headers.get("content-type") ?? "";
+      const looksLikeStream =
+        contentType.includes("text/plain") ||
+        contentType.includes("text/event-stream") ||
+        contentType.includes("application/x-ndjson");
+
+      if (!res.ok || !looksLikeStream) {
+        let message = `Chat request failed (${res.status})`;
+        try {
+          const data = await res.clone().json();
+          if (data?.error && typeof data.error === "string") {
+            message = data.error;
+          }
+        } catch {
+          const text = await res.clone().text().catch(() => "");
+          if (text) message = text.slice(0, 300);
+        }
+        throw new Error(message);
+      }
+
+      return res;
+    }) as typeof fetch,
+    onFinish: () => {
+      fetch(`/api/agent/${agentId}/sessions`)
+        .then((r) => (r.ok ? r.json() : Promise.reject("No sessions")))
+        .then((data) => {
+          const items = Array.isArray(data.sessions)
+            ? (data.sessions as SessionSummary[])
+            : [];
+          setSessions(items);
+        })
+        .catch(() => {});
+    },
   });
+  const setMessagesRef = useRef(chat.setMessages);
+  useEffect(() => {
+    setMessagesRef.current = chat.setMessages;
+  }, [chat.setMessages]);
+
+  useEffect(() => {
+    if (!activeSessionId) return;
+    fetch(`/api/agent/${agentId}/messages?sessionId=${encodeURIComponent(activeSessionId)}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject("No messages")))
+      .then((data) => {
+        const messages = Array.isArray(data.messages)
+          ? (data.messages as UIMessage[])
+          : [];
+        setMessagesRef.current(messages);
+      })
+      .catch(() => setMessagesRef.current([]));
+  }, [agentId, activeSessionId]);
+
+  const startNewSession = () => {
+    const nextId = crypto.randomUUID();
+    setActiveSessionId(nextId);
+    chat.setMessages([]);
+    chat.setInput("");
+  };
+
+  const submitWithAttachments = (
+    event?: { preventDefault?: () => void },
+    attachments?: Attachment[]
+  ) => {
+    chat.handleSubmit(event, attachments ? { experimental_attachments: attachments } : undefined);
+  };
 
   if (loadingAgent) {
     return (
@@ -45,51 +158,26 @@ export default function AgentPage({ params }: { params: Promise<{ id: string }> 
   }
 
   return (
-    <div className="h-screen pt-16 flex">
-      {/* Chat area */}
-      <div className="flex-1 min-w-0 flex flex-col">
+    <div className="flex h-screen min-h-0 bg-[#0f1014] pt-20 text-[#f4f4f5]">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <ChatArea
           messages={chat.messages}
           input={chat.input}
           handleInputChange={chat.handleInputChange as (e: React.ChangeEvent<HTMLTextAreaElement>) => void}
-          handleSubmit={chat.handleSubmit}
+          handleSubmit={submitWithAttachments}
           status={chat.status}
+          errorMessage={(chat as { error?: Error | null }).error?.message ?? null}
           agentName={agent.name}
           agentAvatar={agent.avatar_url}
+          capabilities={capabilities}
+          sessions={sessions}
+          activeSessionId={activeSessionId}
+          onSelectSession={setActiveSessionId}
+          onNewSession={startNewSession}
+          agentId={agent.id}
+          agentMintAddress={agent.mint_address}
         />
       </div>
-
-      {/* Desktop sidebar */}
-      <aside className="hidden lg:block w-[380px] shrink-0 border-l border-gray-a3 overflow-y-auto bg-gray-2">
-        <AgentProfileSidebar agent={agent} />
-      </aside>
-
-      {/* Mobile profile toggle */}
-      <button
-        onClick={() => setShowProfile(true)}
-        className="fixed bottom-20 right-4 lg:hidden w-11 h-11 rounded-full bg-gray-3 border border-gray-a3 flex items-center justify-center shadow-lg z-30"
-      >
-        <User className="w-5 h-5 text-gray-11" />
-      </button>
-
-      {/* Mobile profile drawer */}
-      {showProfile && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <div
-            className="absolute inset-0 bg-black/50"
-            onClick={() => setShowProfile(false)}
-          />
-          <div className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-[380px] bg-gray-2 overflow-y-auto">
-            <button
-              onClick={() => setShowProfile(false)}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-4 flex items-center justify-center z-10"
-            >
-              <X className="w-4 h-4 text-gray-11" />
-            </button>
-            <AgentProfileSidebar agent={agent} />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

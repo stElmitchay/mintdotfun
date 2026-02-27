@@ -1,7 +1,19 @@
 import { supabase } from "@/lib/supabase";
 import { generateEmbedding } from "./embeddings";
 import { generateText } from "ai";
-import { google } from "@ai-sdk/google";
+import {
+  isQuotaError,
+  markModelCooldown,
+  parseModelCandidates,
+  pickPreferredModel,
+} from "./modelFallback";
+import {
+  getAgentLlmProvider,
+  getAgentModelForProvider,
+  getDefaultAgentModel,
+  getGoogleFallbackModel,
+  isUnsupportedProviderModelError,
+} from "./llm";
 
 // ============================================================
 // Agent Memory System — store, search, consolidate
@@ -14,6 +26,14 @@ function requireSupabase() {
     );
   }
   return supabase;
+}
+
+function getMemoryModelCandidates(): string[] {
+  return parseModelCandidates({
+    primary: process.env.AGENT_MEMORY_MODEL,
+    fallbacksCsv: process.env.AGENT_MEMORY_MODEL_FALLBACKS,
+    defaultModel: getDefaultAgentModel("memory"),
+  });
 }
 
 /** Store a memory with vector embedding. */
@@ -108,12 +128,49 @@ export async function consolidateConversation(params: {
     .map((m) => `${m.role}: ${m.content}`)
     .join("\n");
 
-  const { text: summary } = await generateText({
-    model: google("gemini-2.5-flash"),
-    system:
-      "Summarize this conversation concisely, capturing key topics, decisions, and any creative ideas discussed. Keep it under 200 words.",
-    prompt: transcript,
-  });
+  const candidates = getMemoryModelCandidates();
+  const picked = pickPreferredModel(candidates);
+  const modelsToTry = [picked, ...candidates.filter((m) => m !== picked)];
+  let summary: string | null = null;
+  let lastErr: unknown;
+  const provider = getAgentLlmProvider();
+
+  for (const modelId of modelsToTry) {
+    try {
+      const res = await generateText({
+        model: getAgentModelForProvider(provider, modelId),
+        system:
+          "Summarize this conversation concisely, capturing key topics, decisions, and any creative ideas discussed. Keep it under 200 words.",
+        prompt: transcript,
+        maxRetries: 0,
+      });
+      summary = res.text;
+      break;
+    } catch (err) {
+      lastErr = err;
+      if (provider === "anthropic" && isUnsupportedProviderModelError(err)) {
+        const fallbackModel = getGoogleFallbackModel("memory");
+        const res = await generateText({
+          model: getAgentModelForProvider("google", fallbackModel),
+          system:
+            "Summarize this conversation concisely, capturing key topics, decisions, and any creative ideas discussed. Keep it under 200 words.",
+          prompt: transcript,
+          maxRetries: 0,
+        });
+        summary = res.text;
+        break;
+      }
+      if (isQuotaError(err)) {
+        markModelCooldown(modelId, 15 * 60 * 1000);
+        continue;
+      }
+      throw err;
+    }
+  }
+
+  if (!summary) {
+    throw lastErr instanceof Error ? lastErr : new Error("Summary failed");
+  }
 
   return storeMemory({
     agentId: params.agentId,

@@ -228,6 +228,9 @@ export default function MirrorTypePage() {
                   ? `Mint ${config.name}`
                   : "Not yet available"}
               </button>
+              <p className="mt-2 text-[11px] text-gray-8">
+                After mint, you can open your mirror NFT on Metaplex and list it from the owned mirror page.
+              </p>
 
               {/* Data sources */}
               <div className="mt-6 pt-6 border-t border-gray-a3">

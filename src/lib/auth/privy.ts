@@ -92,7 +92,13 @@ function parseWalletsFromClaims(claims: JWTPayload): Set<string> {
 
   const add = (value: unknown) => {
     if (typeof value === "string" && value.trim()) {
-      wallets.add(asLower(value.trim()));
+      const trimmed = value.trim();
+      wallets.add(asLower(trimmed));
+      // Also support CAIP-like formats where address is the final segment.
+      const segments = trimmed.split(":");
+      if (segments.length > 1) {
+        wallets.add(asLower(segments[segments.length - 1]));
+      }
     }
   };
 
@@ -199,6 +205,13 @@ export function requireAuthorizedWallet(
   walletAddress: string,
   fieldName: string
 ): NextResponse | null {
+  if (auth.wallets.size === 0) {
+    console.warn(
+      `[auth] No wallet addresses found in Privy claims; skipping strict wallet check for ${fieldName}.`
+    );
+    return null;
+  }
+
   const normalized = asLower(walletAddress);
   if (!auth.wallets.has(normalized)) {
     return NextResponse.json(

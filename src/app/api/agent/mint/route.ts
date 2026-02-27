@@ -63,7 +63,10 @@ export async function POST(req: NextRequest) {
     const personalityHash = hashPersonality(personality);
 
     // Generate avatar
-    const avatarImageUrl = await generateAgentAvatar(personality);
+    const avatarImageUrl = await generateAgentAvatar(
+      personality,
+      request.avatarDirection
+    );
 
     // Upload to Arweave
     const personalityUri = await uploadPersonalityToArweave(personality);

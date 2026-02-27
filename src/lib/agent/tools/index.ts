@@ -3,6 +3,11 @@ import type { AgentRow } from "@/lib/supabase";
 import { createGenerateArtTool } from "./generateArt";
 import { createSearchMemoryTool } from "./searchMemory";
 import { getSolanaTools } from "../solanaKit";
+import {
+  isToolEnabledByAllowedActions,
+  isTransactionalToolName,
+  resolveAllowedActionIds,
+} from "../solanaActions";
 
 // ============================================================
 // Tool Aggregator — combines custom + Solana Kit tools
@@ -30,4 +35,33 @@ export function createAgentTools(
   }
 
   return { ...customTools, ...solanaTools };
+}
+
+export interface ToolRestrictionOptions {
+  isOwner: boolean;
+  allowedActions?: string[];
+  isPaused?: boolean;
+}
+
+export function restrictToolsForViewer(
+  tools: Record<string, AnyTool>,
+  options: ToolRestrictionOptions
+): Record<string, AnyTool> {
+  const allowedActionIds = resolveAllowedActionIds(options.allowedActions);
+
+  const filtered: Record<string, AnyTool> = {};
+  for (const [name, tool] of Object.entries(tools)) {
+    const isLikelySolanaTool = name === name.toUpperCase() || name.includes("_");
+    const isTransactional = isTransactionalToolName(name);
+    if (!options.isOwner && isTransactional) continue;
+    if (options.isPaused && isTransactional) continue;
+    if (
+      isLikelySolanaTool &&
+      !isToolEnabledByAllowedActions(name, allowedActionIds)
+    ) {
+      continue;
+    }
+    filtered[name] = tool;
+  }
+  return filtered;
 }

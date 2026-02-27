@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { X, Loader2, Check, AlertCircle } from "lucide-react";
+import { X, Loader2, Check, AlertCircle, ExternalLink } from "lucide-react";
 import { useUmi } from "@/hooks/useUmi";
 import { mintMirrorNFT } from "@/lib/mirrors/mintMirror";
 import type { MirrorMintResult } from "@/lib/mirrors/mintMirror";
@@ -115,12 +115,23 @@ export default function MirrorMintModal({
                   Your {mirrorName} will update automatically. Check back
                   tomorrow to see its first evolution.
                 </p>
-                <Link
-                  href={`/mirrors/${mirrorType}/${result.mint}`}
-                  className="inline-block bg-accent text-[var(--color-on-accent)] px-6 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
-                >
-                  View Your Mirror
-                </Link>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+                  <Link
+                    href={`/mirrors/${mirrorType}/${result.mint}`}
+                    className="inline-block bg-accent text-[var(--color-on-accent)] px-6 py-3 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
+                  >
+                    View Your Mirror
+                  </Link>
+                  <a
+                    href={result.explorerUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 border border-gray-a4 text-gray-12 px-4 py-3 rounded-full text-sm font-semibold hover:bg-gray-3 transition-colors"
+                  >
+                    View on Metaplex
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
               </div>
             ) : (
               <>

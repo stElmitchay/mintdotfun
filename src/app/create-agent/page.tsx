@@ -8,8 +8,8 @@ import {
   ArrowUp,
   Sparkles,
   Check,
+  ExternalLink,
   Eye,
-  Pen,
   Flame,
   Leaf,
   Building2,
@@ -43,6 +43,7 @@ import {
 } from "@metaplex-foundation/umi";
 import { createV2 } from "@metaplex-foundation/mpl-core";
 import type { AgentArchetype, AgentPersonality } from "@/types/agent";
+import { getCoreAssetUrl, shortenAddress } from "@/lib/utils";
 
 // ============================================
 // Archetype data
@@ -209,7 +210,7 @@ const PHASE_LABELS: Record<MintPhase, string> = {
 // Main component
 // ============================================
 
-const TOTAL_STEPS = 3;
+const TOTAL_STEPS = 4;
 
 export default function CreateAgentPage() {
   const { authenticated, login } = usePrivy();
@@ -220,6 +221,16 @@ export default function CreateAgentPage() {
   const [name, setName] = useState("");
   const [archetype, setArchetype] = useState<AgentArchetype | null>(null);
   const [sliders, setSliders] = useState({ complexity: 50, abstraction: 50, darkness: 50, temperature: 50 });
+  const [avatarDirection, setAvatarDirection] = useState(
+    "Neon cyberpunk portrait with clear facial silhouette"
+  );
+  const [autonomyMode, setAutonomyMode] = useState<"suggest" | "auto_create" | "full_autonomous">("suggest");
+  const [strategyText, setStrategyText] = useState(
+    "Look at trending Solana tokens, prioritize safer momentum, and avoid high risk entries."
+  );
+  const [riskProfile, setRiskProfile] = useState<"conservative" | "balanced" | "aggressive">("balanced");
+  const [timeHorizon, setTimeHorizon] = useState<"intraday" | "swing" | "long">("swing");
+  const [maxTradeSol, setMaxTradeSol] = useState("0.05");
 
   // Step management
   const [step, setStep] = useState(0);
@@ -231,12 +242,14 @@ export default function CreateAgentPage() {
   const [mintError, setMintError] = useState<string | null>(null);
   const [mintResult, setMintResult] = useState<{
     agentId: string;
+    mintAddress: string;
+    explorerUrl: string;
     avatarUrl: string;
     name: string;
     archetype: AgentArchetype;
   } | null>(null);
 
-  const whimsicalWord = useWhimsicalWord(step === 2 && mintPhase !== "done" && mintPhase !== "error");
+  const whimsicalWord = useWhimsicalWord(step === 3 && mintPhase !== "done" && mintPhase !== "error");
 
   const goTo = (s: number) => {
     setDirection(s > step ? 1 : -1);
@@ -252,9 +265,9 @@ export default function CreateAgentPage() {
     }
   }, [step]);
 
-  // Mint flow — triggered when entering step 2
+  // Mint flow — triggered when entering final step
   useEffect(() => {
-    if (step !== 2) return;
+    if (step !== 3) return;
     if (!archetype || !name.trim() || !connected || !walletAddress) return;
 
     let cancelled = false;
@@ -276,6 +289,7 @@ export default function CreateAgentPage() {
             abstraction: sliders.abstraction,
             darkness: sliders.darkness,
             temperature: sliders.temperature,
+            avatarDirection,
             ownerAddress: walletAddress,
           }),
         });
@@ -346,11 +360,12 @@ export default function CreateAgentPage() {
 
         // Step 3: Register agent in database
         setMintPhase("registering");
+        const mintAddress = assetSigner.publicKey.toString();
         const registerRes = await fetch("/api/agent/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            mintAddress: assetSigner.publicKey.toString(),
+            mintAddress,
             ownerWallet: walletAddress,
             personality,
             personalityHash,
@@ -366,11 +381,78 @@ export default function CreateAgentPage() {
 
         const { agentId } = await registerRes.json() as { agentId: string };
 
+        // Step 4: Save autonomy permissions and strategy instructions
+        const maxTradeLamports = Math.max(
+          0,
+          Math.floor((Number.parseFloat(maxTradeSol) || 0) * 1_000_000_000)
+        );
+        const baseReadActions = [
+          "wallet_address",
+          "balance",
+          "token_balance",
+          "fetch_price",
+          "token_info",
+          "rugcheck",
+          "network_tps",
+        ];
+        const allowedActions =
+          autonomyMode === "auto_create"
+            ? baseReadActions
+            : [...baseReadActions, "trade", "transfer", "stake"];
+
+        const permissionsRes = await fetch(`/api/agent/${agentId}/permissions`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            mode: autonomyMode,
+            allowedActions,
+            maxTradeLamports,
+            dailySpendLimitLamports: maxTradeLamports * 3,
+            cooldownSeconds: 30,
+          }),
+        });
+        if (!permissionsRes.ok) {
+          const data = await permissionsRes
+            .json()
+            .catch(() => ({ error: `HTTP ${permissionsRes.status}` }));
+          throw new Error(
+            data.error || `Autonomy permissions setup failed (${permissionsRes.status})`
+          );
+        }
+
+        const instructionsRes = await fetch(
+          `/api/agent/${agentId}/instructions`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              strategyText,
+              riskProfile,
+              timeHorizon,
+              strategyJson: {
+                activeWindowSeconds: 90,
+                loopIntervalSeconds: 20,
+                maxActionsPerWindow: 4,
+              },
+            }),
+          }
+        );
+        if (!instructionsRes.ok) {
+          const data = await instructionsRes
+            .json()
+            .catch(() => ({ error: `HTTP ${instructionsRes.status}` }));
+          throw new Error(
+            data.error || `Strategy setup failed (${instructionsRes.status})`
+          );
+        }
+
         if (cancelled) return;
 
         setMintPhase("done");
         setMintResult({
           agentId,
+          mintAddress,
+          explorerUrl: getCoreAssetUrl(mintAddress),
           avatarUrl: avatarImageUri,
           name: personality.name,
           archetype: personality.archetype,
@@ -384,7 +466,21 @@ export default function CreateAgentPage() {
 
     mintAgent();
     return () => { cancelled = true; };
-  }, [step, archetype, name, connected, walletAddress, sliders, umi]);
+  }, [
+    step,
+    archetype,
+    name,
+    connected,
+    walletAddress,
+    sliders,
+    umi,
+    autonomyMode,
+    avatarDirection,
+    maxTradeSol,
+    strategyText,
+    riskProfile,
+    timeHorizon,
+  ]);
 
   // ============================================
   // Not authenticated
@@ -404,10 +500,10 @@ export default function CreateAgentPage() {
             <Shield className="w-8 h-8" style={{ color: "var(--color-on-accent)" }} />
           </motion.div>
           <h2 className="text-3xl font-bold text-center" style={{ color: "var(--color-on-accent)" }}>
-            Connect to Create an Agent
+            Connect to Create a Solana Agent
           </h2>
           <p className="text-sm text-center max-w-md" style={{ color: "var(--color-on-accent)" }}>
-            Sign in with your email or wallet to mint an AI creative agent on Solana.
+            Mint an autonomous agent NFT, set trading instructions, and run it on Solana.
           </p>
           <motion.button
             onClick={login}
@@ -590,8 +686,147 @@ export default function CreateAgentPage() {
             </StepShell>
           )}
 
-          {/* Step 2 — Minting / Success */}
+          {/* Step 2 — Autonomy / Trading Setup */}
           {step === 2 && (
+            <StepShell key="autonomy" direction={direction}>
+              <StepLabel number={3} text="Set autonomy plan" />
+              <div className="w-full max-w-xl space-y-5">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium" style={{ color: "var(--color-on-accent)" }}>
+                    Operating mode
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    {[
+                      { id: "suggest", label: "Suggest", desc: "Propose actions first" },
+                      { id: "auto_create", label: "Auto Create", desc: "Autonomous art-first mode" },
+                      { id: "full_autonomous", label: "Full Auto", desc: "Can auto-run on-chain tasks" },
+                    ].map((m) => {
+                      const active = autonomyMode === m.id;
+                      return (
+                        <button
+                          key={m.id}
+                          onClick={() => setAutonomyMode(m.id as "suggest" | "auto_create" | "full_autonomous")}
+                          className="text-left p-3 rounded-xl transition-all"
+                          style={
+                            active
+                              ? {
+                                  background: "var(--color-on-accent)",
+                                  color: "var(--color-accent)",
+                                }
+                              : {
+                                  background: "color-mix(in srgb, var(--color-on-accent) 8%, transparent)",
+                                  color: "var(--color-on-accent)",
+                                  border: "1px solid color-mix(in srgb, var(--color-on-accent) 12%, transparent)",
+                                }
+                          }
+                        >
+                          <p className="text-xs font-semibold">{m.label}</p>
+                          <p className="text-[10px] opacity-75 mt-1">{m.desc}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium block" style={{ color: "var(--color-on-accent)" }}>
+                    NFT visual direction
+                  </label>
+                  <input
+                    value={avatarDirection}
+                    onChange={(e) => setAvatarDirection(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none"
+                    style={{
+                      background: "color-mix(in srgb, var(--color-on-accent) 8%, transparent)",
+                      border: "1px solid color-mix(in srgb, var(--color-on-accent) 15%, transparent)",
+                      color: "var(--color-on-accent)",
+                    }}
+                    placeholder="Describe the look of your agent NFT avatar"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium block" style={{ color: "var(--color-on-accent)" }}>
+                    Strategy instructions
+                  </label>
+                  <textarea
+                    value={strategyText}
+                    onChange={(e) => setStrategyText(e.target.value)}
+                    rows={4}
+                    className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none"
+                    style={{
+                      background: "color-mix(in srgb, var(--color-on-accent) 8%, transparent)",
+                      border: "1px solid color-mix(in srgb, var(--color-on-accent) 15%, transparent)",
+                      color: "var(--color-on-accent)",
+                    }}
+                    placeholder="Example: Check Birdeye trending, trade only tokens above $2M market cap, avoid high risk setups."
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium block" style={{ color: "var(--color-on-accent)" }}>
+                      Risk profile
+                    </label>
+                    <select
+                      value={riskProfile}
+                      onChange={(e) => setRiskProfile(e.target.value as "conservative" | "balanced" | "aggressive")}
+                      className="w-full rounded-xl px-3 py-2 text-sm focus:outline-none"
+                      style={{
+                        background: "color-mix(in srgb, var(--color-on-accent) 8%, transparent)",
+                        border: "1px solid color-mix(in srgb, var(--color-on-accent) 15%, transparent)",
+                        color: "var(--color-on-accent)",
+                      }}
+                    >
+                      <option value="conservative">Conservative</option>
+                      <option value="balanced">Balanced</option>
+                      <option value="aggressive">Aggressive</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium block" style={{ color: "var(--color-on-accent)" }}>
+                      Time horizon
+                    </label>
+                    <select
+                      value={timeHorizon}
+                      onChange={(e) => setTimeHorizon(e.target.value as "intraday" | "swing" | "long")}
+                      className="w-full rounded-xl px-3 py-2 text-sm focus:outline-none"
+                      style={{
+                        background: "color-mix(in srgb, var(--color-on-accent) 8%, transparent)",
+                        border: "1px solid color-mix(in srgb, var(--color-on-accent) 15%, transparent)",
+                        color: "var(--color-on-accent)",
+                      }}
+                    >
+                      <option value="intraday">Intraday</option>
+                      <option value="swing">Swing</option>
+                      <option value="long">Long</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium block" style={{ color: "var(--color-on-accent)" }}>
+                      Max trade (SOL)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={maxTradeSol}
+                      onChange={(e) => setMaxTradeSol(e.target.value)}
+                      className="w-full rounded-xl px-3 py-2 text-sm focus:outline-none"
+                      style={{
+                        background: "color-mix(in srgb, var(--color-on-accent) 8%, transparent)",
+                        border: "1px solid color-mix(in srgb, var(--color-on-accent) 15%, transparent)",
+                        color: "var(--color-on-accent)",
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </StepShell>
+          )}
+
+          {/* Step 3 — Minting / Success */}
+          {step === 3 && (
             <StepShell key="mint" direction={direction}>
               {mintPhase === "done" && mintResult ? (
                 /* Success */
@@ -641,6 +876,27 @@ export default function CreateAgentPage() {
                   >
                     <Check className="w-3.5 h-3.5" />
                     Minted on Solana
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.45 }}
+                    className="flex items-center gap-2 text-xs px-3 py-1.5 rounded-full"
+                    style={{
+                      background: "color-mix(in srgb, var(--color-on-accent) 8%, transparent)",
+                      color: "var(--color-on-accent)",
+                    }}
+                  >
+                    <span className="font-mono">{shortenAddress(mintResult.mintAddress, 8)}</span>
+                    <a
+                      href={mintResult.explorerUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 underline underline-offset-2 hover:opacity-80"
+                    >
+                      View on Metaplex
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
                   </motion.div>
                   <motion.button
                     initial={{ opacity: 0, y: 10 }}
@@ -734,7 +990,7 @@ export default function CreateAgentPage() {
       </div>
 
       {/* Bottom navigation */}
-      {step < 2 && (
+      {step < 3 && (
         <div className="relative z-20 flex items-center justify-between px-4 sm:px-8 py-6">
           {step > 0 ? (
             <motion.button
@@ -771,6 +1027,23 @@ export default function CreateAgentPage() {
           )}
 
           {step === 1 && (
+            <motion.button
+              onClick={next}
+              className="flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold transition-all"
+              style={{
+                background: "color-mix(in srgb, var(--color-on-accent) 10%, transparent)",
+                color: "var(--color-on-accent)",
+                border: "1px solid color-mix(in srgb, var(--color-on-accent) 20%, transparent)",
+              }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Set Autonomy
+              <ArrowRight className="w-3.5 h-3.5" />
+            </motion.button>
+          )}
+
+          {step === 2 && (
             <motion.button
               onClick={next}
               disabled={!connected}

@@ -230,8 +230,15 @@ export default function OwnedMirrorPage() {
                   className="flex items-center gap-2 text-sm text-gray-9 hover:text-gray-12 transition-colors py-1"
                 >
                   <ExternalLink className="w-3.5 h-3.5" />
-                  View on Metaplex Explorer
+                  View on Metaplex
                 </a>
+                <Link
+                  href={`/nft/${address}`}
+                  className="flex items-center gap-2 text-sm text-gray-9 hover:text-gray-12 transition-colors py-1"
+                >
+                  <Layers className="w-3.5 h-3.5" />
+                  List Mirror NFT
+                </Link>
               </div>
             </div>
           </motion.div>

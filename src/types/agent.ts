@@ -134,6 +134,7 @@ export const CreateAgentRequestSchema = z.object({
   abstraction: z.number().min(0).max(100).optional(),
   darkness: z.number().min(0).max(100).optional(),
   temperature: z.number().min(0).max(100).optional(),
+  avatarDirection: z.string().min(0).max(500).optional(),
   ownerAddress: z.string().min(32).max(64),
 });
 
