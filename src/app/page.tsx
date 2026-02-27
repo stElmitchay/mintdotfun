@@ -1041,8 +1041,8 @@ function ContactFrame() {
 const CONTENT_FRAMES = [
   { id: "platform", variant: "default" as const },
   { id: "agents", variant: "slide" as const },
-  { id: "marketplace", variant: "slide" as const },
   { id: "quote", variant: "default" as const, color: "var(--color-accent)" },
+  { id: "marketplace", variant: "slide" as const },
   { id: "contact", variant: "default" as const },
 ];
 
@@ -1164,11 +1164,6 @@ function MobileHome() {
         <PlatformMobileBlock />
       </section>
 
-      {/* ── Marketplace / Trending ── */}
-      <section className={styles.mobileMarketplace}>
-        <MobileMarketplaceSection />
-      </section>
-
       {/* ── Quote ── */}
       <section className={styles.mobileQuote}>
         <FrameTexture color="var(--color-gray-1)" />
@@ -1196,6 +1191,11 @@ function MobileHome() {
             </motion.div>
           ))}
         </div>
+      </section>
+
+      {/* ── Marketplace / Trending ── */}
+      <section className={styles.mobileMarketplace}>
+        <MobileMarketplaceSection />
       </section>
 
       {/* ── Contact ── */}
