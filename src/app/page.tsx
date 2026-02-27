@@ -803,10 +803,10 @@ function PlatformFrame() {
           }}
         >
           <div>
-            <p style={{ fontSize: 13, fontWeight: 700, color: "var(--color-accent)", marginBottom: 6 }}>
+            <p style={{ fontSize: 15, fontWeight: 700, color: "var(--color-accent)", marginBottom: 8 }}>
               Mirror NFTs
             </p>
-            <p style={{ fontSize: 15, lineHeight: 1.55, color: "var(--color-gray-9)" }}>
+            <p style={{ fontSize: 17, lineHeight: 1.6, color: "var(--color-gray-9)" }}>
               Living cultural NFTs that evolve from weather, events, and on-chain context.
             </p>
           </div>
@@ -836,10 +836,10 @@ function PlatformFrame() {
           }}
         >
           <div>
-            <p style={{ fontSize: 13, fontWeight: 700, color: "var(--color-accent)", marginBottom: 6 }}>
+            <p style={{ fontSize: 15, fontWeight: 700, color: "var(--color-accent)", marginBottom: 8 }}>
               Agent NFTs
             </p>
-            <p style={{ fontSize: 15, lineHeight: 1.55, color: "var(--color-gray-9)" }}>
+            <p style={{ fontSize: 17, lineHeight: 1.6, color: "var(--color-gray-9)" }}>
               Autonomous NFTs that chat, execute actions, and build reputation over time.
             </p>
           </div>
@@ -900,8 +900,8 @@ function PlatformMobileBlock() {
       <div style={{ display: "grid", gap: 10 }}>
         <div style={{ border: "1px solid var(--color-gray-a3)", borderRadius: 12, padding: 12, background: "var(--color-gray-3)", display: "grid", gridTemplateColumns: "1fr 74px", gap: 10, alignItems: "center" }}>
           <div>
-            <p style={{ fontSize: 12, fontWeight: 700, color: "var(--color-accent)", marginBottom: 4 }}>Mirror NFTs</p>
-            <p style={{ fontSize: 13, color: "var(--color-gray-9)", lineHeight: 1.5 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: "var(--color-accent)", marginBottom: 5 }}>Mirror NFTs</p>
+            <p style={{ fontSize: 14, color: "var(--color-gray-9)", lineHeight: 1.55 }}>
               Evolving cultural NFTs powered by live data updates.
             </p>
           </div>
@@ -911,8 +911,8 @@ function PlatformMobileBlock() {
         </div>
         <div style={{ border: "1px solid var(--color-gray-a3)", borderRadius: 12, padding: 12, background: "var(--color-gray-3)", display: "grid", gridTemplateColumns: "1fr 74px", gap: 10, alignItems: "center" }}>
           <div>
-            <p style={{ fontSize: 12, fontWeight: 700, color: "var(--color-accent)", marginBottom: 4 }}>Agent NFTs</p>
-            <p style={{ fontSize: 13, color: "var(--color-gray-9)", lineHeight: 1.5 }}>
+            <p style={{ fontSize: 13, fontWeight: 700, color: "var(--color-accent)", marginBottom: 5 }}>Agent NFTs</p>
+            <p style={{ fontSize: 14, color: "var(--color-gray-9)", lineHeight: 1.55 }}>
               Autonomous NFT agents with memory, actions, and reputation.
             </p>
           </div>
@@ -1418,7 +1418,8 @@ export default function HomePage() {
       if (isWheeling.current) scrollY.stop();
       if (!cancelAnimation) setCancelAnimation(true);
 
-      const minScale = Math.min(0.6, maxScaleRef.current);
+      // Keep a readable minimum zoom floor.
+      const minScale = Math.min(0.72, maxScaleRef.current);
       let newScale = maxScaleRef.current;
       if (scrollAmount > 0) {
         newScale = clamp(scaleSpring.get() + -(0.01 * scrollAmount * 0.01), [
@@ -1514,9 +1515,10 @@ export default function HomePage() {
       if (!mainRef.current) return;
 
       const isNarrow = window.innerWidth < 640;
-      const minScaleClamp = isNarrow ? 0.42 : 0.2;
+      // Start from a larger viewport and avoid tiny zoom on smaller screens.
+      const minScaleClamp = isNarrow ? 0.52 : 0.72;
       const computedScale = clamp(
-        Math.min(window.innerWidth / 1300, window.innerHeight / 1020),
+        Math.min(window.innerWidth / 1140, window.innerHeight / 920),
         [minScaleClamp, 1]
       );
 
@@ -1525,7 +1527,7 @@ export default function HomePage() {
       }
       maxScaleRef.current = computedScale;
 
-      const effectiveScale = computedScale < 0.6 ? computedScale : 0.6;
+      const effectiveScale = computedScale < 0.72 ? computedScale : 0.72;
       const clientWidth = mainRef.current.clientWidth * effectiveScale;
       const extra =
         TOTAL_WIDTH * effectiveScale -
